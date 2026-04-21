@@ -30,6 +30,7 @@ class GridReward extends IPSModule
 
     public function Update()
     {
-        // kommt im nächsten Schritt
+        $current = GetValue($this->GetIDForIdent("Active"));
+        SetValue($this->GetIDForIdent("Active"), !$current);
     }
 }
