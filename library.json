@@ -1,11 +1,19 @@
 {
-  "id": "{11111111-2222-3333-4444-555555555555}",
-  "name": "GridReward Minimal Library",
+  "id": "{9E5C5F86-1C5F-4A4E-A30F-22D7E9C10F10}",
+  "name": "GridReward Library",
   "author": "Dietmar Gureth",
-  "version": "1.0",
+  "url": "https://github.com/dietmargureth/GridReward",
+  "version": "1.0.0",
   "build": 1,
   "date": 0,
   "compatibility": {
     "version": "6.0"
-  }
+  },
+  "modules": [
+    {
+      "id": "{A3BFA7D7-1F15-4F2B-9B7E-8F65A47E7444}",
+      "name": "GridReward",
+      "type": 2
+    }
+  ]
 }
