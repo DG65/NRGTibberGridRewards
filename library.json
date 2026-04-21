@@ -1,19 +1,12 @@
 {
-  "id": "{9E5C5F86-1C5F-4A4E-A30F-22D7E9C10F10}",
-  "name": "GridReward Library",
+  "id": "{B4C9B2A0-5F15-4B2C-AEF6-0B98D1E40001}",
+  "name": "GridReward",
   "author": "Dietmar Gureth",
-  "url": "https://github.com/dietmargureth/GridReward",
+  "url": "https://github.com/DG65/GridReward",
   "version": "1.0.0",
   "build": 1,
   "date": 0,
   "compatibility": {
-    "version": "6.0"
-  },
-  "modules": [
-    {
-      "id": "{A3BFA7D7-1F15-4F2B-9B7E-8F65A47E7444}",
-      "name": "GridReward",
-      "type": 2
-    }
-  ]
+    "version": "9.0"
+  }
 }
