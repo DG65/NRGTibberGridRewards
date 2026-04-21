@@ -1,0 +1,12 @@
+
+{
+  "id": "{E98F1B77-7C4E-48C7-9D26-0C5AFD2D4A21}",
+  "name": "Tibber Grid Reward",
+  "type": 3,
+  "vendor": "Custom",
+  "aliases": ["TibberGridReward"],
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "TGR"
+}
