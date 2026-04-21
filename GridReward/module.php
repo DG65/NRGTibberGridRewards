@@ -12,5 +12,24 @@ class GridReward extends IPSModule
             "~Switch",
             0
         );
+
+        // alle 60 Sekunden prüfen
+        $this->RegisterTimer(
+            "UpdateTimer",
+            60000,
+            'IPS_RequestAction(' . $this->InstanceID . ', "Update", 0);'
+        );
+    }
+
+    public function RequestAction($Ident, $Value)
+    {
+        if ($Ident === "Update") {
+            $this->Update();
+        }
+    }
+
+    public function Update()
+    {
+        // kommt im nächsten Schritt
     }
 }
