@@ -1,9 +1,11 @@
 {
-  "id": "{E98F1B77-7C4E-48C7-9D26-0C5AFD2D4A21}",
+  "id": "{A3BFA7D7-1F15-4F2B-9B7E-8F65A47E7444}",
   "name": "Grid Reward",
-  "type": 3,
-  "vendor": "Custom",
-  "aliases": ["GridReward"],
+  "type": 0,
+  "vendor": "DG",
+  "aliases": [
+    "Grid Reward"
+  ],
   "parentRequirements": [],
   "childRequirements": [],
   "implemented": [],
