@@ -1,10 +1,10 @@
 {
-  "id": "{A3BFA7D7-1F15-4F2B-9B7E-8F65A47E7444}",
+  "id": "{66666666-7777-8888-9999-AAAAAAAAAAAA}",
   "name": "GridReward",
   "type": 2,
-  "vendor": "Tibber",
+  "vendor": "Custom",
   "aliases": [
-    "Tibber Grid Reward"
+    "GridReward (Minimal Test)"
   ],
   "parentRequirements": [],
   "childRequirements": [],

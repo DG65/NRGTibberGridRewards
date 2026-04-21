@@ -1,10 +1,9 @@
 {
-  "id": "{9E5C5F86-1C5F-4A4E-A30F-22D7E9C10F10}",
-  "name": "Tibber Grid Reward Library",
+  "id": "{11111111-2222-3333-4444-555555555555}",
+  "name": "GridReward Minimal Library",
   "author": "Dietmar Gureth",
-  "url": "https://github.com/dietmargureth/TibberGridReward",
-  "version": "1.0.1",
-  "build": 2,
+  "version": "1.0",
+  "build": 1,
   "date": 0,
   "compatibility": {
     "version": "6.0"
