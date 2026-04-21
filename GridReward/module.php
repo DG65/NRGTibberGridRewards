@@ -5,6 +5,9 @@ class GridReward extends IPSModule
     public function Create()
     {
         parent::Create();
+       
+        $this->RegisterPropertyString("TibberToken", "");
+        $this->RegisterPropertyInteger("HomeIndex", 0);
 
         $this->RegisterVariableBoolean(
             "Active",
@@ -30,7 +33,6 @@ class GridReward extends IPSModule
 
     public function Update()
     {
-        $current = GetValue($this->GetIDForIdent("Active"));
-        SetValue($this->GetIDForIdent("Active"), !$current);
+        SetValue($this->GetIDForIdent("Active"), false);
     }
 }
