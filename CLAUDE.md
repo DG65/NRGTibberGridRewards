@@ -275,6 +275,16 @@ TIBBERGR_SetVehicleSetting(int $id, string $VehicleId, string $Key, ?string $Val
 //  Mutation-Antwort, zur Bestätigung)]
 ```
 
+- **Live verifiziert (24.07.2026):** Dietmar hat den Aufruf direkt über die IPS-Konsole
+  (Instanzfunktionen → „Führe erweiterte Instanzfunktion aus") mit `departureTimes.monday` =
+  `"07:00:00"` auf Fahrzeug „Kohlekasten" ausgelöst — funktioniert einwandfrei. Wichtiger Fund dabei:
+  Aufrufe über die Automatisierungs-Werkzeuge (Claude-eigenes `php_eval`/Skript-Ausführung) brechen
+  bei JEDEM ausgehenden Netzwerkaufruf (auch reinem `curl` zu einer beliebigen Adresse, unabhängig von
+  Tibber) still ab — kein PHP-Fehler, keine Exception, nur ein sofortiges „Erfolgreich" ohne echte
+  Ausgabe. Live-Tests von Funktionen mit echtem HTTP-Zugriff müssen daher über die IPS-Konsole selbst
+  laufen, nicht über die Automatisierungswerkzeuge. In der Tibber-App selbst aktualisiert sich die
+  Abfahrtszeit-Anzeige übrigens nicht sofort, sondern erst nach einem Ansichtswechsel — reines
+  App-UI-Verhalten, kein Hinweis auf ein Problem bei uns.
 - **Kein Zwei-Regler-Problem** (mit EMS abgestimmt): setzt eine Präferenz INNERHALB von Tibbers
   eigenem Smart-Charging-Algorithmus (Abfahrtszeit, Mindest-SoC, an/aus, Solar-Berücksichtigung),
   keinen konkurrierenden Schreibkanal wie bei go-e/InverterHub. Tibber optimiert weiterhin selbst;

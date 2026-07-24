@@ -26,6 +26,12 @@
     `__type`) serverseitig deaktiviert (reproduzierbar an vier Varianten geprüft), der Typname des
     Settings-Eingabeobjekts ist deshalb nicht bekannt.
   - Kein Formularfeld – reiner Funktionsvertrag für EMS/Automationen.
+  - **Live verifiziert**: Dietmar hat den Aufruf über die IPS-Konsole (Instanzfunktionen) mit
+    `departureTimes.monday`/`"07:00:00"` ausgelöst — funktioniert. Dabei aufgefallen: Claudes eigenes
+    `php_eval`-Automatisierungswerkzeug kann auf dieser Instanz offenbar keine ausgehenden
+    Netzwerkaufrufe zuverlässig ausführen (reproduziert mit reinem `curl`, unabhängig von Tibber) —
+    Live-Tests netzwerkfähiger Funktionen müssen über die Konsole laufen, nicht über die
+    Automatisierung.
 - **Temporärer Debug-Endpunkt aus 2.7.1 wieder entfernt**, wie zugesagt: Die Introspektions-
   Untersuchung ist abgeschlossen (Ergebnis: Tibbers App-API hat `__schema`/`__type` deaktiviert,
   siehe 2.7.1) und durch den Netzwerk-Mitschnitt in 2.8.0 überholt. `TIBBERGR_DebugAppApiQuery()`
