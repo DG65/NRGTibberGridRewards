@@ -28,6 +28,7 @@ eigene Automationen auslösen lassen.
 - [Preiskurve für preisgetriebene Automationen](#preiskurve-für-preisgetriebene-automationen)
 - [Anwendungsbeispiel: Speicher & Wallbox steuern](#anwendungsbeispiel-speicher--wallbox-steuern)
 - [Erkennen, wenn Tibber selbst steuert](#erkennen-wenn-tibber-selbst-dein-fahrzeugdeinen-speicher-steuert)
+- [Fahrzeug-Einstellung setzen](#fahrzeug-einstellung-setzen-experimentell-seit-280)
 - [FAQ](#faq)
 - [Fehlersuche](#fehlersuche)
 - [Technische Details](#technische-details)
@@ -463,6 +464,27 @@ nur melden, dass er gerade stattfindet, damit eine übergeordnete Steuerung (dei
 Ressourcen umleiten kann, statt gegen Tibber zu arbeiten. `deviceId` liefert bewusst immer `0`: Ohne
 eine vereinbarte Kreuzreferenz lässt sich Tibbers interne Geräte-ID nicht zuverlässig einer lokalen
 Fahrzeug-/Speicher-Instanz zuordnen – `name`/`make` sind zur Identifikation gedacht.
+
+### Fahrzeug-Einstellung setzen (experimentell, seit 2.8.0)
+
+`TIBBERGR_SetVehicleSetting()` setzt eine Smart-Charging-Präferenz direkt am Fahrzeug bei Tibber –
+Abfahrtszeit je Wochentag, Mindest-Ladeschwelle, Smart-Charging an/aus, Solar-Berücksichtigung:
+
+```php
+TIBBERGR_SetVehicleSetting(int $InstanzID, string $VehicleId, string $Key, ?string $Value): array
+// ['contractVersion' => '1.0', 'success' => bool, 'error' => string|null, 'charging' => array|null]
+```
+
+`$Key` ist auf eine feste Liste beschränkt: `online.vehicle.smartCharging.isEnabled`,
+`.minChargeLimit` (0–75 in 5er-Schritten), `.isChargingOnOverProductionEnabled`,
+`.departureTimes.montag` … `.sonntag` (Format `"HH:MM:SS"`, oder `null`/leer für „keine
+Abfahrtszeit" – welche der beiden Formen Tibber tatsächlich verwendet, zeigt erst die Antwort).
+
+> **Wichtig:** Das ist **keine offiziell dokumentierte Tibber-Funktion**, sondern eine per
+> Netzwerk-Mitschnitt aus der eigenen App-Nutzung ermittelte Mutation – sie kann sich jederzeit
+> ändern oder wegfallen. Kein Zwei-Regler-Problem: Es wird nur eine Präferenz **innerhalb** von
+> Tibbers eigenem Smart-Charging-Algorithmus gesetzt, kein Ladebefehl, der mit einer anderen
+> Steuerung konkurrieren könnte.
 
 ## FAQ
 

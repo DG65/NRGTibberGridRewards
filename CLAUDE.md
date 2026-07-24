@@ -84,9 +84,17 @@ eigene Vermutung.
 
 **Verbund-Prinzip (ebenfalls 24.07.2026):** Kein Abfangen/Nachahmen von Hersteller-Protokollen
 (MITM/Impersonation gegenüber Tibber/go-e/Tesla), auch nicht zur besseren Erkennung — ausdrücklich
-erwogen und verworfen, weil es sich nicht auf andere NRG-Stack-Nutzer verallgemeinern ließe. Wir
-bauen nur gegen die offiziellen, dokumentierten APIs (App-API für Grid Rewards, offizielle API für
-die Preiskurve).
+erwogen und verworfen, weil es sich nicht auf andere NRG-Stack-Nutzer verallgemeinern ließe.
+
+**Präzisierung dazu (24.07.2026, wegen `SetVehicleSetting`, siehe unten):** Das Prinzip verbietet,
+FREMDE Protokolle/Geräte ohne Berechtigung abzufangen oder nachzuahmen, um unautorisiert Kontrolle
+zu erlangen. Es verbietet NICHT, dass Dietmar den Netzwerkverkehr seiner EIGENEN App auf seinem
+eigenen Gerät mit seinem eigenen Konto mitschneidet, um eine von Tibber selbst dort verwendete,
+aber nicht dokumentierte API-Mutation zu identifizieren — das ist Introspektion des eigenen
+Datenverkehrs, keine Impersonation eines fremden Systems. `SetVehicleSetting()` nutzt genau das:
+eine per Mitschnitt gefundene, aber mit dem regulären Login authentifizierte Mutation, keinen
+Fremdprotokoll-Bypass. Die Grid-Rewards-Subscription und die Preiskurve laufen weiterhin über die
+offiziellen bzw. bereits dokumentierten Wege.
 
 ### Zusammenarbeit der Sitzungen
 
@@ -252,6 +260,53 @@ TIBBERGR_GetActiveControls(int $id): array
 - **`valid`** = `InstanceStatus === 102` (WS-Verbindung aktiv). Kein separates Politur-Timing, da
   Grid-Reward-Status ohnehin per Live-Push kommt, nicht gepollt.
 
+## Öffentlicher Vertrag: Fahrzeug-Einstellung setzen (`TIBBERGR_SetVehicleSetting`, seit 2.8.0)
+
+**Erste Schreibfunktion des Moduls gegen Tibber** (alles vorherige war reines Lesen). Setzt EINE
+Smart-Charging-Präferenz eines Fahrzeugs über die reverse-engineerte Mutation `setVehicleSettings`
+(per Netzwerk-Mitschnitt von Dietmar ermittelt, NICHT Teil von Tibbers offizieller/dokumentierter
+API — kann sich jederzeit ändern). Vor dem Bauen ausdrücklich bei Dietmar direkt in der Sitzung
+rückbestätigt (nicht nur die EMS-Weiterleitung übernommen), weil es eine neue Aktionskategorie ist.
+
+```php
+TIBBERGR_SetVehicleSetting(int $id, string $VehicleId, string $Key, ?string $Value): array
+// ['contractVersion'=>'1.0', 'success'=>bool, 'error'=>string|null,
+//  'charging'=>array|null (targetedStateOfCharge/targetedDepartureTime/departureTimes aus der
+//  Mutation-Antwort, zur Bestätigung)]
+```
+
+- **Kein Zwei-Regler-Problem** (mit EMS abgestimmt): setzt eine Präferenz INNERHALB von Tibbers
+  eigenem Smart-Charging-Algorithmus (Abfahrtszeit, Mindest-SoC, an/aus, Solar-Berücksichtigung),
+  keinen konkurrierenden Schreibkanal wie bei go-e/InverterHub. Tibber optimiert weiterhin selbst;
+  wir geben nur mehr Information rein, kein „Lade jetzt!".
+- **`$Key` auf eine Allowlist beschränkt** (`ALLOWED_VEHICLE_SETTING_KEYS`): `online.vehicle.
+  smartCharging.{isEnabled, minChargeLimit, isChargingOnOverProductionEnabled, departureTimes.
+  <wochentag>}`. Kein generischer Freitext-Schreibzugriff auf beliebige Tibber-Einstellungen — neue
+  Schlüssel erst nach erneuter Verifikation per Mitschnitt ergänzen, nicht raten.
+- **`$Value` ist nullable, bewusst.** Der Sentinel für „keine Abfahrtszeit" bei `departureTimes.*`
+  ist NICHT verifiziert (leerer String? echtes `null`?). Beide sind darstellbar: `$Value === null`
+  erzeugt echtes GraphQL-`null` im Mutationstext, sonst ein String-Literal. Die Mutation-Antwort
+  (`charging.departureTimes`) zeigt bei der ersten echten Nutzung, welche Darstellung Tibber
+  tatsächlich verwendet — dafür ist kein gesonderter Test nötig.
+- **Werte als Literale, nicht als GraphQL-Variablen** eingebettet (`json_encode()` fürs Escaping):
+  Der Typname des Settings-Eingabeobjekts ist wegen deaktivierter Introspektion (siehe unten) nicht
+  bekannt, Literale kommen ohne Typdeklaration aus. Injektionssicherheit isoliert getestet (Wert mit
+  Anführungszeichen/Backslash bricht die Query nicht auf).
+- **Grobe Wertprüfung je Schlüsselart** vor dem Senden (Bool als „true"/"false", minChargeLimit als
+  Vielfaches von 5 in [0,75], departureTimes als „HH:MM:SS"/leer/null) — Tibbers Backend bleibt die
+  maßgebliche Validierung, das hier fängt nur Tippfehler ab. **Beim ersten isolierten Test zwei
+  eigene Bugs gefunden**: `substr($Key, -14) === '.minChargeLimit'` und
+  `substr($Key, -30) === '.isChargingOnOverProductionEnabled'` hatten falsche Längen (15 bzw. 34
+  Zeichen nötig) und machten die jeweilige Prüfung zu totem Code — mit Testfällen wie `"52"`/`"80"`
+  aufgefallen. Behoben über eine längen-unabhängige `endsWith()`-Hilfsfunktion statt erneut von Hand
+  gezählter `substr()`-Längen.
+- **Warum keine Introspektion zur Schema-Erkundung:** Tibbers App-API hat `__schema`/`__type`
+  serverseitig deaktiviert (reproduzierbar an vier Varianten geprüft, normale Queries funktionieren
+  einwandfrei) — der Weg zur Mutation lief über Dietmars eigenen Netzwerk-Mitschnitt, nicht über
+  Introspektion.
+- **Kein eigenes UI im Formular.** Bewusst nur als Funktion für EMS/Automationen gedacht, keine
+  Formularfelder — die Zielgruppe ist Code, nicht Dietmar direkt im Instanzformular.
+
 ### Vertragsversionierung (Verbund-Konvention, SUITE.md im EMS-Repo)
 
 Getrennt von der Modul-SemVer trägt **jeder** Vertrag ein additives `contractVersion` = "Major.Minor"
@@ -269,6 +324,8 @@ standalone weiter, deaktivieren die Kopplung und melden das **sichtbar**. Konsta
 - `GetTariffConfig` = **1.1** (1.0 fixe Positionen, 1.1 + `campaigns`) — Top-Level-Feld (Map-Rückgabe).
 - `GetActiveControls` (seit 2.7.0) trägt `contractVersion` = **"1.0"** von Anfang an, je Eintrag
   (Listen-Vertrag, gleiche Regel wie `GetPriceCurve`).
+- `SetVehicleSetting` (seit 2.8.0) trägt `contractVersion` = **"1.0"**, Top-Level-Feld (Map-Rückgabe,
+  gleiche Regel wie `GetTariffConfig`).
 
 ### Gemeinsame Variablenprofile `NRG.*` (Verbund-Konvention) — bei uns geprüft, nichts zu migrieren
 

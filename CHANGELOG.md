@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.8.0
+
+- **Neu: `TIBBERGR_SetVehicleSetting()` — erste Schreibfunktion des Moduls gegen Tibber.** Setzt eine
+  Smart-Charging-Präferenz eines Fahrzeugs (Abfahrtszeit je Wochentag, Mindest-Ladeschwelle, Smart
+  Charging an/aus, Solar-Berücksichtigung) über eine reverse-engineerte Mutation (Netzwerk-Mitschnitt
+  aus der eigenen App-Nutzung, NICHT Teil von Tibbers offizieller/dokumentierter API). Vor dem Bauen
+  ausdrücklich direkt bestätigt statt nur die EMS-Weiterleitung zu übernehmen — neue Aktionskategorie
+  für dieses Modul (bisher rein lesend).
+  - **Kein Zwei-Regler-Problem** (mit EMS abgestimmt): setzt nur eine Präferenz innerhalb von Tibbers
+    eigenem Smart-Charging-Algorithmus, keinen konkurrierenden Schreibkanal.
+  - `$Key` auf eine feste Liste beschränkt (`isEnabled`, `minChargeLimit`,
+    `isChargingOnOverProductionEnabled`, `departureTimes.<wochentag>`) — kein Freitext-Schreibzugriff.
+  - `$Value` nullable: Der Sentinel für „keine Abfahrtszeit" ist nicht verifiziert (leerer String vs.
+    echtes `null`) — beide Formen sind darstellbar, die Antwort zeigt bei der ersten Nutzung, welche
+    Tibber tatsächlich verwendet.
+  - **Zwei eigene Bugs beim isolierten Testen gefunden und behoben**, bevor irgendetwas live lief:
+    Die Prüfungen für `minChargeLimit` und `isChargingOnOverProductionEnabled` waren durch falsch
+    gezählte `substr()`-Längen (14 statt 15, 30 statt 34 Zeichen) toter Code — mit Testfällen wie
+    `"52"`/`"80"` aufgefallen, behoben über eine längen-unabhängige `endsWith()`-Hilfsfunktion.
+  - Grund für Literale statt GraphQL-Variablen: Tibbers App-API hat Introspektion (`__schema`/
+    `__type`) serverseitig deaktiviert (reproduzierbar an vier Varianten geprüft), der Typname des
+    Settings-Eingabeobjekts ist deshalb nicht bekannt.
+  - Kein Formularfeld – reiner Funktionsvertrag für EMS/Automationen.
+
 ## 2.7.1
 
 - **TEMPORÄR (wird nach Abschluss der Untersuchung wieder entfernt):** Debug-Endpunkt

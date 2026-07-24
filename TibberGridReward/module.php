@@ -44,6 +44,23 @@ class TibberGridReward extends IPSModule
     private const CONTRACT_PRICECURVE     = '1.1'; // 1.0 Basis-Kurve, 1.1 + components/vat/tibberEnergy/tibberTax
     private const CONTRACT_TARIFFCONFIG   = '1.1'; // 1.0 fixe Positionen, 1.1 + campaigns
     private const CONTRACT_ACTIVECONTROLS = '1.0';
+    private const CONTRACT_SETVEHICLESETTING = '1.0';
+
+    // Allowlist für SetVehicleSetting() - bewusst KEIN generischer Freitext-Schreibzugriff auf
+    // beliebige Tibber-Einstellungen, nur die per Netzwerk-Mitschnitt verifizierten vier Schlüssel
+    // (EMS-Sitzung, 24.07.2026). Neue Schlüssel hier erst nach erneuter Verifikation ergänzen.
+    private const ALLOWED_VEHICLE_SETTING_KEYS = [
+        'online.vehicle.smartCharging.isEnabled',
+        'online.vehicle.smartCharging.minChargeLimit',
+        'online.vehicle.smartCharging.isChargingOnOverProductionEnabled',
+        'online.vehicle.smartCharging.departureTimes.monday',
+        'online.vehicle.smartCharging.departureTimes.tuesday',
+        'online.vehicle.smartCharging.departureTimes.wednesday',
+        'online.vehicle.smartCharging.departureTimes.thursday',
+        'online.vehicle.smartCharging.departureTimes.friday',
+        'online.vehicle.smartCharging.departureTimes.saturday',
+        'online.vehicle.smartCharging.departureTimes.sunday',
+    ];
 
     // Bundesweit gleiche Steuern/Umlagen für die Rechnungsprüfung (ct/kWh netto, Stand Juni 2026).
     // Jährlich zu pflegen; netzgebietsspezifische Größen stehen dagegen im Instanzformular.
@@ -1553,6 +1570,109 @@ class TibberGridReward extends IPSModule
             ];
         }
         return $out;
+    }
+
+    /**
+     * Öffentlicher Vertrag (EMS-abgestimmt, 24.07.2026): setzt EINE Smart-Charging-Einstellung eines
+     * Tibber-Fahrzeugs (Abfahrtszeit je Wochentag, Mindest-Ladeschwelle, Smart-Charging an/aus, Solar-
+     * Berücksichtigung) über dieselbe App-API/denselben Login wie Grid Rewards.
+     *
+     * WICHTIG: Die zugrundeliegende Mutation `setVehicleSettings` ist NICHT Teil von Tibbers
+     * offizieller/dokumentierter API - Dietmar hat sie per Netzwerk-Mitschnitt (mitmproxy) aus der
+     * eigenen App-Nutzung ermittelt. Kann sich ohne Ankündigung ändern.
+     *
+     * KEIN Zwei-Regler-Problem (mit EMS abgestimmt, siehe CLAUDE.md/Steuerhoheit): Setzt eine
+     * Präferenz INNERHALB von Tibbers eigenem Smart-Charging-Algorithmus, keinen konkurrierenden
+     * Schreibkanal wie bei go-e/InverterHub.
+     *
+     * $Key bewusst auf eine Allowlist beschränkt (ALLOWED_VEHICLE_SETTING_KEYS) - kein generischer
+     * Freitext-Schreibzugriff auf beliebige Tibber-Einstellungen.
+     *
+     * $Value ist nullable: Der genaue Sentinel-Wert für "keine Abfahrtszeit" bei departureTimes.* ist
+     * NOCH NICHT verifiziert (leerer String oder echtes null?) - beide Varianten sind über diese
+     * Funktion darstellbar (echtes GraphQL-`null` bei `$Value === null`, sonst ein String-Literal),
+     * die Antwort (`charging.departureTimes`) zeigt nach dem Aufruf, welche Darstellung Tibber
+     * tatsächlich verwendet.
+     *
+     * @return array ['contractVersion'=>'1.0', 'success'=>bool, 'error'=>string|null,
+     *                'charging'=>array|null] - 'charging' enthält Tibbers Antwort
+     *                (targetedStateOfCharge/targetedDepartureTime/departureTimes) zur Bestätigung.
+     */
+    public function SetVehicleSetting(string $VehicleId, string $Key, ?string $Value): array
+    {
+        $fail = function (string $error) {
+            return ['contractVersion' => self::CONTRACT_SETVEHICLESETTING, 'success' => false, 'error' => $error, 'charging' => null];
+        };
+
+        if (!in_array($Key, self::ALLOWED_VEHICLE_SETTING_KEYS, true)) {
+            return $fail('Nicht erlaubter Schlüssel: ' . $Key);
+        }
+        if ($VehicleId === '') {
+            return $fail('VehicleId fehlt.');
+        }
+        $homeId = $this->ReadPropertyString('Home_ID');
+        if ($homeId === '' || $homeId === '0') {
+            return $fail('Kein Grid-Rewards-Zuhause gewählt (Home_ID).');
+        }
+
+        // Grobe, bewusst nicht überstrenge Plausibilitätsprüfung je Schlüsselart - Tibbers Backend
+        // bleibt die maßgebliche Validierung, das hier fängt nur offensichtliche Tippfehler ab.
+        // endsWith() statt fest verdrahteter substr()-Längen: Zwei der drei ursprünglichen
+        // substr($Key, -N)-Vergleiche hatten ein falsches N (14 statt 15 Zeichen bei
+        // ".minChargeLimit", 30 statt 34 bei ".isChargingOnOverProductionEnabled") und die jeweilige
+        // Prüfung dadurch zu totem Code gemacht - beim isolierten Testen mit "52"/"80" aufgefallen.
+        $endsWith = function (string $haystack, string $needle): bool {
+            $len = strlen($needle);
+            return $len === 0 || substr($haystack, -$len) === $needle;
+        };
+        $isBoolKey = $endsWith($Key, '.isEnabled') || $endsWith($Key, '.isChargingOnOverProductionEnabled');
+        if ($isBoolKey && $Value !== 'true' && $Value !== 'false') {
+            return $fail('Wert für ' . $Key . ' muss "true" oder "false" sein, erhalten: ' . var_export($Value, true));
+        }
+        if ($endsWith($Key, '.minChargeLimit')) {
+            if ($Value === null || !preg_match('/^\d+$/', $Value) || ((int) $Value) % 5 !== 0 || (int) $Value < 0 || (int) $Value > 75) {
+                return $fail('Wert für minChargeLimit muss eine Zahl aus 0,5,10,...,75 sein, erhalten: ' . var_export($Value, true));
+            }
+        }
+        if (strpos($Key, '.departureTimes.') !== false) {
+            if ($Value !== null && $Value !== '' && !preg_match('/^\d{2}:\d{2}:\d{2}$/', $Value)) {
+                return $fail('Wert für departureTimes muss "HH:MM:SS", leer oder null sein (Sentinel für "keine Abfahrtszeit" noch nicht endgültig verifiziert), erhalten: ' . var_export($Value, true));
+            }
+        }
+
+        if (!$this->EnsureToken()) {
+            return $fail('Kein gültiger Login-Token verfügbar.');
+        }
+
+        // Werte als GraphQL-Literale einbetten statt Variablen zu deklarieren (Typname des
+        // Settings-Eingabeobjekts ist wegen deaktivierter Introspektion nicht bekannt) - json_encode
+        // liefert für Strings ein GraphQL-kompatibles, korrekt escapetes String-Literal; null bleibt
+        // echtes GraphQL-null, kein String "null".
+        $valueLit = ($Value === null) ? 'null' : json_encode($Value);
+        $mutation = 'mutation { me { setVehicleSettings(id: ' . json_encode($VehicleId) . ', homeId: ' . json_encode($homeId)
+            . ', settings: [{key: ' . json_encode($Key) . ', value: ' . $valueLit . '}]) {'
+            . ' id name isAlive isCharging smartChargingStatus'
+            . ' charging { targetedStateOfCharge targetedDepartureTime departureTimes { weekday time { hours minutes } } }'
+            . ' } } }';
+
+        $result = $this->HttpPost(self::GQL_URL, json_encode(['query' => $mutation]), true);
+        if ($result === null) {
+            return $fail('Anfrage fehlgeschlagen (Netzwerk-/HTTP-Fehler).');
+        }
+        if (isset($result['errors'])) {
+            return $fail('Tibber meldet Fehler: ' . json_encode($result['errors']));
+        }
+        $data = $result['data']['me']['setVehicleSettings'] ?? null;
+        if (!is_array($data)) {
+            return $fail('Unerwartete Antwortstruktur: ' . json_encode($result));
+        }
+
+        return [
+            'contractVersion' => self::CONTRACT_SETVEHICLESETTING,
+            'success'         => true,
+            'error'           => null,
+            'charging'        => is_array($data['charging'] ?? null) ? $data['charging'] : null,
+        ];
     }
 
     // ---------------------------------------------------------------------
