@@ -23,6 +23,11 @@
     `__type`) serverseitig deaktiviert (reproduzierbar an vier Varianten geprüft), der Typname des
     Settings-Eingabeobjekts ist deshalb nicht bekannt.
   - Kein Formularfeld – reiner Funktionsvertrag für EMS/Automationen.
+- **Temporärer Debug-Endpunkt aus 2.7.1 wieder entfernt**, wie zugesagt: Die Introspektions-
+  Untersuchung ist abgeschlossen (Ergebnis: Tibbers App-API hat `__schema`/`__type` deaktiviert,
+  siehe 2.7.1) und durch den Netzwerk-Mitschnitt in 2.8.0 überholt. `TIBBERGR_DebugAppApiQuery()`
+  hätte als dauerhafte Funktion beliebige Lese-Anfragen mit dem echten Login-Token erlaubt – unnötige
+  Angriffsfläche für ein abgeschlossenes, einmaliges Anliegen.
 
 ## 2.7.1
 
