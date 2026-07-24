@@ -283,15 +283,23 @@ TIBBERGR_SetVehicleSetting(int $id, string $VehicleId, string $Key, ?string $Val
   smartCharging.{isEnabled, minChargeLimit, isChargingOnOverProductionEnabled, departureTimes.
   <wochentag>}`. Kein generischer Freitext-Schreibzugriff auf beliebige Tibber-Einstellungen — neue
   Schlüssel erst nach erneuter Verifikation per Mitschnitt ergänzen, nicht raten.
-- **`$Value` ist nullable, bewusst.** Der Sentinel für „keine Abfahrtszeit" bei `departureTimes.*`
-  ist NICHT verifiziert (leerer String? echtes `null`?). Beide sind darstellbar: `$Value === null`
-  erzeugt echtes GraphQL-`null` im Mutationstext, sonst ein String-Literal. Die Mutation-Antwort
-  (`charging.departureTimes`) zeigt bei der ersten echten Nutzung, welche Darstellung Tibber
-  tatsächlich verwendet — dafür ist kein gesonderter Test nötig.
-- **Werte als Literale, nicht als GraphQL-Variablen** eingebettet (`json_encode()` fürs Escaping):
-  Der Typname des Settings-Eingabeobjekts ist wegen deaktivierter Introspektion (siehe unten) nicht
-  bekannt, Literale kommen ohne Typdeklaration aus. Injektionssicherheit isoliert getestet (Wert mit
-  Anführungszeichen/Backslash bricht die Query nicht auf).
+- **`$Value` ist nullable, als String übergeben** (einheitliche Aufrufschnittstelle), wird aber je
+  nach `$Key`-Art als NATIVER GraphQL-Typ gesendet — per Netzwerk-Mitschnitt vollständig verifiziert
+  (EMS-Sitzung, 24.07.2026, drei separate Mitschnitte für alle vier Grundtypen): `isEnabled`/
+  `isChargingOnOverProductionEnabled` → Bool-Literal `true`/`false` OHNE Anführungszeichen,
+  `minChargeLimit` → Int-Literal OHNE Anführungszeichen, `departureTimes.*` → String-Literal
+  `"HH:MM:SS"` oder `$Value === null` → echtes GraphQL-`null` (bestätigter Sentinel zum Löschen einer
+  Abfahrtszeit, **kein** leerer String). Tibber nimmt kein einheitliches String-Encoding entgegen —
+  ein Bool/Int als JSON-String gesendet, würde vom falschen Typ abgelehnt oder falsch interpretiert.
+- **Werte als Literale, nicht als GraphQL-Variablen** eingebettet (`json_encode()` fürs
+  String-Escaping, Bool/Int als reine Zahlen-/Wort-Literale ohne Quoting): Der Typname des
+  Settings-Eingabeobjekts ist wegen deaktivierter Introspektion (siehe unten) nicht bekannt, Literale
+  kommen ohne Typdeklaration aus. Injektionssicherheit isoliert getestet (Wert mit
+  Anführungszeichen/Backslash/Zeilenumbruch bricht die Query nicht auf). **Beim ersten isolierten Test
+  einen zweiten eigenen Bug gefunden**, nachdem EMS die native Typzuordnung nachgeliefert hatte: die
+  erste Fassung hatte Bool/Int ebenfalls per `json_encode()` als String (`"true"`, `"30"`) gesendet,
+  statt sie unquoted als GraphQL-Bool/Int-Literal einzusetzen — vor jedem Live-Aufruf korrigiert und
+  gegen alle vier Typen erneut isoliert getestet.
 - **Grobe Wertprüfung je Schlüsselart** vor dem Senden (Bool als „true"/"false", minChargeLimit als
   Vielfaches von 5 in [0,75], departureTimes als „HH:MM:SS"/leer/null) — Tibbers Backend bleibt die
   maßgebliche Validierung, das hier fängt nur Tippfehler ab. **Beim ersten isolierten Test zwei

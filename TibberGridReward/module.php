@@ -1588,11 +1588,12 @@ class TibberGridReward extends IPSModule
      * $Key bewusst auf eine Allowlist beschränkt (ALLOWED_VEHICLE_SETTING_KEYS) - kein generischer
      * Freitext-Schreibzugriff auf beliebige Tibber-Einstellungen.
      *
-     * $Value ist nullable: Der genaue Sentinel-Wert für "keine Abfahrtszeit" bei departureTimes.* ist
-     * NOCH NICHT verifiziert (leerer String oder echtes null?) - beide Varianten sind über diese
-     * Funktion darstellbar (echtes GraphQL-`null` bei `$Value === null`, sonst ein String-Literal),
-     * die Antwort (`charging.departureTimes`) zeigt nach dem Aufruf, welche Darstellung Tibber
-     * tatsächlich verwendet.
+     * $Value ist nullable und als String übergeben (einheitliche Aufrufschnittstelle), wird aber je
+     * nach $Key-Art als jeweils NATIVER GraphQL-Typ gesendet (per Netzwerk-Mitschnitt verifiziert,
+     * EMS-Sitzung 24.07.2026): isEnabled/isChargingOnOverProductionEnabled -> Bool (true/false ohne
+     * Anführungszeichen), minChargeLimit -> Int (ohne Anführungszeichen), departureTimes.* -> String
+     * ("HH:MM:SS") oder $Value === null -> echtes GraphQL-null (bestätigter Sentinel zum Löschen einer
+     * Abfahrtszeit, kein leerer String).
      *
      * @return array ['contractVersion'=>'1.0', 'success'=>bool, 'error'=>string|null,
      *                'charging'=>array|null] - 'charging' enthält Tibbers Antwort
@@ -1635,8 +1636,8 @@ class TibberGridReward extends IPSModule
             }
         }
         if (strpos($Key, '.departureTimes.') !== false) {
-            if ($Value !== null && $Value !== '' && !preg_match('/^\d{2}:\d{2}:\d{2}$/', $Value)) {
-                return $fail('Wert für departureTimes muss "HH:MM:SS", leer oder null sein (Sentinel für "keine Abfahrtszeit" noch nicht endgültig verifiziert), erhalten: ' . var_export($Value, true));
+            if ($Value !== null && !preg_match('/^\d{2}:\d{2}:\d{2}$/', $Value)) {
+                return $fail('Wert für departureTimes muss "HH:MM:SS" oder null sein (null löscht die Abfahrtszeit), erhalten: ' . var_export($Value, true));
             }
         }
 
@@ -1645,10 +1646,21 @@ class TibberGridReward extends IPSModule
         }
 
         // Werte als GraphQL-Literale einbetten statt Variablen zu deklarieren (Typname des
-        // Settings-Eingabeobjekts ist wegen deaktivierter Introspektion nicht bekannt) - json_encode
-        // liefert für Strings ein GraphQL-kompatibles, korrekt escapetes String-Literal; null bleibt
-        // echtes GraphQL-null, kein String "null".
-        $valueLit = ($Value === null) ? 'null' : json_encode($Value);
+        // Settings-Eingabeobjekts ist wegen deaktivierter Introspektion nicht bekannt). Tibber erwartet
+        // je $Key den NATIVEN GraphQL-Typ, kein einheitliches String-Encoding (per Netzwerk-Mitschnitt
+        // verifiziert) - Bool/Int müssen daher unquoted als Literal-Token gesendet werden, sonst nimmt
+        // Tibber sie als String entgegen statt als Bool/Int. $isBoolKey- und minChargeLimit-Werte sind
+        // oben bereits auf 'true'/'false' bzw. Ziffern geprüft, daher hier ohne erneute Fehlerbehandlung
+        // direkt als Zahlen-/Bool-Literal einsetzbar.
+        if ($Value === null) {
+            $valueLit = 'null';
+        } elseif ($isBoolKey) {
+            $valueLit = $Value; // bereits auf 'true'/'false' geprüft - gültiges GraphQL-Bool-Literal
+        } elseif ($endsWith($Key, '.minChargeLimit')) {
+            $valueLit = (string) (int) $Value; // bereits auf /^\d+$/ geprüft - gültiges GraphQL-Int-Literal
+        } else {
+            $valueLit = json_encode($Value); // z. B. departureTimes.* - GraphQL-String-Literal, korrekt escapet
+        }
         $mutation = 'mutation { me { setVehicleSettings(id: ' . json_encode($VehicleId) . ', homeId: ' . json_encode($homeId)
             . ', settings: [{key: ' . json_encode($Key) . ', value: ' . $valueLit . '}]) {'
             . ' id name isAlive isCharging smartChargingStatus'

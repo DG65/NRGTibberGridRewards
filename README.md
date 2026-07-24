@@ -477,8 +477,10 @@ TIBBERGR_SetVehicleSetting(int $InstanzID, string $VehicleId, string $Key, ?stri
 
 `$Key` ist auf eine feste Liste beschränkt: `online.vehicle.smartCharging.isEnabled`,
 `.minChargeLimit` (0–75 in 5er-Schritten), `.isChargingOnOverProductionEnabled`,
-`.departureTimes.montag` … `.sonntag` (Format `"HH:MM:SS"`, oder `null`/leer für „keine
-Abfahrtszeit" – welche der beiden Formen Tibber tatsächlich verwendet, zeigt erst die Antwort).
+`.departureTimes.montag` … `.sonntag` (Format `"HH:MM:SS"`, oder `null` zum Löschen der
+Abfahrtszeit). `$Value` wird als String übergeben, aber je nach `$Key` intern als passender
+GraphQL-Typ verschickt (Bool bzw. Zahl ohne Anführungszeichen bei `isEnabled`/
+`isChargingOnOverProductionEnabled`/`minChargeLimit`, String bei `departureTimes.*`).
 
 > **Wichtig:** Das ist **keine offiziell dokumentierte Tibber-Funktion**, sondern eine per
 > Netzwerk-Mitschnitt aus der eigenen App-Nutzung ermittelte Mutation – sie kann sich jederzeit

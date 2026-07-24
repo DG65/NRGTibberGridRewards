@@ -12,13 +12,16 @@
     eigenem Smart-Charging-Algorithmus, keinen konkurrierenden Schreibkanal.
   - `$Key` auf eine feste Liste beschränkt (`isEnabled`, `minChargeLimit`,
     `isChargingOnOverProductionEnabled`, `departureTimes.<wochentag>`) — kein Freitext-Schreibzugriff.
-  - `$Value` nullable: Der Sentinel für „keine Abfahrtszeit" ist nicht verifiziert (leerer String vs.
-    echtes `null`) — beide Formen sind darstellbar, die Antwort zeigt bei der ersten Nutzung, welche
-    Tibber tatsächlich verwendet.
-  - **Zwei eigene Bugs beim isolierten Testen gefunden und behoben**, bevor irgendetwas live lief:
-    Die Prüfungen für `minChargeLimit` und `isChargingOnOverProductionEnabled` waren durch falsch
-    gezählte `substr()`-Längen (14 statt 15, 30 statt 34 Zeichen) toter Code — mit Testfällen wie
-    `"52"`/`"80"` aufgefallen, behoben über eine längen-unabhängige `endsWith()`-Hilfsfunktion.
+  - `$Value` nullable: `null` ist der bestätigte Sentinel zum Löschen einer Abfahrtszeit (kein
+    leerer String) — per Netzwerk-Mitschnitt verifiziert.
+  - **Drei eigene Bugs beim isolierten Testen gefunden und behoben**, bevor irgendetwas live lief:
+    (1)+(2) Die Prüfungen für `minChargeLimit` und `isChargingOnOverProductionEnabled` waren durch
+    falsch gezählte `substr()`-Längen (14 statt 15, 30 statt 34 Zeichen) toter Code — mit Testfällen
+    wie `"52"`/`"80"` aufgefallen, behoben über eine längen-unabhängige `endsWith()`-Hilfsfunktion.
+    (3) Nach Nachlieferung der nativen Typzuordnung durch EMS (Bool/Int müssen unquoted als
+    GraphQL-Literal gesendet werden, nicht als JSON-String) fiel auf, dass die erste Fassung Bool-
+    und Int-Werte ebenfalls per `json_encode()` als String (`"true"`, `"30"`) verschickt hätte — vor
+    jedem Live-Aufruf korrigiert, alle vier Wertetypen erneut isoliert getestet.
   - Grund für Literale statt GraphQL-Variablen: Tibbers App-API hat Introspektion (`__schema`/
     `__type`) serverseitig deaktiviert (reproduzierbar an vier Varianten geprüft), der Typname des
     Settings-Eingabeobjekts ist deshalb nicht bekannt.
