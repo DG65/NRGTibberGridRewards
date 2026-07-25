@@ -8,7 +8,7 @@ gemeinsame Regeln und dokumentierte Schnittstellen geeinigt haben.
 
 | Modul | Rolle | Repo / lokale Kopie | Vertrag zu uns |
 |---|---|---|---|
-| **Tibber Grid Rewards** (dieses Repo) | Erlös-/Vermarktungssignale | `DG65/TibberGridRewards` | — |
+| **Tibber Grid Rewards** (dieses Repo) | Erlös-/Vermarktungssignale | `DG65/NRGTibberGridRewards` | — |
 | **InverterHub** | Wechselrichter messen, darstellen, steuern | `DG65/InverterHub` · `../InverterHub` | keiner; konsumiert unsere Statusvariablen |
 | **MeterHub** | Energiezähler (Modbus TCP) | `DG65/MeterHub` · `../MeterHub` | keiner |
 | **Prognose** (EnergiePrognose) | PV- und Verbrauchsprognose | `DG65/Prognose` · `../Prognose` | keiner |

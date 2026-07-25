@@ -80,7 +80,7 @@ nach **„Tibber Grid Rewards"** suchen → installieren.
    Verwaltungskonsole).
 2. **Modul hinzufügen** und die URL eintragen:
    ```
-   https://github.com/DG65/TibberGridRewards
+   https://github.com/DG65/NRGTibberGridRewards
    ```
 
 Danach über **Instanz hinzufügen** eine Instanz vom Typ **TibberGridReward** anlegen (der benötigte
