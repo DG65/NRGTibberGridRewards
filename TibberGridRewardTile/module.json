@@ -1,9 +1,9 @@
 {
   "id": "{E92F62F4-88A6-4C6E-9F0D-E76C3B1C9A02}",
-  "name": "NRGTibberGridRewardTile",
+  "name": "TibberGridRewardTile",
   "type": 3,
   "vendor": "Tibber",
-  "aliases": ["Tibber Grid Rewards Kachel", "TibberGridRewardTile"],
+  "aliases": ["Tibber Grid Rewards Kachel", "NRGTibberGridRewardTile"],
   "parentRequirements": [],
   "childRequirements": [],
   "implemented": [],
