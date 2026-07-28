@@ -183,7 +183,11 @@ class TibberGridReward extends IPSModule
         // Fixe Positionen (nicht per kWh) – Konfig fürs Formular; fließen NICHT in components, sondern
         // in eine spätere getrennte Monatsrechnung.
         $this->RegisterPropertyFloat('NetzGrundpreisYear', 98.00);       // €/a
-        $this->RegisterPropertyBoolean('Paragraph14aEnabled', true);
+        // Default bewusst false: §14a-Teilnahme ist die Ausnahme, nicht die Regel. War vorher
+        // fälschlich true (Dietmars eigene Anlage) - ein Nutzer ohne §14a hätte damit ungefragt
+        // eine nicht zutreffende Reduzierung in seiner Preiszerlegung gehabt (Usability-Fund
+        // 27.07.2026, analog zum EMS-Netzmesspunkte-Fund).
+        $this->RegisterPropertyBoolean('Paragraph14aEnabled', false);
         $this->RegisterPropertyFloat('Paragraph14aReductionYear', 119.80); // €/a
         $this->RegisterPropertyFloat('TibberBaseFeeMonth', 5.03);          // €/Monat (Tibber-Grundgebühr)
         // Befristete Rabatte/Kampagnen (Tibber-Tarifartefakt): [{Label,AmountMonth(signiert,neg=Rabatt),

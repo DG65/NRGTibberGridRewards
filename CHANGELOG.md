@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.8.1
+
+- **Fix (Usability-Fund, 27.07.2026, analog zum EMS-Netzmesspunkte-Fund): `Paragraph14aEnabled`
+  defaultete fälschlich auf `true`.** §14a-Modul-1-Teilnahme ist die Ausnahme, nicht die Regel — der
+  alte Default war Dietmars eigene Anlage, nicht ein neutraler Ausgangspunkt. Ein neu installierendes
+  Modul hätte ungefragt eine nicht zutreffende Reduzierung in der optionalen Preiszerlegung gehabt.
+  Betrifft nur NEU angelegte Instanzen (bestehende behalten ihren gespeicherten Wert).
+- **Klarere Kennzeichnung der Beispielwerte im Panel "🧾 Tarif & Netzentgelt"**: Alle vorbelegten
+  Zahlen (Netzentgelt HT/ST/NT, Zeitfenster, Grundpreis, Rabatt-Zeile) sind 1:1 Dietmars eigenes
+  Preisblatt, kein allgemeingültiger Standard — jetzt mit expliziter ⚠️-Warnung direkt im Panel-Text
+  statt nur beiläufig erwähnt, plus Hinweis, dass das Panel standardmäßig folgenlos aus ist.
+
 ## 2.8.0
 
 - **Neu: `TIBBERGR_SetVehicleSetting()` — erste Schreibfunktion des Moduls gegen Tibber.** Setzt eine

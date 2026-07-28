@@ -162,7 +162,7 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Zerlegt den Tibber-Endkundenpreis in seine Bestandteile (Börsenpreis, Beschaffung, Netzentgelt, Steuern/Abgaben), damit sich eine Tibber-Rechnung nachrechnen lässt. Die Werte hier sind NETZGEBIETSSPEZIFISCH – trag sie aus dem Preisblatt deines Netzbetreibers ein. Die bundesweit gleichen Sätze (Stromsteuer, Umlagen, MwSt) sind im Modul hinterlegt. Vorbelegt ist das Beispiel E-Werk Netze GmbH (vormals Überlandwerk Mittelbaden). Die Aufschlüsselung erscheint als „components“ in TIBBERGR_GetPriceCurve; der Gesamtpreis „price“ bleibt Tibbers maßgebliche Zahl."
+          "caption": "Zerlegt den Tibber-Endkundenpreis in seine Bestandteile (Börsenpreis, Beschaffung, Netzentgelt, Steuern/Abgaben), damit sich eine Tibber-Rechnung nachrechnen lässt. Optional, standardmäßig AUS (Häkchen unten) – für alle, die keine Rechnungsprüfung brauchen, bleibt dieses Panel folgenlos. ⚠️ ALLE Zahlenwerte unten (Netzentgelt HT/ST/NT, Zeitfenster, Grundpreis, Rabatt-Zeile) sind NICHT allgemeingültig, sondern 1:1 Dietmars eigenes Preisblatt (E-Werk Netze GmbH, vormals Überlandwerk Mittelbaden) als Formatbeispiel – vor dem Aktivieren durch die Werte deines EIGENEN Netzbetreibers/Tibber-Vertrags ersetzen, sonst rechnet die Zerlegung mit falschen Zahlen. Die bundesweit gleichen Sätze (Stromsteuer, Umlagen, MwSt) sind im Modul hinterlegt und müssen nicht angepasst werden. Die Aufschlüsselung erscheint als „components“ in TIBBERGR_GetPriceCurve; der Gesamtpreis „price“ bleibt Tibbers maßgebliche Zahl."
         },
         {
           "type": "CheckBox",
