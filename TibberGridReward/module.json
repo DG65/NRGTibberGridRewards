@@ -3,7 +3,7 @@
   "name": "TibberGridReward",
   "type": 3,
   "vendor": "Tibber",
-  "aliases": ["Tibber Grid Rewards", "NRGTibberGridReward", "NRG-Stack Tibber Grid Rewards"],
+  "aliases": ["NRG-Stack Tibber Grid Rewards"],
   "parentRequirements": ["{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"],
   "childRequirements": [],
   "implemented": ["{018EF6B5-AB94-40C6-AA53-46943E824ACF}"],
