@@ -3,7 +3,7 @@
   "name": "TibberGridRewardTile",
   "type": 3,
   "vendor": "Tibber",
-  "aliases": ["Tibber Grid Rewards Kachel", "NRGTibberGridRewardTile"],
+  "aliases": ["Tibber Grid Rewards Kachel", "NRGTibberGridRewardTile", "NRG-Stack Tibber Grid Rewards Kachel"],
   "parentRequirements": [],
   "childRequirements": [],
   "implemented": [],
