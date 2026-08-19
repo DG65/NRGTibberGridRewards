@@ -1,11 +1,18 @@
 # TibberGridRewards für IP-Symcon
 
+![Symcon](https://img.shields.io/badge/Symcon-PHPModul-blue)
+![Modul Version](https://img.shields.io/badge/Modul_Version-2.8.1-blue)
+![Symcon Version](https://img.shields.io/badge/Symcon_Version-9.0%2B-blue)
+![License](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-lightgrey)
+[![Check Style](https://github.com/DG65/NRGTibberGridRewards/actions/workflows/check-style.yml/badge.svg)](https://github.com/DG65/NRGTibberGridRewards/actions/workflows/check-style.yml)
+[![PayPal](https://img.shields.io/badge/PayPal-Me-blue?logo=paypal)](https://paypal.me/DietmarGureth)
+
 IP-Symcon-Bibliothek, die den **Tibber-Grid-Rewards-Status** über die Tibber-App-API abonniert und
 als Variablen bereitstellt. Kern ist ein handlungsfähiges Signal (`Grid Reward aktiv`), mit dem sich
 eigene Automationen auslösen lassen.
 
 > Teil des **NRG-Stack** — welche Modulstände zusammenpassen, steht im
-> [Suite-Manifest](https://github.com/DG65/EMS/blob/main/SUITE.md).
+> [Suite-Manifest](https://github.com/DG65/NRGEMS/blob/main/SUITE.md).
 
 > **Abgrenzung:** Verbrauch/Produktion und Live-Messung (Pulse) über die offizielle Tibber-API werden
 > hier **nicht** abgebildet – dafür gibt es das ausgereifte Modul
