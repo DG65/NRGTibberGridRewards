@@ -401,7 +401,7 @@ entspräche bereits rund 0,3 ct/kWh Abweichung.
 **Ohne dieses Häkchen gibt es keinen Preis-Rückblick.** `TIBBERGR_GetPriceCurve()` liefert bewusst nur
 heute und morgen; alles Vergangene kommt aus dem Archiv. Das betrifft nicht nur die Rechnungsprüfung,
 sondern auch die historische Preiskurve in Auswertungen und Kacheln anderer Module (z. B. dem
-Monitoring von [InverterHub](https://github.com/DG65/InverterHub), das den Rückblick aus dieser
+Monitoring von [InverterHub](https://github.com/DG65/NRGInverterHub), das den Rückblick aus dieser
 archivierten Variable zeichnet und die Vorschau aus der Funktion). Aufgezeichnet wird **ab dem Setzen
 des Häkchens** – rückwirkend gibt es keine Daten.
 
