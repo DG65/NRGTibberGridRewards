@@ -124,7 +124,7 @@
         {
           "type": "Button",
           "caption": "Preis-Zuhause-Liste neu laden",
-          "onClick": "TIBBERGR_UpdatePriceHomes($id);"
+          "onClick": "echo TIBBERGR_UpdatePriceHomes($id);"
         },
         {
           "type": "Select",
@@ -592,7 +592,7 @@
     {
       "type": "Button",
       "caption": "Zuhause-Liste neu laden",
-      "onClick": "TIBBERGR_UpdateHomes($id);"
+      "onClick": "echo TIBBERGR_UpdateHomes($id);"
     }
   ],
   "status": [

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.8.2
+
+- **Fix (Verbund-Konvention "Sichtbare Rückmeldung bei jeder Aktion", SUITE.md, 20.08.2026):
+  `TIBBERGR_UpdateHomes()`/`TIBBERGR_UpdatePriceHomes()` ("Zuhause-Liste neu laden"-Buttons) liefen
+  bei fehlenden Zugangsdaten oder fehlgeschlagenem Login/Abruf komplett still durch — der Nutzer
+  sah nach dem Klick keinerlei Reaktion. Beide geben jetzt einen Ergebnistext zurück
+  (⚠️/❌/✅ + Anzahl gefundener Zuhause), `form.json` nutzt dafür `echo Prefix_Methode($id)` statt
+  eines reinen Funktionsaufrufs — IPS zeigt den Text automatisch als Popup nach dem Klick.
+  Die übrigen Buttons (Simulation, Zurücksetzen, Werte anzeigen) geben bereits über Variablen-
+  änderungen bzw. `ReloadForm()` sichtbares Feedback, dort kein Änderungsbedarf.
+
 ## 2.8.1
 
 - **Fix (Usability-Fund, 27.07.2026, analog zum EMS-Netzmesspunkte-Fund): `Paragraph14aEnabled`

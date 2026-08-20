@@ -600,11 +600,26 @@ class TibberGridReward extends IPSModule
     /**
      * Button-Aktion: Zuhause-Liste neu laden (Login sicherstellen, Homes holen, Formular neu laden).
      */
-    public function UpdateHomes(): void
+    /**
+     * Button-Aktion "Zuhause-Liste neu laden": gibt einen Ergebnistext zurück statt still zu bleiben
+     * (Verbund-Konvention "Sichtbare Rückmeldung bei jeder Aktion", SUITE.md, 20.08.2026) - vorher lief
+     * das Formular bei einem fehlgeschlagenen Login/leerer Antwort ohne jede sichtbare Reaktion durch.
+     */
+    public function UpdateHomes(): string
     {
-        $this->EnsureToken();
+        if ($this->ReadPropertyString('Email') === '' || $this->GetPasswordSecret() === '') {
+            return $this->Translate('⚠️ Keine Zugangsdaten (E-Mail/Passwort) eingetragen.');
+        }
+        if (!$this->EnsureToken()) {
+            return $this->Translate('❌ Login fehlgeschlagen - E-Mail/Passwort prüfen.');
+        }
         $this->GetHomesData();
         $this->ReloadForm();
+        $count = count($this->BuildHomeOptions()) - 1;
+        if ($count <= 0) {
+            return $this->Translate('⚠️ Kein Zuhause gefunden.');
+        }
+        return sprintf($this->Translate('✅ %d Zuhause gefunden.'), $count);
     }
 
     // ---------------------------------------------------------------------
@@ -763,11 +778,22 @@ class TibberGridReward extends IPSModule
         return false;
     }
 
-    /** Button-Aktion: Preis-Zuhause-Liste neu laden (Formular danach neu laden). */
-    public function UpdatePriceHomes(): void
+    /**
+     * Button-Aktion "Preis-Zuhause-Liste neu laden": gibt einen Ergebnistext zurück statt still zu
+     * bleiben (Verbund-Konvention "Sichtbare Rückmeldung bei jeder Aktion", SUITE.md, 20.08.2026).
+     */
+    public function UpdatePriceHomes(): string
     {
+        if ($this->GetPriceApiToken() === '') {
+            return $this->Translate('⚠️ Kein Zugangsschlüssel (Personal Access Token) eingetragen.');
+        }
         $this->FetchPriceHomes();
         $this->ReloadForm();
+        $count = count($this->BuildPriceHomeOptions()) - 1;
+        if ($count <= 0) {
+            return $this->Translate('⚠️ Kein Zuhause gefunden - Zugangsschlüssel prüfen.');
+        }
+        return sprintf($this->Translate('✅ %d Zuhause gefunden.'), $count);
     }
 
     private function FetchPriceHomes(): void
