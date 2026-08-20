@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.8.3
+
+- **Neu: Button "🔄 Übernehmen erzwingen (ohne Formularänderung)"** — ruft direkt
+  `IPS_ApplyChanges($id)` mit Popup-Bestätigung auf (Anregung von EMS, 0.22.4). Praktisch nach
+  jedem Modul-Update oder wenn der Status nach einer Änderung mal nicht sauber nachgezogen hat
+  (siehe z. B. den rekursiven-ApplyChanges-Stolperstein vom 25.07.2026) — ohne dafür ein Feld
+  anfassen und wieder zurückändern zu müssen, nur damit "Übernehmen" aktiv wird.
+
 ## 2.8.2
 
 - **Fix (Verbund-Konvention "Sichtbare Rückmeldung bei jeder Aktion", SUITE.md, 20.08.2026):
