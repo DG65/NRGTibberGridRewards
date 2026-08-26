@@ -45,6 +45,7 @@ class TibberGridReward extends IPSModule
     private const CONTRACT_TARIFFCONFIG   = '1.1'; // 1.0 fixe Positionen, 1.1 + campaigns
     private const CONTRACT_ACTIVECONTROLS = '1.0';
     private const CONTRACT_SETVEHICLESETTING = '1.0';
+    private const CONTRACT_DECOMPOSEPRICE = '1.0';
 
     // Allowlist für SetVehicleSetting() - bewusst KEIN generischer Freitext-Schreibzugriff auf
     // beliebige Tibber-Einstellungen, nur die per Netzwerk-Mitschnitt verifizierten vier Schlüssel
@@ -1152,6 +1153,48 @@ class TibberGridReward extends IPSModule
             'paragraph14aReductionDay'  => round($this->ReadPropertyFloat('Paragraph14aReductionYear') / 365, 6),
             'tibberBaseFeeMonth'        => $this->ReadPropertyFloat('TibberBaseFeeMonth'),
             'campaigns'                 => $this->BuildCampaigns(),
+        ];
+    }
+
+    /**
+     * Öffentlicher Vertrag (EMS-abgestimmt, 27.08.2026): zerlegt einen EINZELNEN, von außen
+     * übergebenen Preis (z. B. aus einer historischen Quelle wie einem Drittmodul, das eigene
+     * Preis-Historie archiviert - wir selbst archivieren aktuell keine historischen Preise) in
+     * dieselben Komponenten wie GetPriceCurve() (spot/beschaffung/netzentgelt/steuernAbgaben).
+     *
+     * WICHTIG, unbedingt beachten: Die Zerlegung nutzt IMMER das AKTUELL im Formular hinterlegte
+     * Tarif-Config (Netzentgelte, §14a, Beschaffungskosten) - für einen $Timestamp in der
+     * Vergangenheit ist das nur korrekt, wenn sich diese Werte seither nicht geändert haben. Wir
+     * führen keine Versionshistorie des Tarif-Configs; eine rückwirkend korrekte Zerlegung über
+     * einen Tarifwechsel hinweg ist damit nicht möglich - das ist eine bewusste Näherung, kein
+     * Versehen.
+     *
+     * @return array ['contractVersion'=>'1.0', 'success'=>bool, 'error'=>string|null,
+     *                'start'=>int, 'price'=>float, 'vat'=>float|null,
+     *                'components'=>array{spot,beschaffung,netzentgelt,steuernAbgaben}|null]
+     */
+    public function DecomposePrice(float $PriceCtPerKwh, int $Timestamp): array
+    {
+        if (!$this->ReadPropertyBoolean('TariffEnabled')) {
+            return [
+                'contractVersion' => self::CONTRACT_DECOMPOSEPRICE,
+                'success'         => false,
+                'error'           => 'Tarifzerlegung nicht aktiviert (Panel "Tarif & Netzentgelt").',
+                'start'           => $Timestamp,
+                'price'           => $PriceCtPerKwh,
+                'vat'             => null,
+                'components'      => null,
+            ];
+        }
+
+        return [
+            'contractVersion' => self::CONTRACT_DECOMPOSEPRICE,
+            'success'         => true,
+            'error'           => null,
+            'start'           => $Timestamp,
+            'price'           => $PriceCtPerKwh,
+            'vat'             => self::VAT_PERCENT,
+            'components'      => $this->ComputePriceComponents(['price' => $PriceCtPerKwh, 'start' => $Timestamp]),
         ];
     }
 

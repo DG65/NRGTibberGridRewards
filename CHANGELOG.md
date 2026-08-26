@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.8.4
+
+- **Neu: `TIBBERGR_DecomposePrice()`** — zerlegt einen von außen übergebenen Einzelpreis
+  (Preis+Zeitstempel) in dieselben Komponenten wie `GetPriceCurve()` (spot/beschaffung/
+  netzentgelt/steuernAbgaben). Für EMS' Rechnungsprüfung (`EMS_GetInvoiceCheck`): Ein
+  unabhängiges Drittmodul ("Tibber V.2", da8ter/TibberV2) archiviert seit Mai 2026 historische
+  Rohpreise, die wir selbst nicht haben — statt selbst zu archivieren oder das fremde Modul zu
+  kennen, bekommt EMS eine reine Zerlegungsfunktion für von dort ausgelesene Werte.
+  - Reine Wiederverwendung von `ComputePriceComponents()`, isoliert gegengerechnet (Komponenten
+    summieren exakt zum Netto-Eingabepreis).
+  - `success=false` statt Zerlegung mit unkalibrierten Beispielwerten, falls `TariffEnabled`
+    aus ist.
+  - Bewusste Einschränkung: nutzt immer das AKTUELLE Tarif-Config, keine Versionierung über
+    Tarifwechsel hinweg — für Zeitpunkte in der Vergangenheit nur korrekt, wenn sich
+    Netzentgelte/§14a/Kampagnen seither nicht geändert haben (mit EMS abgestimmt, akzeptierte
+    Näherung).
+
 ## 2.8.3
 
 - **Neu: Button "🔄 Übernehmen erzwingen (ohne Formularänderung)"** — ruft direkt

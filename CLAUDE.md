@@ -325,6 +325,44 @@ TIBBERGR_SetVehicleSetting(int $id, string $VehicleId, string $Key, ?string $Val
 - **Kein eigenes UI im Formular.** Bewusst nur als Funktion für EMS/Automationen gedacht, keine
   Formularfelder — die Zielgruppe ist Code, nicht Dietmar direkt im Instanzformular.
 
+## Öffentlicher Vertrag: Einzelpreis zerlegen (`TIBBERGR_DecomposePrice`, seit 2.8.4)
+
+Auslöser: EMS baut eine Rechnungsprüfung (`EMS_GetInvoiceCheck`, Soll-Ist-Abgleich). Für die
+Soll-Seite braucht EMS historische Preiskomponenten (spot/beschaffung/netzentgelt/steuernAbgaben)
+für vergangene Zeiträume — unser eigenes `GetPriceCurve()` liefert nur heute+morgen, wir
+archivieren selbst keine historischen Rohpreise. **Live geprüft (27.08.2026): Ein unabhängiges
+Drittmodul auf Dietmars Instanz ("Tibber V.2", da8ter/TibberV2, NICHT DG65) archiviert seit
+mindestens Mai 2026 viertelstündlich den rohen Tibber-Endkundenpreis** — die Rohdaten für die
+Rechnungsprüfung existieren also, nur nicht bei uns.
+
+Statt selbst zu archivieren (hätte wegen der Verbund-Grundregel "kein Modul setzt ein anderes
+voraus" ohnehin nicht auf Tibber V.2 zugreifen dürfen) bekommt EMS eine reine Rechenfunktion:
+EMS liest den historischen Rohpreis selbst (woher auch immer) und übergibt ihn samt Zeitstempel,
+wir liefern nur die Zerlegung zurück.
+
+```php
+TIBBERGR_DecomposePrice(int $id, float $PriceCtPerKwh, int $Timestamp): array
+// ['contractVersion'=>'1.0', 'success'=>bool, 'error'=>string|null, 'start'=>int,
+//  'price'=>float, 'vat'=>float|null,
+//  'components'=>array{spot,beschaffung,netzentgelt,steuernAbgaben}|null]
+```
+
+- **Reine Wiederverwendung** von `ComputePriceComponents()` (schon in `GetPriceCurve()` im
+  Einsatz) — das Minimal-Array `['price'=>$PriceCtPerKwh,'start'=>$Timestamp]` reicht, die
+  Funktion braucht nur diese zwei Felder. Isoliert getestet: Summe der vier Komponenten ergibt
+  exakt wieder den Netto-Eingabepreis (Formel bildet `spot` als Rest, das MUSS aufgehen).
+- **Fehlt `TariffEnabled`, gibt es `success=false` statt einer Zerlegung mit unkalibrierten
+  Beispielwerten** — sonst würde die Funktion für jeden Nutzer ohne aktivierte Tarifzerlegung
+  stillschweigend Dietmars eigene Preisblatt-Beispielzahlen zurückliefern (Netzentgelt/
+  Beschaffung/Konzessionsabgabe sind Property-Defaults, siehe 2.8.1-Fund).
+- **KEINE Versionierung des Tarif-Configs.** Die Zerlegung nutzt immer die AKTUELL im Formular
+  hinterlegten Werte — für einen `$Timestamp` in der Vergangenheit nur korrekt, wenn sich
+  Netzentgelte/§14a/Kampagnen seither nicht geändert haben. Bewusste, mit EMS abgestimmte
+  Näherung ("besser eine mit Vorbehalt korrekt eingeordnete Näherung als gar keine Soll-Seite"),
+  keine echte Zeitreise durch historische Tarifstände.
+- **Kein eigenes UI im Formular**, gleiche Begründung wie bei `SetVehicleSetting` — reiner
+  Funktionsvertrag für EMS.
+
 ### Vertragsversionierung (Verbund-Konvention, SUITE.md im EMS-Repo)
 
 Getrennt von der Modul-SemVer trägt **jeder** Vertrag ein additives `contractVersion` = "Major.Minor"
@@ -344,6 +382,7 @@ standalone weiter, deaktivieren die Kopplung und melden das **sichtbar**. Konsta
   (Listen-Vertrag, gleiche Regel wie `GetPriceCurve`).
 - `SetVehicleSetting` (seit 2.8.0) trägt `contractVersion` = **"1.0"**, Top-Level-Feld (Map-Rückgabe,
   gleiche Regel wie `GetTariffConfig`).
+- `DecomposePrice` (seit 2.8.4) trägt `contractVersion` = **"1.0"**, Top-Level-Feld (Map-Rückgabe).
 
 ### Gemeinsame Variablenprofile `NRG.*` (Verbund-Konvention) — bei uns geprüft, nichts zu migrieren
 
