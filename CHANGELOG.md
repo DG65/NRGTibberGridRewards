@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.8.6
+
+- **Fix (Live-Absturz, gefunden von OCPPHub im Systemlog, 31.08.2026): `TypeError` in
+  `GetPriceApiToken()`/`GetPasswordSecret()`.** Beide waren mit strikter Rückgabetyp-Deklaration
+  `: string` versehen, gaben aber `$this->ReadAttributeString(...)` ungecastet zurück -
+  `ReadAttributeString()` liefert `false` statt eines Strings, wenn das Attribut (noch) nicht
+  registriert ist (z. B. während eines Kernel-/Modul-Reloads, bevor `Create()` durchgelaufen ist).
+  Das riss jeden Aufrufer der Kette mit einem Fatal Error mit - konkret beobachtet:
+  `GetPriceApiToken()` → `GetPriceCurve()` → Dashboards `PVMonitor` stürzte kurz danach ebenfalls ab
+  (`json_decode` auf `false`). Fix: `(string)`-Cast in beiden Gettern, normalisiert `false` sicher
+  zu `''` - das bestehende `$token === ''`-Handling (Status 201 „keine Zugangsdaten") greift dann
+  wie vorgesehen, statt dass die Instanz hart abstürzt.
+
 ## 2.8.5
 
 - **BRUCH in `GetActiveControls()`: `deviceId` liefert jetzt Tibbers echte `vehicleId`/`batteryId`

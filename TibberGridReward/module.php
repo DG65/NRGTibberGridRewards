@@ -2520,16 +2520,24 @@ class TibberGridReward extends IPSModule
         return $changed;
     }
 
-    /** Grid-Rewards-App-Passwort (Attribut, nicht Property - siehe MigrateCredentialsToAttributes). */
+    /**
+     * Grid-Rewards-App-Passwort (Attribut, nicht Property - siehe MigrateCredentialsToAttributes).
+     * (string)-Cast bewusst: ReadAttributeString() liefert `false` statt eines Strings, wenn das
+     * Attribut (noch) nicht registriert ist (z. B. wenn diese Methode waehrend eines Kernel-/
+     * Modul-Reloads vor Create() aufgerufen wird) - ohne den Cast bricht der strikte Rueckgabetyp
+     * `: string` das mit einem TypeError ab und reisst jeden Aufrufer mit (Fund: OCPPHub-Sitzung,
+     * 31.08.2026, echter Absturz bei GetPriceApiToken() ueber GetPriceCurve() -> Dashboard).
+     */
     private function GetPasswordSecret(): string
     {
-        return $this->ReadAttributeString('PasswordSecret');
+        return (string) $this->ReadAttributeString('PasswordSecret');
     }
 
-    /** Personal Access Token der offiziellen Tibber-API (Attribut, nicht Property). */
+    /** Personal Access Token der offiziellen Tibber-API (Attribut, nicht Property). Cast-Begründung
+     *  siehe GetPasswordSecret() - identisches Muster, hier live abgestürzt. */
     private function GetPriceApiToken(): string
     {
-        return $this->ReadAttributeString('PriceApiTokenSecret');
+        return (string) $this->ReadAttributeString('PriceApiTokenSecret');
     }
 
     /**
