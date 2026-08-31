@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.8.5
+
+- **BRUCH in `GetActiveControls()`: `deviceId` liefert jetzt Tibbers echte `vehicleId`/`batteryId`
+  (string) statt immer `0` (int).** `contractVersion` von "1.0" auf "2.0" erhöht. Auslöser:
+  OCPPHub-Anfrage (27.08.2026) deckte auf, dass wir `vehicleId`/`batteryId` in der GraphQL-Abfrage
+  schon anfordern, aber bislang ungenutzt verworfen hatten. WICHTIG: Das ist Tibbers interne ID,
+  keine VIN und keine lokale Symcon-Instanz-ID — ohne manuell gepflegte Kreuzreferenz nicht
+  automatisch einer lokalen Tessie-/GoodweET-Instanz zuordenbar, aber über mehrere Aufrufe hinweg
+  stabil (unterscheidet mehrere Geräte zuverlässig). Konsumenten mit Mindest-Major 1 müssen die
+  Kopplung deaktivieren/sichtbar melden, bis sie auf 2.x angehoben sind (Verbund-Konvention).
+
 ## 2.8.4
 
 - **Neu: `TIBBERGR_DecomposePrice()`** — zerlegt einen von außen übergebenen Einzelpreis

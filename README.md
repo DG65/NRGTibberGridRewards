@@ -454,9 +454,9 @@ dein EMS bekommt davon sonst nichts mit. `TIBBERGR_GetActiveControls()` schließ
 ```php
 TIBBERGR_GetActiveControls(int $InstanzID): array
 // Leer, wenn Tibber gerade kein Gerät steuert. Sonst je Gerät:
-// [[ 'contractVersion' => '1.0',
+// [[ 'contractVersion' => '2.0',
 //    'type'       => 'vehicle' | 'battery' | 'charger', // aktuell nur die ersten beiden möglich
-//    'deviceId'   => int,     // IMMER 0 – siehe unten
+//    'deviceId'   => string,  // Tibbers eigene vehicleId/batteryId – siehe unten
 //    'name'       => string,  // Anzeigename bei Tibber
 //    'make'       => string,  // Hersteller, Tibbers Rohwert
 //    'managedBy'  => 'tibber',
@@ -468,9 +468,11 @@ TIBBERGR_GetActiveControls(int $InstanzID): array
 
 Das ist **kein Steuerbefehl und kein Override** – dieses Modul kann Tibbers Zugriff nicht verhindern,
 nur melden, dass er gerade stattfindet, damit eine übergeordnete Steuerung (dein EMS) andere
-Ressourcen umleiten kann, statt gegen Tibber zu arbeiten. `deviceId` liefert bewusst immer `0`: Ohne
-eine vereinbarte Kreuzreferenz lässt sich Tibbers interne Geräte-ID nicht zuverlässig einer lokalen
-Fahrzeug-/Speicher-Instanz zuordnen – `name`/`make` sind zur Identifikation gedacht.
+Ressourcen umleiten kann, statt gegen Tibber zu arbeiten. `deviceId` ist Tibbers eigene, interne
+Geräte-ID – **keine Fahrgestellnummer (VIN) und keine lokale Symcon-Instanz-ID**. Ohne eine manuell
+gepflegte Kreuzreferenz lässt sie sich nicht automatisch einer lokalen Fahrzeug-/Speicher-Instanz
+zuordnen, ist aber über mehrere Abfragen hinweg stabil (unterscheidet mehrere Geräte zuverlässig
+voneinander). `name`/`make` bleiben der Weg zur menschenlesbaren Identifikation.
 
 ### Fahrzeug-Einstellung setzen (experimentell, seit 2.8.0)
 

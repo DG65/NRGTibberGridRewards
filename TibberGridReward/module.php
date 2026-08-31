@@ -43,7 +43,7 @@ class TibberGridReward extends IPSModule
     // innerhalb derselben Major; Major NUR bei Bruch, Minor bei additiver Erweiterung.
     private const CONTRACT_PRICECURVE     = '1.1'; // 1.0 Basis-Kurve, 1.1 + components/vat/tibberEnergy/tibberTax
     private const CONTRACT_TARIFFCONFIG   = '1.1'; // 1.0 fixe Positionen, 1.1 + campaigns
-    private const CONTRACT_ACTIVECONTROLS = '1.0';
+    private const CONTRACT_ACTIVECONTROLS = '2.0'; // 1.0 deviceId immer 0 (int), 2.0 = echte Tibber-vehicleId/batteryId (string)
     private const CONTRACT_SETVEHICLESETTING = '1.0';
     private const CONTRACT_DECOMPOSEPRICE = '1.0';
 
@@ -1593,15 +1593,19 @@ class TibberGridReward extends IPSModule
      *
      * Rückgabe je aktuell aktivem Gerät (leer, wenn keins gerade liefert): ['contractVersion'=>'1.0',
      * 'type'=>'vehicle'|'battery'|'charger' (Letzteres bislang nie, Tibbers Schema kennt aktuell nur
-     * die ersten beiden), 'deviceId'=>int (0 - lokale Instanz-Zuordnung noch nicht auflösbar, siehe
-     * unten), 'name'=>string, 'make'=>string (Tibbers Rohwert, unverändert), 'managedBy'=>'tibber'
-     * (fix), 'reason'=>string (Klartext inkl. Uhrzeit), 'since'=>int (Unix, erste durchgehende
-     * Delivering-Flanke), 'valid'=>bool (Verbindung gerade aktiv/frisch)].
+     * die ersten beiden), 'deviceId'=>string (seit 2.0, siehe unten), 'name'=>string,
+     * 'make'=>string (Tibbers Rohwert, unverändert), 'managedBy'=>'tibber' (fix), 'reason'=>string
+     * (Klartext inkl. Uhrzeit), 'since'=>int (Unix, erste durchgehende Delivering-Flanke),
+     * 'valid'=>bool (Verbindung gerade aktiv/frisch)].
      *
-     * 'deviceId' ist bewusst IMMER 0: Tibbers vehicleId/batteryId lässt sich ohne eine vereinbarte
-     * Kreuzreferenz nicht zuverlässig einer lokalen Tessie-/GoodweET-Instanz zuordnen (Tessie hat laut
-     * CLAUDE.md-Absprache bewusst keinen eigenen Vertrag dafür). 'name'/'make' identifizieren das
-     * Gerät menschenlesbar; eine echte deviceId wäre ein separates, abzustimmendes Feature.
+     * 'deviceId' (seit contractVersion 2.0, Bruch ggü. 1.0 - Typ- UND Bedeutungswechsel): Tibbers
+     * eigene `vehicleId`/`batteryId` (String-UUID), vorher fälschlich immer als `0` (int) ausgegeben.
+     * WICHTIG, unbedingt an Konsumenten kommunizieren: Das ist Tibbers INTERNE ID, KEINE VIN und
+     * KEINE lokale Symcon-Instanz-ID - ohne eine manuell gepflegte Kreuzreferenz lässt sie sich nicht
+     * automatisch einer lokalen Tessie-/GoodweET-Instanz zuordnen. Nutzen: stabil über mehrere Aufrufe
+     * hinweg (unterscheidet zuverlässig mehrere Fahrzeuge/Speicher voneinander), aber kein Ersatz für
+     * eine echte Cross-Reference. Leerer String, falls Tibber für dieses Gerät keine ID liefert.
+     * 'name'/'make' bleiben der Weg zur menschenlesbaren Identifikation.
      */
     public function GetActiveControls(): array
     {
@@ -1633,7 +1637,7 @@ class TibberGridReward extends IPSModule
             $out[] = [
                 'contractVersion' => self::CONTRACT_ACTIVECONTROLS,
                 'type'            => ($d['__typename'] ?? '') === 'GridRewardBattery' ? 'battery' : 'vehicle',
-                'deviceId'        => 0,
+                'deviceId'        => (string) ($d['vehicleId'] ?? $d['batteryId'] ?? ''),
                 'name'            => (string) ($d['shortName'] ?? ($d['make'] ?? '?')),
                 'make'            => (string) ($d['make'] ?? ''),
                 'managedBy'       => 'tibber',

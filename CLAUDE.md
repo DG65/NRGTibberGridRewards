@@ -236,9 +236,9 @@ wenn keins gerade aktiv ist:
 
 ```php
 TIBBERGR_GetActiveControls(int $id): array
-// [[ 'contractVersion'=>'1.0', 'type'=>'vehicle'|'battery'|'charger' (charger bislang nie - Tibbers
+// [[ 'contractVersion'=>'2.0', 'type'=>'vehicle'|'battery'|'charger' (charger bislang nie - Tibbers
 //    Schema kennt aktuell nur Vehicle/Battery, offen falls Tibber erweitert),
-//    'deviceId'=>int (IMMER 0, siehe unten), 'name'=>string, 'make'=>string (Tibbers Rohwert),
+//    'deviceId'=>string (seit 2.0, siehe unten), 'name'=>string, 'make'=>string (Tibbers Rohwert),
 //    'managedBy'=>'tibber' (fix), 'reason'=>string (Klartext inkl. Uhrzeit),
 //    'since'=>int (Unix, Beginn der durchgehenden Delivering-Flanke), 'valid'=>bool ], …]
 ```
@@ -252,11 +252,17 @@ TIBBERGR_GetActiveControls(int $id): array
   `UpdateFlexDeviceSince()`, aufgerufen aus `ProcessGridReward()` bei jedem Status (auch bei
   `Simulate()`). Neue Flanke → Zeitstempel jetzt; endet die Flanke, wird der Eintrag entfernt, damit
   eine spätere erneute Flanke wieder bei „jetzt" beginnt statt einen alten Wert fortzuschreiben.
-- **`deviceId` ist bewusst IMMER 0.** Tibbers `vehicleId`/`batteryId` lässt sich ohne vereinbarte
-  Kreuzreferenz nicht zuverlässig einer lokalen Tessie-/GoodweET-Instanz zuordnen — Tessie hat laut
-  eigener Absprache bewusst **keinen** Vertrag dafür (`DG65/Tessie`, „rein konfigurativ"). `name`/
-  `make` identifizieren das Gerät nur menschenlesbar. Eine echte `deviceId`-Auflösung wäre ein
-  separates, mit Tessie/GoodweET abzustimmendes Feature — nicht heimlich raten.
+- **`deviceId` seit contractVersion 2.0 = Tibbers echte `vehicleId`/`batteryId` (String-UUID)**,
+  Bruch ggü. 1.0 (dort fälschlich immer `0` als int) — OCPPHub-Anfrage 27.08.2026 deckte auf, dass
+  wir dieses Feld schon abfragen (siehe GraphQL-Query in `SubscribeData()`), aber bis dahin
+  ungenutzt verworfen hatten. **WICHTIG, unbedingt an Konsumenten kommunizieren:** Das ist Tibbers
+  INTERNE ID, KEINE VIN und KEINE lokale Symcon-Instanz-ID — ohne eine manuell gepflegte
+  Kreuzreferenz lässt sie sich nicht automatisch einer lokalen Tessie-/GoodweET-Instanz zuordnen
+  (Tessie hat laut eigener Absprache bewusst **keinen** Vertrag dafür, `DG65/Tessie`, „rein
+  konfigurativ"). Nutzen: stabil über mehrere Aufrufe hinweg, unterscheidet mehrere Fahrzeuge/
+  Speicher zuverlässig voneinander — aber kein Ersatz für eine echte Cross-Reference. `name`/`make`
+  bleiben der Weg zur menschenlesbaren Identifikation, als Näherung (nicht sichere Aussage) geeignet,
+  solange Fahrzeugnamen zwischen den Systemen nicht garantiert übereinstimmen.
 - **`valid`** = `InstanceStatus === 102` (WS-Verbindung aktiv). Kein separates Politur-Timing, da
   Grid-Reward-Status ohnehin per Live-Push kommt, nicht gepollt.
 
@@ -378,8 +384,9 @@ standalone weiter, deaktivieren die Kopplung und melden das **sichtbar**. Konsta
   kanonische SUITE.md-Regel für listen-liefernde Verträge (contractVersion in jedem Eintrag, gleicher
   Wert; kein Umschlag um bestehende Listen) — ebenso bei ChargerHub/HeishaMon/MHUB. Nicht „glattziehen".
 - `GetTariffConfig` = **1.1** (1.0 fixe Positionen, 1.1 + `campaigns`) — Top-Level-Feld (Map-Rückgabe).
-- `GetActiveControls` (seit 2.7.0) trägt `contractVersion` = **"1.0"** von Anfang an, je Eintrag
-  (Listen-Vertrag, gleiche Regel wie `GetPriceCurve`).
+- `GetActiveControls` (seit 2.7.0) trägt `contractVersion`, je Eintrag (Listen-Vertrag, gleiche
+  Regel wie `GetPriceCurve`) — **"2.0" seit 2.8.5** (1.0 `deviceId` immer `0`/int, 2.0 = echte
+  Tibber-`vehicleId`/`batteryId` als string; Bruch, da Typ UND Bedeutung sich ändern).
 - `SetVehicleSetting` (seit 2.8.0) trägt `contractVersion` = **"1.0"**, Top-Level-Feld (Map-Rückgabe,
   gleiche Regel wie `GetTariffConfig`).
 - `DecomposePrice` (seit 2.8.4) trägt `contractVersion` = **"1.0"**, Top-Level-Feld (Map-Rückgabe).
