@@ -369,7 +369,7 @@ TIBBERGR_DecomposePrice(int $id, float $PriceCtPerKwh, int $Timestamp): array
 - **Kein eigenes UI im Formular**, gleiche Begründung wie bei `SetVehicleSetting` — reiner
   Funktionsvertrag für EMS.
 
-### Vertragsversionierung (Verbund-Konvention, SUITE.md im EMS-Repo)
+### Vertragsversionierung (Verbund-Konvention, siehe SUITE.md — Bezugsquelle unten)
 
 Getrennt von der Modul-SemVer trägt **jeder** Vertrag ein additives `contractVersion` = "Major.Minor"
 (String). Kompatibilität nur innerhalb derselben **Major**; Major NUR bei Bruch, Minor bei additiver
