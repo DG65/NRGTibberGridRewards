@@ -12,7 +12,7 @@ als Variablen bereitstellt. Kern ist ein handlungsfähiges Signal (`Grid Reward 
 eigene Automationen auslösen lassen.
 
 > Teil des **NRG-Stack** — welche Modulstände zusammenpassen, steht im
-> [Suite-Manifest](https://github.com/DG65/NRGEMS/blob/main/SUITE.md).
+> internen Suite-Manifest des NRG-Stack.
 
 > **Abgrenzung:** Verbrauch/Produktion und Live-Messung (Pulse) über die offizielle Tibber-API werden
 > hier **nicht** abgebildet – dafür gibt es das ausgereifte Modul
