@@ -369,6 +369,34 @@ TIBBERGR_DecomposePrice(int $id, float $PriceCtPerKwh, int $Timestamp): array
 - **Kein eigenes UI im Formular**, gleiche Begründung wie bei `SetVehicleSetting` — reiner
   Funktionsvertrag für EMS.
 
+## Öffentlicher Vertrag: Demo-Preiskurve setzen (`TIBBERGR_SetDemoPriceCurve`, seit 2.8.7)
+
+Dashboard-Anfrage (01.09.2026) für die NRG-Stack-Demo auf demo.gureth.eu: Besucher sollen zwischen
+Preisszenarien (günstig/teuer/Einspeiseüberschuss) durchschalten können, auf einer isolierten
+Demo-Instanz ohne echte Zugangsdaten.
+
+```php
+TIBBERGR_SetDemoPriceCurve(int $id, string $Json): array
+// ['success'=>bool, 'error'=>string|null, 'slotCount'=>int]
+```
+
+- **Sicherheits-Gate über ein Property, nicht nur eine Konvention:** `DemoOverrideEnabled`
+  (Formular, Default **false**) muss explizit aktiviert sein, sonst ist `SetDemoPriceCurve()`
+  wirkungslos UND `GetPriceCurve()` ignoriert das gesetzte Attribut komplett. Die produktive
+  Instanz #51379 hat dieses Property nie an — ein versehentlicher Aufruf auf der falschen Instanz
+  kann die echte Preiskurve strukturell nicht überschreiben, nicht nur "bitte nur auf der
+  Demo-Instanz benutzen".
+- **Property statt Attribut für den Schalter**, bewusst abweichend vom sonstigen Muster
+  (Zugangsdaten etc. sind Attribute) — hier soll der Zustand im Formular SICHTBAR sein, gerade weil
+  er die reale Preislogik übersteuert. Kein verstecktes Feature.
+- **`$Json` roh als String**, keine typisierten PHP-Parameter — einfacher aus einem Fremdmodul
+  per `json_encode()` aufzurufen. Validiert nur minimal (jeder Slot braucht `start`+`price`),
+  keine Prüfung auf lückenlose Abdeckung o. ä. — Demo-Daten müssen nicht Tibbers echtem
+  Antwortformat vollständig entsprechen, nur genug für die Darstellung.
+- Isoliert getestet: Gate blockiert `SetDemoPriceCurve()` bei ausgeschaltetem Override, JSON-/
+  Feld-Validierung greift, `GetPriceCurve()` nimmt bei ausgeschaltetem Override garantiert den
+  echten Pfad (nicht nur "meistens").
+
 ### Vertragsversionierung (Verbund-Konvention, siehe SUITE.md — Bezugsquelle unten)
 
 Getrennt von der Modul-SemVer trägt **jeder** Vertrag ein additives `contractVersion` = "Major.Minor"

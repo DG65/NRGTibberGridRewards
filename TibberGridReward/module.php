@@ -157,6 +157,14 @@ class TibberGridReward extends IPSModule
         // Archivierung des Preisverlaufs (Grundlage für eine spätere Rechnungsprüfung).
         $this->RegisterPropertyBoolean('ArchivePrice', false);
 
+        // Demo-Override für GetPriceCurve() (Dashboard-Anfrage, 01.09.2026, für demo.gureth.eu):
+        // ersetzt die ECHTE Preiskurve durch eine manuell gesetzte, NUR wenn dieses Property explizit
+        // aktiviert ist - Property statt Attribut, damit der Zustand im Formular sichtbar ist (bewusst
+        // KEIN verstecktes Feature, gerade weil es die reale Preislogik übersteuert). Default false,
+        // die echte, produktive Instanz hat das nie an.
+        $this->RegisterPropertyBoolean('DemoOverrideEnabled', false);
+        $this->RegisterAttributeString('DemoPriceCurve', '[]');
+
         // Tarif- & Netzentgelt-Zerlegung (Rechnungsprüfung): schaltet die components-Aufschlüsselung
         // in GetPriceCurve frei. Werte netzgebietsspezifisch (ins Formular), Vorbelegung = Beispiel
         // E-Werk Netze GmbH (vormals Überlandwerk Mittelbaden) für die Erstinbetriebnahme.
@@ -1089,6 +1097,20 @@ class TibberGridReward extends IPSModule
      */
     public function GetPriceCurve(): array
     {
+        // Demo-Override (siehe SetDemoPriceCurve()): NUR aktiv, wenn das Property explizit gesetzt
+        // ist - die produktive Instanz hat es nie an, kein Risiko einer versehentlichen Vermischung.
+        if ($this->ReadPropertyBoolean('DemoOverrideEnabled')) {
+            $demo = json_decode($this->ReadAttributeString('DemoPriceCurve'), true);
+            if (!is_array($demo)) {
+                return [];
+            }
+            foreach ($demo as &$slot) {
+                $slot['contractVersion'] = $slot['contractVersion'] ?? self::CONTRACT_PRICECURVE;
+            }
+            unset($slot);
+            return $demo;
+        }
+
         if ($this->GetPriceApiToken() === '' || $this->ReadPropertyString('PriceHomeID') === '0') {
             return [];
         }
@@ -1125,6 +1147,39 @@ class TibberGridReward extends IPSModule
         }
         unset($slot);
         return $slots;
+    }
+
+    /**
+     * Öffentlicher Vertrag (Dashboard-Anfrage, 01.09.2026, für die NRG-Stack-Demo auf
+     * demo.gureth.eu): setzt eine manuelle Preiskurve, die GetPriceCurve() zurückgibt, SOLANGE
+     * `DemoOverrideEnabled` im Formular aktiviert ist. Ohne dieses Property bleibt die Funktion
+     * wirkungslos (schreibt zwar das Attribut, GetPriceCurve() liest es aber nur bei aktivem
+     * Override) - so kann ein versehentlicher Aufruf auf der produktiven Instanz keine echten Daten
+     * überschreiben, solange dort niemand aktiv den Demo-Modus einschaltet.
+     *
+     * $Json muss dieselbe Slot-Form wie GetPriceCurve() haben (mindestens 'start'=>int Unix,
+     * 'price'=>float ct/kWh je Eintrag) - 'contractVersion' wird automatisch ergänzt, falls es fehlt.
+     * Bewusst als rohes JSON statt eines PHP-Arrays: einfacher aus einem Fremdmodul heraus per
+     * `json_encode()` aufzurufen, ohne IPS-Typkonvertierung für verschachtelte Arrays zu riskieren.
+     *
+     * @return array ['success'=>bool, 'error'=>string|null, 'slotCount'=>int]
+     */
+    public function SetDemoPriceCurve(string $Json): array
+    {
+        if (!$this->ReadPropertyBoolean('DemoOverrideEnabled')) {
+            return ['success' => false, 'error' => 'Demo-Override nicht aktiviert (Property "DemoOverrideEnabled" im Formular).', 'slotCount' => 0];
+        }
+        $decoded = json_decode($Json, true);
+        if (!is_array($decoded)) {
+            return ['success' => false, 'error' => 'Ungültiges JSON.', 'slotCount' => 0];
+        }
+        foreach ($decoded as $slot) {
+            if (!is_array($slot) || !isset($slot['start'], $slot['price'])) {
+                return ['success' => false, 'error' => 'Jeder Slot braucht mindestens "start" (Unix-Zeitstempel) und "price" (ct/kWh).', 'slotCount' => 0];
+            }
+        }
+        $this->WriteAttributeString('DemoPriceCurve', json_encode($decoded));
+        return ['success' => true, 'error' => null, 'slotCount' => count($decoded)];
     }
 
     /**

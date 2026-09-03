@@ -586,6 +586,21 @@
     {
       "type": "Label",
       "caption": "Die Kachel-Darstellung erfolgt über das separate Modul „TibberGridRewardTile“ (eigene Instanz). Dort liegen auch alle Kachel-Einstellungen (Farben, Schrift)."
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "🎭 Demo-Modus (nur für Vorführ-/Testinstanzen)",
+      "items": [
+        {
+          "type": "Label",
+          "caption": "⚠️ NICHT auf einer echten, produktiven Instanz aktivieren. Ersetzt die Preiskurve (TIBBERGR_GetPriceCurve) durch eine manuell per TIBBERGR_SetDemoPriceCurve() gesetzte – für Vorführ-Szenarien (z. B. günstig/teuer/Einspeiseüberschuss durchschalten), unabhängig von echten Zugangsdaten. Solange dieses Häkchen aus ist, hat TIBBERGR_SetDemoPriceCurve() keine Wirkung."
+        },
+        {
+          "type": "CheckBox",
+          "name": "DemoOverrideEnabled",
+          "caption": "Demo-Override aktiv"
+        }
+      ]
     }
   ],
   "actions": [

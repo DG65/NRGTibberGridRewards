@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.8.7
+
+- **Neu: `TIBBERGR_SetDemoPriceCurve()`** — setzt eine manuelle Preiskurve für Vorführzwecke
+  (Dashboard-Anfrage, NRG-Stack-Demo auf demo.gureth.eu: Besucher schalten zwischen Preisszenarien
+  günstig/teuer/Einspeiseüberschuss durch). Neues Formular-Häkchen `DemoOverrideEnabled` (Default
+  **aus**) als Sicherheits-Gate: Ohne aktives Häkchen ist die Funktion wirkungslos UND
+  `GetPriceCurve()` ignoriert die gesetzten Demo-Daten komplett — die produktive Instanz kann
+  dadurch strukturell nicht versehentlich mit Demo-Werten überschrieben werden. Isoliert getestet
+  (Gate-Verhalten, JSON-/Feldvalidierung, garantierter echter Pfad bei ausgeschaltetem Override).
+
 ## 2.8.6
 
 - **Fix (Live-Absturz, gefunden von OCPPHub im Systemlog, 31.08.2026): `TypeError` in
