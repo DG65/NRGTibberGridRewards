@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.8.8
+
+- **TEMPORÄR (wird nach Abschluss der Untersuchung wieder entfernt, analog 2.7.1):**
+  `TIBBERGR_DebugVehicleQuery(string $VehicleId): string` — reine Probeabfrage, ob Tibbers
+  App-API über `me.vehicle(id).charging.progress` weitere, bislang unbekannte Felder liefert
+  (Reward/Ersparnis/Durchschnittspreis/SoC-bei-Sitzungsstart, EMS-Anfrage 10.09.2026 nach einem
+  Tibber-App-Screenshot). Direkt bei Dietmar rückbestätigt vor dem Bauen. Anders als die frühere
+  `DebugAppApiQuery()` nimmt diese Funktion keinen freien Query-Text entgegen, nur die (escapte)
+  VehicleId — die Abfrage selbst ist fest hinterlegt.
+
 ## 2.8.7
 
 - **Neu: `TIBBERGR_SetDemoPriceCurve()`** — setzt eine manuelle Preiskurve für Vorführzwecke
