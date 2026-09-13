@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.8.16
+
+- **Temporärer Debug-Endpunkt `TIBBERGR_DebugVehicleQuery()` wieder entfernt**, wie in jedem
+  Zwischen-Commit zugesagt (2.8.8/2.8.12–2.8.15). Untersuchung abgeschlossen, Ergebnis: Tibbers
+  `me.vehicle(id).charging.progress` liefert `cost`/`energy`/`speed` der aktuellen/letzten
+  Ladesession, aber KEIN eigenes `reward`/`savings`/`averagePrice`-Feld (live per
+  GraphQL-Validierungsfehler bestätigt, keine Vermutung). Die dabei angelegte Debug-Variable
+  "DEBUG: Vehicle Query Result" kann manuell im Objektbaum gelöscht werden (harmloser Rest,
+  keine Funktion mehr dahinter).
+
 ## 2.8.15
 
 - **TEMPORÄR (Fortsetzung von 2.8.8/2.8.12/2.8.13/2.8.14, wird nach Abschluss wieder entfernt):**
