@@ -1959,10 +1959,19 @@ class TibberGridReward extends IPSModule
             . '} } }';
         $detailResult = $rawPost($detailQuery);
 
-        return json_encode([
+        $json = json_encode([
             'vehicleList'       => $listResult,
             'detailWithGivenId' => $detailResult,
         ]);
+
+        // Der "Instanzfunktionen ausführen"-Dialog in der Konsole zeigt bei dieser Aktionsart
+        // keinen sichtbaren Rückgabewert an (mehrfach live bestätigt, 13.09.2026) - deshalb
+        // zusätzlich in eine eigens dafür angelegte Debug-Variable schreiben, die sich in Ruhe
+        // im Objektbaum ablesen lässt. TEMPORÄR, verschwindet mit dem Rest dieser Funktion.
+        $this->MaintainVariable('DebugVehicleQueryResult', 'DEBUG: Vehicle Query Result', VARIABLETYPE_STRING, '', 999, true);
+        $this->SetValue('DebugVehicleQueryResult', $json);
+
+        return $json;
     }
 
     // ---------------------------------------------------------------------

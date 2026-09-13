@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.8.14
+
+- **TEMPORÄR (Fortsetzung von 2.8.8/2.8.12/2.8.13, wird nach Abschluss wieder entfernt):**
+  `TIBBERGR_DebugVehicleQuery()` schreibt das Ergebnis zusätzlich in eine eigens angelegte
+  Debug-Variable (`DebugVehicleQueryResult`). Der Dialog "Instanzfunktionen ausführen" in der
+  Konsole zeigt bei dieser Aktionsart keinen sichtbaren Rückgabewert an (mehrfach live
+  bestätigt) — die Variable lässt sich stattdessen in Ruhe im Objektbaum ablesen.
+
 ## 2.8.13
 
 - **TEMPORÄR (Fortsetzung von 2.8.8/2.8.12, wird nach Abschluss wieder entfernt):**
