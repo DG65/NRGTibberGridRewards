@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.8.15
+
+- **TEMPORÄR (Fortsetzung von 2.8.8/2.8.12/2.8.13/2.8.14, wird nach Abschluss wieder entfernt):**
+  `TIBBERGR_DebugVehicleQuery()` fragt jetzt nur noch die bestätigt gültigen Felder ab
+  (`charging.progress.{cost,energy,speed}`). Dritter Live-Test bestätigte: Die VehicleId war die
+  ganze Zeit korrekt (identisch mit der Grid-Rewards-`vehicleId`) — der vorherige HTTP-400-Fehler
+  kam ausschließlich von sechs geratenen, laut Tibbers eigener Fehlermeldung ungültigen
+  Zusatzfeldern (`reward`/`savings`/`averagePrice`/`priceLevel`/`socAtStart`/`currency` existieren
+  nicht auf `ChargingProgressAndPlanType`).
+
 ## 2.8.14
 
 - **TEMPORÄR (Fortsetzung von 2.8.8/2.8.12/2.8.13, wird nach Abschluss wieder entfernt):**

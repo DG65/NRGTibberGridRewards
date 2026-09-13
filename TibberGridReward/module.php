@@ -1951,11 +1951,17 @@ class TibberGridReward extends IPSModule
         $listQuery = 'query { me { myVehicles { vehicles { id title } } } }';
         $listResult = $rawPost($listQuery);
 
+        // Dritter Versuch (14.09.2026): Die VehicleId war die ganze Zeit korrekt (siehe
+        // vehicleList - dieselbe ID, die auch die Grid-Rewards-Subscription liefert). Der
+        // vorherige HTTP-400-Fehler kam ausschließlich von den sechs geratenen Zusatzfeldern
+        // (reward/savings/averagePrice/priceLevel/socAtStart/currency - alle laut Tibbers eigener
+        // Fehlermeldung ungültig auf ChargingProgressAndPlanType). cost/energy/speed standen NICHT
+        // in der Fehlerliste, sind also gültig - hier jetzt ohne die ungültigen Felder erneut.
         $detailQuery = 'query { me { vehicle(id: ' . json_encode($VehicleId) . ') { '
             . 'isAlive isCharging chargingStatus smartChargingStatus '
             . 'battery { level estimatedRange canReadLevel } '
             . 'charging { sessionStartedAt targetedStateOfCharge targetedDepartureTime chargerId '
-            . 'progress { cost energy speed reward savings averagePrice priceLevel socAtStart currency } } '
+            . 'progress { cost energy speed } } '
             . '} } }';
         $detailResult = $rawPost($detailQuery);
 
