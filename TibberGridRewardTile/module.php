@@ -69,6 +69,35 @@ class TibberGridRewardTile extends IPSModule
         parent::Destroy();
     }
 
+    // ---------------------------------------------------------------------
+    // Sichere Property-/Attribut-Leser (Fund: Dashboard-Sitzung, 13.09.2026)
+    //
+    // ReadPropertyXXX() liefert `false` statt des erwarteten Typs, wenn die Instanz gerade neu
+    // geladen wird - reale Absturzkette live beobachtet: ColorHex() erhielt `false` als erstes
+    // Argument (aus einem ungecasteten ReadPropertyInteger()-Aufruf) -> TypeError, da ColorHex()
+    // strikt einen int verlangt.
+    // Generischer Wrapper statt Einzelfix an jeder Farb-Konsumstelle, gleiches Muster wie im
+    // Datenmodul (siehe dort für die ausführliche Begründung).
+    private function ReadPropertyStringSafe(string $Name): string
+    {
+        return (string) $this->ReadPropertyString($Name);
+    }
+
+    private function ReadPropertyIntegerSafe(string $Name): int
+    {
+        return (int) $this->ReadPropertyInteger($Name);
+    }
+
+    private function ReadPropertyFloatSafe(string $Name): float
+    {
+        return (float) $this->ReadPropertyFloat($Name);
+    }
+
+    private function ReadPropertyBooleanSafe(string $Name): bool
+    {
+        return (bool) $this->ReadPropertyBoolean($Name);
+    }
+
     public function ApplyChanges()
     {
         //Never delete this line!
@@ -108,8 +137,18 @@ class TibberGridRewardTile extends IPSModule
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
     {
-        if ($Message === VM_UPDATE) {
-            $this->UpdateVisualizationValue($this->GetFullUpdateMessage());
+        // Zweite Sicherheitsebene zu den ReadPropertyXXXSafe()-Wrappern oben: die konkret
+        // beobachtete Absturzursache (ColorHex() erhielt `false`) trat bei VM_UPDATE während
+        // eines Modul-Reloads auf, als "InstanceInterface is not available" im Log stand.
+        if (IPS_GetKernelRunlevel() !== KR_READY || !IPS_InstanceExists($this->InstanceID)) {
+            return;
+        }
+        try {
+            if ($Message === VM_UPDATE) {
+                $this->UpdateVisualizationValue($this->GetFullUpdateMessage());
+            }
+        } catch (Throwable $e) {
+            $this->SendDebug(__FUNCTION__, 'Ausnahme bei Message ' . $Message . ': ' . $e->getMessage(), 0);
         }
     }
 
@@ -162,7 +201,7 @@ class TibberGridRewardTile extends IPSModule
         }
 
         if (in_array($Ident, ['Simulate', 'ResetSimulation'], true)) {
-            if (!$this->ReadPropertyBoolean('ShowSimControls')) {
+            if (!$this->ReadPropertyBooleanSafe('ShowSimControls')) {
                 return;
             }
             switch ($Ident) {
@@ -179,7 +218,7 @@ class TibberGridRewardTile extends IPSModule
         }
 
         if (in_array($Ident, ['rule', 'ruleEditor', 'targetOpts', 'condOpts', 'ruleSave', 'ruleDelete'], true)) {
-            if (!$this->ReadPropertyBoolean('ShowAutomations')) {
+            if (!$this->ReadPropertyBooleanSafe('ShowAutomations')) {
                 return;
             }
             switch ($Ident) {
@@ -228,18 +267,18 @@ class TibberGridRewardTile extends IPSModule
 
     private function GetFullUpdateMessage(): string
     {
-        $cActive = $this->ColorHex($this->ReadPropertyInteger('ColorActive'), '#27d07f');
-        $cCurtail = $this->ColorHex($this->ReadPropertyInteger('ColorCurtailment'), '#e8a13a');
-        $cAvail = $this->ColorHex($this->ReadPropertyInteger('ColorAvailable'), '#2bb3c0');
-        $cUnavail = $this->ColorHex($this->ReadPropertyInteger('ColorUnavailable'), '#7a8a99');
+        $cActive = $this->ColorHex($this->ReadPropertyIntegerSafe('ColorActive'), '#27d07f');
+        $cCurtail = $this->ColorHex($this->ReadPropertyIntegerSafe('ColorCurtailment'), '#e8a13a');
+        $cAvail = $this->ColorHex($this->ReadPropertyIntegerSafe('ColorAvailable'), '#2bb3c0');
+        $cUnavail = $this->ColorHex($this->ReadPropertyIntegerSafe('ColorUnavailable'), '#7a8a99');
 
         // Leerer String = nicht gesetzt -> die Kachel nutzt den Theme-Default aus dem CSS.
         $style = [
-            'bg'        => $this->ColorOrEmpty($this->ReadPropertyInteger('ColorBackground')),
-            'box'       => $this->ColorOrEmpty($this->ReadPropertyInteger('ColorBox')),
-            'text'      => $this->ColorOrEmpty($this->ReadPropertyInteger('ColorText')),
-            'textmuted' => $this->ColorOrEmpty($this->ReadPropertyInteger('ColorTextMuted')),
-            'font'      => $this->FontStack($this->ReadPropertyString('FontFamily')),
+            'bg'        => $this->ColorOrEmpty($this->ReadPropertyIntegerSafe('ColorBackground')),
+            'box'       => $this->ColorOrEmpty($this->ReadPropertyIntegerSafe('ColorBox')),
+            'text'      => $this->ColorOrEmpty($this->ReadPropertyIntegerSafe('ColorText')),
+            'textmuted' => $this->ColorOrEmpty($this->ReadPropertyIntegerSafe('ColorTextMuted')),
+            'font'      => $this->FontStack($this->ReadPropertyStringSafe('FontFamily')),
             'scale'     => $this->FontScaleValue(),
         ];
 
@@ -327,7 +366,7 @@ class TibberGridRewardTile extends IPSModule
             'energyLabel'  => $this->Translate('Grid reward energy'),
             'emptyLabel'   => $this->Translate('No flex devices'),
             'devices'      => $devices,
-            'sim'          => $this->ReadPropertyBoolean('ShowSimControls'),
+            'sim'          => $this->ReadPropertyBooleanSafe('ShowSimControls'),
             'simAvailable' => $this->Translate('Available'),
             'simExcess'    => $this->Translate('Simulate charging (excess)'),
             'simShortage'  => $this->Translate('Simulate curtailment (shortage)'),
@@ -342,7 +381,7 @@ class TibberGridRewardTile extends IPSModule
      */
     private function ReadSourceRules(int $instanceID): ?array
     {
-        if (!$this->ReadPropertyBoolean('ShowAutomations')) {
+        if (!$this->ReadPropertyBooleanSafe('ShowAutomations')) {
             return null;
         }
         $json = @TIBBERGR_GetDataActions($instanceID);
@@ -467,7 +506,7 @@ class TibberGridRewardTile extends IPSModule
      */
     private function ResolveSource(): int
     {
-        $configured = $this->ReadPropertyInteger('SourceInstance');
+        $configured = $this->ReadPropertyIntegerSafe('SourceInstance');
         if ($configured > 0 && IPS_InstanceExists($configured)) {
             return $configured;
         }
@@ -504,7 +543,7 @@ class TibberGridRewardTile extends IPSModule
 
     private function FontScaleValue(): float
     {
-        $v = $this->ReadPropertyFloat('FontScale');
+        $v = $this->ReadPropertyFloatSafe('FontScale');
         if ($v < 0.5) {
             $v = 0.5;
         }

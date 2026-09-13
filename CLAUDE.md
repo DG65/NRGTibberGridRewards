@@ -51,6 +51,20 @@ mit, damit das bei künftigen Kopplungen (z. B. `SGW_GetState()`) sofort auffäl
 Wächter vergessen wird. Kommt ein Partnermodul dazu, dessen Präfix in `FOREIGN_PREFIXES`
 ergänzen.
 
+### Grundregel: `ReadPropertyXXX()`/`ReadAttributeXXX()` nie ungecastet verwenden
+
+**Immer `ReadPropertyStringSafe()`/`-IntegerSafe()`/`-FloatSafe()`/`-BooleanSafe()` (bzw. die
+`Attribute`-Pendants) nutzen, nie die rohen SDK-Methoden direkt** — die liefern `false` statt
+des erwarteten Typs, wenn sie aufgerufen werden, während die Instanz gerade neu geladen wird
+(Kernel-Runlevel noch nicht `KR_READY`, oder die Instanz existiert zwischen zwei
+Modul-Updates kurz nicht). Reale Live-Abstürze, kein theoretisches Risiko: `GetPasswordSecret()`/
+`GetPriceApiToken()` (2.8.6, OCPPHub-Fund), `GetDataActions()` und `ColorHex()` in der Kachel
+(2.8.10, Dashboard-Fund) — dieselbe Fehlerklasse dreimal unabhängig live aufgetreten. Die
+Safe-Wrapper sind einfache `(TYPE)`-Casts (isoliert getestet, `false` wird sauber zu `0`/`0.0`/
+`false`/`''`), direkt nach `Destroy()` in beiden Modulklassen definiert. Zusätzlich ignoriert
+`MessageSink()` in beiden Modulen Nachrichten, solange `IPS_GetKernelRunlevel() !== KR_READY`
+oder die eigene Instanz gerade nicht existiert, mit try/catch um die eigentliche Verarbeitung.
+
 ### Steuerhoheit: nur das EMS regelt die Batterie
 
 Wichtigste Absprache im Verbund, weil sie sonst schwer auffindbare Fehler erzeugt:

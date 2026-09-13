@@ -236,6 +236,60 @@ class TibberGridReward extends IPSModule
         parent::Destroy();
     }
 
+    // ---------------------------------------------------------------------
+    // Sichere Property-/Attribut-Leser (Fund: Dashboard-Sitzung, 13.09.2026)
+    //
+    // ReadPropertyXXX()/ReadAttributeXXX() liefern `false` statt des erwarteten Typs, wenn sie
+    // aufgerufen werden, während die Instanz gerade neu geladen wird (Kernel-Runlevel noch nicht
+    // KR_READY bzw. die Instanz zwischen zwei Modul-Updates kurz nicht existiert) - reale
+    // Absturzkette live beobachtet: TIBBERGR_GetDataActions() (extern von der Kachel aufgerufen)
+    // -> json_decode(false, true) -> TypeError, da json_decode() strikt einen String verlangt.
+    // Betrifft strukturell JEDEN der zahlreichen ReadPropertyString/-Integer/-Float/-Boolean- bzw.
+    // ReadAttributeXXX-Aufrufe in dieser Klasse, nicht nur die eine zufällig zuerst aufgefallene
+    // Stelle (siehe schon GetPasswordSecret()/GetPriceApiToken() in 2.8.6 für dasselbe Muster bei
+    // Attributen) - deshalb hier als generische Wrapper statt an jeder Konsumstelle einzeln
+    // gecastet. Type-Casts von `false` sind isoliert getestet: (int)/(float)/(string) liefern
+    // saubere Nullwerte, kein Sonderfall nötig.
+    private function ReadPropertyStringSafe(string $Name): string
+    {
+        return (string) $this->ReadPropertyString($Name);
+    }
+
+    private function ReadPropertyIntegerSafe(string $Name): int
+    {
+        return (int) $this->ReadPropertyInteger($Name);
+    }
+
+    private function ReadPropertyFloatSafe(string $Name): float
+    {
+        return (float) $this->ReadPropertyFloat($Name);
+    }
+
+    private function ReadPropertyBooleanSafe(string $Name): bool
+    {
+        return (bool) $this->ReadPropertyBoolean($Name);
+    }
+
+    private function ReadAttributeStringSafe(string $Name): string
+    {
+        return (string) $this->ReadAttributeString($Name);
+    }
+
+    private function ReadAttributeIntegerSafe(string $Name): int
+    {
+        return (int) $this->ReadAttributeInteger($Name);
+    }
+
+    private function ReadAttributeFloatSafe(string $Name): float
+    {
+        return (float) $this->ReadAttributeFloat($Name);
+    }
+
+    private function ReadAttributeBooleanSafe(string $Name): bool
+    {
+        return (bool) $this->ReadAttributeBoolean($Name);
+    }
+
     public function ApplyChanges()
     {
         //Never delete this line!
@@ -271,7 +325,7 @@ class TibberGridReward extends IPSModule
             return;
         }
 
-        if (!$this->ReadPropertyBoolean('Active')) {
+        if (!$this->ReadPropertyBooleanSafe('Active')) {
             $this->SetTimerInterval('TokenRefresh', 0);
             $this->SetTimerInterval('StartWatchdog', 0);
             $this->SetTimerInterval('ReloginSequence', 0);
@@ -280,7 +334,7 @@ class TibberGridReward extends IPSModule
             return;
         }
 
-        if ($this->ReadPropertyString('Email') === '' || $this->GetPasswordSecret() === '') {
+        if ($this->ReadPropertyStringSafe('Email') === '' || $this->GetPasswordSecret() === '') {
             $this->SetStatus(201); // keine Zugangsdaten
             return;
         }
@@ -294,7 +348,7 @@ class TibberGridReward extends IPSModule
         // Homes laden (für Dropdown im Formular)
         $this->GetHomesData();
 
-        if ($this->ReadPropertyString('Home_ID') === '0' || $this->ReadPropertyString('Home_ID') === '') {
+        if ($this->ReadPropertyStringSafe('Home_ID') === '0' || $this->ReadPropertyStringSafe('Home_ID') === '') {
             $this->SetStatus(202); // kein Home gewählt
             return;
         }
@@ -315,7 +369,7 @@ class TibberGridReward extends IPSModule
         $this->SumWallboxes(false);
         $this->WriteAttributeFloat('LastPower', (float) $this->GetValueSafe('WallboxPowerTotal'));
         $this->UpdateKPI();
-        $this->SetTimerInterval('EnergyTick', $this->ReadAttributeBoolean('EventActive') ? 30000 : 0);
+        $this->SetTimerInterval('EnergyTick', $this->ReadAttributeBooleanSafe('EventActive') ? 30000 : 0);
     }
 
     public function GetConfigurationForm()
@@ -400,7 +454,7 @@ class TibberGridReward extends IPSModule
     private function BuildHomeOptions(): array
     {
         $options = [['caption' => $this->Translate('Please select'), 'value' => '0']];
-        $raw = $this->ReadAttributeString('Homes');
+        $raw = $this->ReadAttributeStringSafe('Homes');
         if ($raw === '') {
             return $options;
         }
@@ -415,7 +469,7 @@ class TibberGridReward extends IPSModule
     private function BuildPriceHomeOptions(): array
     {
         $options = [['caption' => $this->Translate('Please select'), 'value' => '0']];
-        $raw = $this->ReadAttributeString('PriceHomes');
+        $raw = $this->ReadAttributeStringSafe('PriceHomes');
         if ($raw === '') {
             return $options;
         }
@@ -460,7 +514,7 @@ class TibberGridReward extends IPSModule
      */
     private function GetLookupValuesText(): string
     {
-        $targetID = $this->ReadPropertyInteger('LookupVariable');
+        $targetID = $this->ReadPropertyIntegerSafe('LookupVariable');
         if ($targetID <= 0 || !IPS_VariableExists($targetID)) {
             return $this->Translate('Select a variable above, apply, then click "Show values".');
         }
@@ -541,6 +595,23 @@ class TibberGridReward extends IPSModule
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
     {
+        // Zweite Sicherheitsebene zu den ReadPropertyXXXSafe()/ReadAttributeXXXSafe()-Wrappern
+        // oben (bewährtes Muster aus der Dashboard-Sitzung, dort dasselbe Absturzbild bei
+        // VM_UPDATE während eines Modul-Reloads): Nachrichten, die eintreffen, während der Kernel
+        // noch nicht bereit ist oder diese Instanz gerade nicht existiert, werden ignoriert statt
+        // mit potenziell unvollständigem Zustand verarbeitet zu werden.
+        if (IPS_GetKernelRunlevel() !== KR_READY || !IPS_InstanceExists($this->InstanceID)) {
+            return;
+        }
+        try {
+            $this->MessageSinkInternal($Message, $Data);
+        } catch (Throwable $e) {
+            $this->SendDebug(__FUNCTION__, 'Ausnahme bei Message ' . $Message . ': ' . $e->getMessage(), 0);
+        }
+    }
+
+    private function MessageSinkInternal($Message, $Data): void
+    {
         switch ($Message) {
             case IM_CHANGESTATUS: // 10505 – Statuswechsel des Parent-I/O
                 switch ($Data[0]) {
@@ -618,7 +689,7 @@ class TibberGridReward extends IPSModule
      */
     public function UpdateHomes(): string
     {
-        if ($this->ReadPropertyString('Email') === '' || $this->GetPasswordSecret() === '') {
+        if ($this->ReadPropertyStringSafe('Email') === '' || $this->GetPasswordSecret() === '') {
             return $this->Translate('⚠️ Keine Zugangsdaten (E-Mail/Passwort) eingetragen.');
         }
         if (!$this->EnsureToken()) {
@@ -639,8 +710,8 @@ class TibberGridReward extends IPSModule
 
     private function EnsureToken(): bool
     {
-        $token = $this->ReadAttributeString('JWT');
-        $exp = $this->ReadAttributeInteger('JWT_Exp');
+        $token = $this->ReadAttributeStringSafe('JWT');
+        $exp = $this->ReadAttributeIntegerSafe('JWT_Exp');
         if ($token !== '' && $exp - time() > 60) {
             return true;
         }
@@ -650,7 +721,7 @@ class TibberGridReward extends IPSModule
     private function Login(): bool
     {
         $body = json_encode([
-            'email'    => $this->ReadPropertyString('Email'),
+            'email'    => $this->ReadPropertyStringSafe('Email'),
             'password' => $this->GetPasswordSecret(),
         ]);
 
@@ -668,7 +739,7 @@ class TibberGridReward extends IPSModule
 
         $this->WriteAttributeString('JWT', $token);
         $this->WriteAttributeInteger('JWT_Exp', $this->DecodeJwtExp($token));
-        $this->SendDebug(__FUNCTION__, 'Login erfolgreich, Token gültig bis ' . date('d.m.Y H:i', $this->ReadAttributeInteger('JWT_Exp')), 0);
+        $this->SendDebug(__FUNCTION__, 'Login erfolgreich, Token gültig bis ' . date('d.m.Y H:i', $this->ReadAttributeIntegerSafe('JWT_Exp')), 0);
         return true;
     }
 
@@ -702,7 +773,7 @@ class TibberGridReward extends IPSModule
 
     private function ScheduleTokenRefresh(): void
     {
-        $exp = $this->ReadAttributeInteger('JWT_Exp');
+        $exp = $this->ReadAttributeIntegerSafe('JWT_Exp');
         // 5 Minuten vor Ablauf neu einloggen, mindestens in 60 s
         $seconds = max(60, $exp - time() - 300);
         $this->SetTimerInterval('TokenRefresh', $seconds * 1000);
@@ -714,7 +785,7 @@ class TibberGridReward extends IPSModule
 
     private function GetHomesData(): void
     {
-        $token = $this->ReadAttributeString('JWT');
+        $token = $this->ReadAttributeStringSafe('JWT');
         if ($token === '') {
             return;
         }
@@ -764,14 +835,14 @@ class TibberGridReward extends IPSModule
         // Home-Liste holen, wenn sie fehlt ODER der Token gewechselt hat (ein anderer Token kann
         // andere Zuhause sehen; sonst bliebe stumm die alte Liste stehen).
         $tokenHash = md5($token);
-        if ($this->ReadAttributeString('PriceHomes') === '' || $this->ReadAttributeString('PriceHomesToken') !== $tokenHash) {
+        if ($this->ReadAttributeStringSafe('PriceHomes') === '' || $this->ReadAttributeStringSafe('PriceHomesToken') !== $tokenHash) {
             $this->FetchPriceHomes();
             $this->WriteAttributeString('PriceHomesToken', $tokenHash);
         }
 
         // Genau ein Zuhause -> automatisch auswählen, statt den Nutzer ein Dropdown ohne Alternative
         // bedienen zu lassen. Einmalig, da PriceHomeID danach nicht mehr '0' ist (keine Schleife).
-        if ($this->ReadPropertyString('PriceHomeID') === '0') {
+        if ($this->ReadPropertyStringSafe('PriceHomeID') === '0') {
             $homes = $this->BuildPriceHomeOptions(); // [0] ist der "Bitte wählen"-Platzhalter
             if (count($homes) === 2) {
                 $this->SendDebug(__FUNCTION__, 'Einziges Preis-Zuhause automatisch gewählt: ' . $homes[1]['caption'], 0);
@@ -830,7 +901,7 @@ class TibberGridReward extends IPSModule
     /** Timer-Callback: Preiskurve neu abfragen (alle 20 Minuten, siehe Create()). */
     public function PriceRefresh(): void
     {
-        if ($this->GetPriceApiToken() === '' || $this->ReadPropertyString('PriceHomeID') === '0') {
+        if ($this->GetPriceApiToken() === '' || $this->ReadPropertyStringSafe('PriceHomeID') === '0') {
             return;
         }
         $this->FetchAndCachePriceCurve();
@@ -913,7 +984,7 @@ class TibberGridReward extends IPSModule
      */
     private function EnsurePriceArchiving(): void
     {
-        if (!$this->ReadPropertyBoolean('ArchivePrice')) {
+        if (!$this->ReadPropertyBooleanSafe('ArchivePrice')) {
             return;
         }
         $vid = @IPS_GetObjectIDByIdent('CurrentPrice', $this->InstanceID);
@@ -951,12 +1022,12 @@ class TibberGridReward extends IPSModule
     private function FetchAndCachePriceCurve(): bool
     {
         $token = $this->GetPriceApiToken();
-        $homeId = $this->ReadPropertyString('PriceHomeID');
+        $homeId = $this->ReadPropertyStringSafe('PriceHomeID');
         if ($token === '' || $homeId === '0') {
             return false;
         }
 
-        $pref = $this->ReadPropertyString('PriceResolution');
+        $pref = $this->ReadPropertyStringSafe('PriceResolution');
         $attempts = ($pref === 'hourly') ? [''] : (($pref === 'quarter') ? ['QUARTER_HOURLY'] : ['QUARTER_HOURLY', '']);
 
         $slots = [];
@@ -1101,8 +1172,8 @@ class TibberGridReward extends IPSModule
     {
         // Demo-Override (siehe SetDemoPriceCurve()): NUR aktiv, wenn das Property explizit gesetzt
         // ist - die produktive Instanz hat es nie an, kein Risiko einer versehentlichen Vermischung.
-        if ($this->ReadPropertyBoolean('DemoOverrideEnabled')) {
-            $demo = json_decode($this->ReadAttributeString('DemoPriceCurve'), true);
+        if ($this->ReadPropertyBooleanSafe('DemoOverrideEnabled')) {
+            $demo = json_decode($this->ReadAttributeStringSafe('DemoPriceCurve'), true);
             if (!is_array($demo)) {
                 return [];
             }
@@ -1113,17 +1184,17 @@ class TibberGridReward extends IPSModule
             return $demo;
         }
 
-        if ($this->GetPriceApiToken() === '' || $this->ReadPropertyString('PriceHomeID') === '0') {
+        if ($this->GetPriceApiToken() === '' || $this->ReadPropertyStringSafe('PriceHomeID') === '0') {
             return [];
         }
-        $cache = json_decode($this->ReadAttributeString('PriceCache'), true);
+        $cache = json_decode($this->ReadAttributeStringSafe('PriceCache'), true);
         if (!is_array($cache) || (int) ($cache['fetchedAt'] ?? 0) === 0) {
             // Nachladen bewusst gedrosselt: Der Zeitstempel im Cache wird nur bei ERFOLG gesetzt.
             // Ohne Drossel würde bei dauerhaft scheiterndem Abruf (Netz weg, Schlüssel ungültig,
             // Störung bei Tibber) jeder Aufruf eine neue synchrone HTTP-Anfrage mit 30 s Zeitlimit
             // auslösen - und diese Funktion wird von mehreren Modulen aus der Visualisierung heraus
             // aufgerufen. Deshalb den VERSUCH festhalten, nicht nur den Erfolg.
-            $lastTry = $this->ReadAttributeInteger('PriceLastTry');
+            $lastTry = $this->ReadAttributeIntegerSafe('PriceLastTry');
             if (time() - $lastTry >= self::PRICE_RETRY_SECONDS) {
                 $this->WriteAttributeInteger('PriceLastTry', time());
                 $this->FetchAndCachePriceCurve();
@@ -1134,7 +1205,7 @@ class TibberGridReward extends IPSModule
         }
 
         $slots = $this->GetCachedPriceSlots();
-        $tariff = $this->ReadPropertyBoolean('TariffEnabled');
+        $tariff = $this->ReadPropertyBooleanSafe('TariffEnabled');
         // contractVersion additiv JE SLOT (nicht als Top-Level-Feld): GetPriceCurve liefert eine
         // Liste, ein Top-Level-Schlüssel bräche die Iteration der Konsumenten. Auf leerer Liste fehlt
         // die Version - ein Konsument liest sie aus einem beliebigen Slot (oder aus GetTariffConfig).
@@ -1168,7 +1239,7 @@ class TibberGridReward extends IPSModule
      */
     public function SetDemoPriceCurve(string $Json): array
     {
-        if (!$this->ReadPropertyBoolean('DemoOverrideEnabled')) {
+        if (!$this->ReadPropertyBooleanSafe('DemoOverrideEnabled')) {
             return ['success' => false, 'error' => 'Demo-Override nicht aktiviert (Property "DemoOverrideEnabled" im Formular).', 'slotCount' => 0];
         }
         $decoded = json_decode($Json, true);
@@ -1199,16 +1270,16 @@ class TibberGridReward extends IPSModule
     {
         return [
             'contractVersion'           => self::CONTRACT_TARIFFCONFIG,
-            'active'                    => $this->ReadPropertyBoolean('TariffEnabled'),
+            'active'                    => $this->ReadPropertyBooleanSafe('TariffEnabled'),
             'vat'                       => self::VAT_PERCENT,
             'taxStand'                  => self::TAX_STAND,
             // fixe Positionen (nicht per kWh) für die Monatsrechnung:
-            'netzGrundpreisYear'        => $this->ReadPropertyFloat('NetzGrundpreisYear'),
-            'netzGrundpreisDay'         => round($this->ReadPropertyFloat('NetzGrundpreisYear') / 365, 6),
-            'paragraph14aEnabled'       => $this->ReadPropertyBoolean('Paragraph14aEnabled'),
-            'paragraph14aReductionYear' => $this->ReadPropertyFloat('Paragraph14aReductionYear'),
-            'paragraph14aReductionDay'  => round($this->ReadPropertyFloat('Paragraph14aReductionYear') / 365, 6),
-            'tibberBaseFeeMonth'        => $this->ReadPropertyFloat('TibberBaseFeeMonth'),
+            'netzGrundpreisYear'        => $this->ReadPropertyFloatSafe('NetzGrundpreisYear'),
+            'netzGrundpreisDay'         => round($this->ReadPropertyFloatSafe('NetzGrundpreisYear') / 365, 6),
+            'paragraph14aEnabled'       => $this->ReadPropertyBooleanSafe('Paragraph14aEnabled'),
+            'paragraph14aReductionYear' => $this->ReadPropertyFloatSafe('Paragraph14aReductionYear'),
+            'paragraph14aReductionDay'  => round($this->ReadPropertyFloatSafe('Paragraph14aReductionYear') / 365, 6),
+            'tibberBaseFeeMonth'        => $this->ReadPropertyFloatSafe('TibberBaseFeeMonth'),
             'campaigns'                 => $this->BuildCampaigns(),
         ];
     }
@@ -1232,7 +1303,7 @@ class TibberGridReward extends IPSModule
      */
     public function DecomposePrice(float $PriceCtPerKwh, int $Timestamp): array
     {
-        if (!$this->ReadPropertyBoolean('TariffEnabled')) {
+        if (!$this->ReadPropertyBooleanSafe('TariffEnabled')) {
             return [
                 'contractVersion' => self::CONTRACT_DECOMPOSEPRICE,
                 'success'         => false,
@@ -1264,7 +1335,7 @@ class TibberGridReward extends IPSModule
      */
     private function BuildCampaigns(): array
     {
-        $raw = json_decode($this->ReadPropertyString('TariffCampaigns'), true);
+        $raw = json_decode($this->ReadPropertyStringSafe('TariffCampaigns'), true);
         if (!is_array($raw)) {
             return [];
         }
@@ -1296,9 +1367,9 @@ class TibberGridReward extends IPSModule
     {
         $vatFactor = 1 + self::VAT_PERCENT / 100;
         $priceNet = ((float) $slot['price']) / $vatFactor; // price ist brutto ct/kWh
-        $beschaffung = $this->ReadPropertyFloat('PriceBeschaffung');
+        $beschaffung = $this->ReadPropertyFloatSafe('PriceBeschaffung');
         $netzentgelt = $this->NetzentgeltForSlot((int) $slot['start']);
-        $steuernAbgaben = $this->ReadPropertyFloat('PriceKonzession')
+        $steuernAbgaben = $this->ReadPropertyFloatSafe('PriceKonzession')
             + self::TAX_STROMSTEUER + self::TAX_OFFSHORE + self::TAX_KWK + self::TAX_STROMNEV19;
         $spot = $priceNet - $beschaffung - $netzentgelt - $steuernAbgaben;
 
@@ -1318,15 +1389,15 @@ class TibberGridReward extends IPSModule
     private function NetzentgeltForSlot(int $start): float
     {
         $quarter = (int) ceil((int) date('n', $start) / 3);
-        if (!$this->ReadPropertyBoolean('Modul3Q' . $quarter)) {
-            return $this->ReadPropertyFloat('NetzArbeitspreis');
+        if (!$this->ReadPropertyBooleanSafe('Modul3Q' . $quarter)) {
+            return $this->ReadPropertyFloatSafe('NetzArbeitspreis');
         }
         $band = $this->BandForTime((int) date('G', $start) * 60 + (int) date('i', $start));
         switch ($band) {
-            case 'HT': return $this->ReadPropertyFloat('NetzHT');
-            case 'NT': return $this->ReadPropertyFloat('NetzNT');
-            case 'ST': return $this->ReadPropertyFloat('NetzST');
-            default:   return $this->ReadPropertyFloat('NetzArbeitspreis'); // kein Fenster trifft
+            case 'HT': return $this->ReadPropertyFloatSafe('NetzHT');
+            case 'NT': return $this->ReadPropertyFloatSafe('NetzNT');
+            case 'ST': return $this->ReadPropertyFloatSafe('NetzST');
+            default:   return $this->ReadPropertyFloatSafe('NetzArbeitspreis'); // kein Fenster trifft
         }
     }
 
@@ -1337,7 +1408,7 @@ class TibberGridReward extends IPSModule
      */
     private function BandForTime(int $minuteOfDay): string
     {
-        $windows = json_decode($this->ReadPropertyString('NetzWindows'), true);
+        $windows = json_decode($this->ReadPropertyStringSafe('NetzWindows'), true);
         if (!is_array($windows)) {
             return '';
         }
@@ -1376,7 +1447,7 @@ class TibberGridReward extends IPSModule
     /** Zwischengespeicherte Preis-Slots (ohne Nachladen) - gemeinsame Basis für Timer und Vertrag. */
     private function GetCachedPriceSlots(): array
     {
-        $cache = json_decode($this->ReadAttributeString('PriceCache'), true);
+        $cache = json_decode($this->ReadAttributeStringSafe('PriceCache'), true);
         return is_array($cache['slots'] ?? null) ? $cache['slots'] : [];
     }
 
@@ -1387,12 +1458,12 @@ class TibberGridReward extends IPSModule
     public function GetConfigurationForParent()
     {
         $headers = [
-            ['Name' => 'Authorization', 'Value' => 'Bearer ' . $this->ReadAttributeString('JWT')],
+            ['Name' => 'Authorization', 'Value' => 'Bearer ' . $this->ReadAttributeStringSafe('JWT')],
             ['Name' => 'Sec-WebSocket-Protocol', 'Value' => 'graphql-transport-ws'],
             ['Name' => 'User-Agent', 'Value' => 'Symcon-TibberGridReward/1.0'],
         ];
         $config = [
-            'Active'            => $this->ReadPropertyBoolean('Active'),
+            'Active'            => $this->ReadPropertyBooleanSafe('Active'),
             'URL'               => self::WS_URL,
             'VerifyCertificate' => true,
             'Headers'           => json_encode($headers),
@@ -1415,7 +1486,7 @@ class TibberGridReward extends IPSModule
     private function RegisterMessageParent(): int
     {
         $ioId = (int) @IPS_GetInstance($this->InstanceID)['ConnectionID'];
-        $prev = $this->ReadAttributeInteger('Parent_IO');
+        $prev = $this->ReadAttributeIntegerSafe('Parent_IO');
         if ($ioId !== $prev) {
             if ($prev !== 0) {
                 $this->UnregisterMessage($prev, IM_CHANGESTATUS);
@@ -1430,7 +1501,7 @@ class TibberGridReward extends IPSModule
 
     private function StartAuthorization(): void
     {
-        if (!$this->ReadPropertyBoolean('Active')) {
+        if (!$this->ReadPropertyBooleanSafe('Active')) {
             return;
         }
         // Auth läuft über den Authorization-Header → connection_init ohne Payload
@@ -1452,16 +1523,16 @@ class TibberGridReward extends IPSModule
             . ' } } }';
 
         $frame = [
-            'id'      => (string) $this->ReadPropertyInteger('SubID'),
+            'id'      => (string) $this->ReadPropertyIntegerSafe('SubID'),
             'type'    => 'subscribe',
             'payload' => [
                 'operationName' => 'gridRewardsSubscription',
-                'variables'     => ['homeId' => $this->ReadPropertyString('Home_ID')],
+                'variables'     => ['homeId' => $this->ReadPropertyStringSafe('Home_ID')],
                 'query'         => $query,
             ],
         ];
         $this->SendToWS(json_encode($frame));
-        $this->SendDebug(__FUNCTION__, 'Subscribe gesendet für Home ' . $this->ReadPropertyString('Home_ID'), 0);
+        $this->SendDebug(__FUNCTION__, 'Subscribe gesendet für Home ' . $this->ReadPropertyStringSafe('Home_ID'), 0);
     }
 
     private function SendToWS(string $payload): void
@@ -1487,7 +1558,7 @@ class TibberGridReward extends IPSModule
             : ['__typename' => 'GridRewardAvailable', 'kind' => 'available'];
 
         // Echte Flex-Geräte-Liste aus dem letzten realen Status übernehmen, statt sie zu leeren.
-        $cached = json_decode($this->ReadAttributeString('LastRealStatus'), true);
+        $cached = json_decode($this->ReadAttributeStringSafe('LastRealStatus'), true);
         $flexDevices = is_array($cached['flexDevices'] ?? null) ? $cached['flexDevices'] : [];
 
         $this->SendDebug(__FUNCTION__, 'Simuliere Status: ' . $reason, 0);
@@ -1509,7 +1580,7 @@ class TibberGridReward extends IPSModule
      */
     public function ResetSimulation(): void
     {
-        $cached = json_decode($this->ReadAttributeString('LastRealStatus'), true);
+        $cached = json_decode($this->ReadAttributeStringSafe('LastRealStatus'), true);
         if (is_array($cached)) {
             $this->SendDebug(__FUNCTION__, 'Zeige zwischengespeicherten Status, fordere frischen Push an', 0);
             $this->ProcessGridReward($cached);
@@ -1519,7 +1590,7 @@ class TibberGridReward extends IPSModule
 
         // Laufende Subscription sauber beenden und neu abonnieren -> Tibber schickt umgehend den
         // aktuellen Status als frisches "next".
-        $this->SendToWS(json_encode(['id' => (string) $this->ReadPropertyInteger('SubID'), 'type' => 'complete']));
+        $this->SendToWS(json_encode(['id' => (string) $this->ReadPropertyIntegerSafe('SubID'), 'type' => 'complete']));
         $this->SubscribeData();
     }
 
@@ -1613,7 +1684,7 @@ class TibberGridReward extends IPSModule
      */
     private function UpdateFlexDeviceSince(array $devices): void
     {
-        $sinceMap = json_decode($this->ReadAttributeString('FlexDeviceSince'), true);
+        $sinceMap = json_decode($this->ReadAttributeStringSafe('FlexDeviceSince'), true);
         if (!is_array($sinceMap)) {
             $sinceMap = [];
         }
@@ -1666,9 +1737,9 @@ class TibberGridReward extends IPSModule
      */
     public function GetActiveControls(): array
     {
-        $status = json_decode($this->ReadAttributeString('LastRealStatus'), true);
+        $status = json_decode($this->ReadAttributeStringSafe('LastRealStatus'), true);
         $devices = is_array($status['flexDevices'] ?? null) ? $status['flexDevices'] : [];
-        $sinceMap = json_decode($this->ReadAttributeString('FlexDeviceSince'), true);
+        $sinceMap = json_decode($this->ReadAttributeStringSafe('FlexDeviceSince'), true);
         if (!is_array($sinceMap)) {
             $sinceMap = [];
         }
@@ -1745,7 +1816,7 @@ class TibberGridReward extends IPSModule
         if ($VehicleId === '') {
             return $fail('VehicleId fehlt.');
         }
-        $homeId = $this->ReadPropertyString('Home_ID');
+        $homeId = $this->ReadPropertyStringSafe('Home_ID');
         if ($homeId === '' || $homeId === '0') {
             return $fail('Kein Grid-Rewards-Zuhause gewählt (Home_ID).');
         }
@@ -1963,7 +2034,7 @@ class TibberGridReward extends IPSModule
 
     private function GetWallboxRows(): array
     {
-        $rows = json_decode($this->ReadPropertyString('Wallboxes'), true);
+        $rows = json_decode($this->ReadPropertyStringSafe('Wallboxes'), true);
         if (!is_array($rows)) {
             return [];
         }
@@ -1975,7 +2046,7 @@ class TibberGridReward extends IPSModule
 
     private function SumWallboxes(bool $fire = true): void
     {
-        $maxAge = $this->ReadPropertyInteger('MaxAge');
+        $maxAge = $this->ReadPropertyIntegerSafe('MaxAge');
         $total = 0.0;
         $allValid = true;
         $anyActive = false;
@@ -2001,7 +2072,7 @@ class TibberGridReward extends IPSModule
             $total += (float) GetValue($vid) * $factor;
         }
 
-        $charging = $total > $this->ReadPropertyFloat('ChargingThreshold');
+        $charging = $total > $this->ReadPropertyFloatSafe('ChargingThreshold');
         $this->SetValueIfExists('WallboxPowerTotal', $total);
         $this->SetValueIfExists('WallboxCharging', $charging);
         $this->SetValueIfExists('DataValid', $anyActive ? $allValid : true);
@@ -2196,16 +2267,16 @@ class TibberGridReward extends IPSModule
      */
     private function evaluateDataActions(bool $fire = true): void
     {
-        $rules = json_decode($this->ReadPropertyString('DataActions'), true);
+        $rules = json_decode($this->ReadPropertyStringSafe('DataActions'), true);
         if (!is_array($rules)) {
             $rules = [];
         }
-        $state = json_decode($this->ReadAttributeString('RuleState'), true);
+        $state = json_decode($this->ReadAttributeStringSafe('RuleState'), true);
         if (!is_array($state)) {
             $state = [];
         }
         $stateChanged = false;
-        $lastVals = json_decode($this->ReadAttributeString('LastAppliedValues'), true);
+        $lastVals = json_decode($this->ReadAttributeStringSafe('LastAppliedValues'), true);
         if (!is_array($lastVals)) {
             $lastVals = [];
         }
@@ -2444,7 +2515,7 @@ class TibberGridReward extends IPSModule
     /** Regeln als JSON für die Kachel: [{i, text, active, rule}] */
     public function GetDataActions(): string
     {
-        $rules = json_decode($this->ReadPropertyString('DataActions'), true);
+        $rules = json_decode($this->ReadPropertyStringSafe('DataActions'), true);
         $out = [];
         if (is_array($rules)) {
             foreach ($rules as $i => $rule) {
@@ -2528,7 +2599,7 @@ class TibberGridReward extends IPSModule
             'Actions'    => $actions,
         ];
 
-        $rules = json_decode($this->ReadPropertyString('DataActions'), true);
+        $rules = json_decode($this->ReadPropertyStringSafe('DataActions'), true);
         if (!is_array($rules)) {
             $rules = [];
         }
@@ -2543,7 +2614,7 @@ class TibberGridReward extends IPSModule
 
     public function DeleteDataAction(int $Index): void
     {
-        $rules = json_decode($this->ReadPropertyString('DataActions'), true);
+        $rules = json_decode($this->ReadPropertyStringSafe('DataActions'), true);
         if (!is_array($rules) || !isset($rules[$Index])) {
             return;
         }
@@ -2555,7 +2626,7 @@ class TibberGridReward extends IPSModule
     /** Aktiviert/deaktiviert eine Regel (z. B. aus der Kachel). */
     public function SetDataActionActive(int $Index, bool $Active): void
     {
-        $rules = json_decode($this->ReadPropertyString('DataActions'), true);
+        $rules = json_decode($this->ReadPropertyStringSafe('DataActions'), true);
         if (!is_array($rules) || !isset($rules[$Index]) || !is_array($rules[$Index])) {
             return;
         }
@@ -2581,14 +2652,14 @@ class TibberGridReward extends IPSModule
     {
         $changed = false;
 
-        $password = $this->ReadPropertyString('Password');
+        $password = $this->ReadPropertyStringSafe('Password');
         if ($password !== '') {
             $this->WriteAttributeString('PasswordSecret', $password);
             IPS_SetProperty($this->InstanceID, 'Password', '');
             $changed = true;
         }
 
-        $token = $this->ReadPropertyString('PriceApiToken');
+        $token = $this->ReadPropertyStringSafe('PriceApiToken');
         if ($token !== '') {
             $this->WriteAttributeString('PriceApiTokenSecret', $token);
             IPS_SetProperty($this->InstanceID, 'PriceApiToken', '');
@@ -2611,14 +2682,14 @@ class TibberGridReward extends IPSModule
      */
     private function GetPasswordSecret(): string
     {
-        return (string) $this->ReadAttributeString('PasswordSecret');
+        return (string) $this->ReadAttributeStringSafe('PasswordSecret');
     }
 
     /** Personal Access Token der offiziellen Tibber-API (Attribut, nicht Property). Cast-Begründung
      *  siehe GetPasswordSecret() - identisches Muster, hier live abgestürzt. */
     private function GetPriceApiToken(): string
     {
-        return (string) $this->ReadAttributeString('PriceApiTokenSecret');
+        return (string) $this->ReadAttributeStringSafe('PriceApiTokenSecret');
     }
 
     /**
@@ -2633,29 +2704,29 @@ class TibberGridReward extends IPSModule
      */
     private function MigrateLegacyEmsConfig(): bool
     {
-        if ($this->ReadAttributeBoolean('EmsAutomationsMigrated')) {
+        if ($this->ReadAttributeBooleanSafe('EmsAutomationsMigrated')) {
             return false;
         }
         $this->WriteAttributeBoolean('EmsAutomationsMigrated', true);
 
-        $current = json_decode($this->ReadPropertyString('Automations'), true);
+        $current = json_decode($this->ReadPropertyStringSafe('Automations'), true);
         if (!empty($current)) {
             return false; // schon eigene Automationen konfiguriert -> nichts überschreiben
         }
-        $modeVar = $this->ReadPropertyInteger('EmsModeVariable');
+        $modeVar = $this->ReadPropertyIntegerSafe('EmsModeVariable');
         if ($modeVar <= 0) {
             return false; // nichts zu migrieren
         }
-        $powerVar = $this->ReadPropertyInteger('EmsPowerVariable');
+        $powerVar = $this->ReadPropertyIntegerSafe('EmsPowerVariable');
 
         $rows = [];
         for ($m = 0; $m <= 3; $m++) {
-            $fixed = $this->ReadPropertyInteger('EmsPowerFixed' . $m);
+            $fixed = $this->ReadPropertyIntegerSafe('EmsPowerFixed' . $m);
             $rows[] = [
                 'Active'  => true,
                 'Mode'    => $m,
                 'Target1' => $modeVar,
-                'Value1'  => (string) $this->ReadPropertyInteger('EmsModeValue' . $m),
+                'Value1'  => (string) $this->ReadPropertyIntegerSafe('EmsModeValue' . $m),
                 'Target2' => $powerVar,
                 'Value2'  => $powerVar > 0 ? ($fixed >= 0 ? (string) $fixed : 'WALLBOX') : '',
             ];
@@ -2681,16 +2752,16 @@ class TibberGridReward extends IPSModule
      */
     private function MigrateAutomationsToDataActions(): bool
     {
-        if ($this->ReadAttributeBoolean('DataActionsMigrated')) {
+        if ($this->ReadAttributeBooleanSafe('DataActionsMigrated')) {
             return false;
         }
         $this->WriteAttributeBoolean('DataActionsMigrated', true);
 
-        $currentRules = json_decode($this->ReadPropertyString('DataActions'), true);
+        $currentRules = json_decode($this->ReadPropertyStringSafe('DataActions'), true);
         if (!empty($currentRules)) {
             return false; // schon eigene DataActions konfiguriert -> nichts überschreiben
         }
-        $oldRows = json_decode($this->ReadPropertyString('Automations'), true);
+        $oldRows = json_decode($this->ReadPropertyStringSafe('Automations'), true);
         if (!is_array($oldRows) || count($oldRows) === 0) {
             return false; // nichts zu migrieren
         }
@@ -2763,7 +2834,7 @@ class TibberGridReward extends IPSModule
     {
         if ($this->HasEnergyCounters()) {
             $delta = $this->AccumulateEnergyCounters();
-            if ($delta > 0 && $this->ReadAttributeBoolean('EventActive')) {
+            if ($delta > 0 && $this->ReadAttributeBooleanSafe('EventActive')) {
                 $this->AddEnergy($delta);
             }
         } else {
@@ -2790,7 +2861,7 @@ class TibberGridReward extends IPSModule
      */
     private function AccumulateEnergyCounters(): float
     {
-        $old = json_decode($this->ReadAttributeString('EnergyLast'), true);
+        $old = json_decode($this->ReadAttributeStringSafe('EnergyLast'), true);
         if (!is_array($old)) {
             $old = [];
         }
@@ -2818,10 +2889,10 @@ class TibberGridReward extends IPSModule
     private function IntegrateEnergy(): void
     {
         $now = microtime(true);
-        $lastTs = $this->ReadAttributeFloat('LastEnergyTs');
-        $lastPower = $this->ReadAttributeFloat('LastPower');
+        $lastTs = $this->ReadAttributeFloatSafe('LastEnergyTs');
+        $lastPower = $this->ReadAttributeFloatSafe('LastPower');
 
-        if ($this->ReadAttributeBoolean('EventActive') && $lastTs > 0 && $lastPower > 0) {
+        if ($this->ReadAttributeBooleanSafe('EventActive') && $lastTs > 0 && $lastPower > 0) {
             $dt = $now - $lastTs;
             if ($dt > 0 && $dt < 7200) { // Plausibilität: keine Riesensprünge (z.B. nach Downtime)
                 $kwh = $lastPower * $dt / 3600.0 / 1000.0; // W·s -> kWh
@@ -2839,11 +2910,11 @@ class TibberGridReward extends IPSModule
     {
         $day = date('Y-m-d');
         $month = date('Y-m');
-        if ($this->ReadAttributeString('EnergyDayMarker') !== $day) {
+        if ($this->ReadAttributeStringSafe('EnergyDayMarker') !== $day) {
             $this->SetValueIfExists('GridRewardEnergyToday', 0.0);
             $this->WriteAttributeString('EnergyDayMarker', $day);
         }
-        if ($this->ReadAttributeString('EnergyMonthMarker') !== $month) {
+        if ($this->ReadAttributeStringSafe('EnergyMonthMarker') !== $month) {
             $this->SetValueIfExists('GridRewardEnergyMonth', 0.0);
             $this->WriteAttributeString('EnergyMonthMarker', $month);
         }
@@ -2925,7 +2996,7 @@ class TibberGridReward extends IPSModule
 
     public function ReloginSequence(): void
     {
-        if (!$this->ReadPropertyBoolean('Active')) {
+        if (!$this->ReadPropertyBooleanSafe('Active')) {
             return;
         }
         if ($this->GetTimerInterval('ReloginSequence') > 0) {
@@ -2949,7 +3020,7 @@ class TibberGridReward extends IPSModule
 
     private function ReloginRetriesReached(bool $reset = false): bool
     {
-        $counter = $this->ReadAttributeInteger('WTCounter');
+        $counter = $this->ReadAttributeIntegerSafe('WTCounter');
         if ($counter > 4 || $reset) {
             $this->WriteAttributeInteger('WTCounter', $reset ? 0 : 1);
             return !$reset;
@@ -2969,7 +3040,7 @@ class TibberGridReward extends IPSModule
     {
         $headers = ['Content-Type: application/json', 'Accept: application/json'];
         if ($auth) {
-            $headers[] = 'Authorization: Bearer ' . ($token ?? $this->ReadAttributeString('JWT'));
+            $headers[] = 'Authorization: Bearer ' . ($token ?? $this->ReadAttributeStringSafe('JWT'));
         }
 
         $ch = curl_init();

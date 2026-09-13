@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.8.10
+
+- **Fix (zwei Live-Abstürze, gefunden von Dashboard im Systemlog, 13.09.2026): `TypeError` bei
+  Modul-Reload.** Gleiche Fehlerklasse wie 2.8.6, diesmal an zwei weiteren Stellen real
+  aufgetreten: (1) `TIBBERGR_GetDataActions()` (von der Kachel aufgerufen) →
+  `json_decode(false, true)` → TypeError, weil `ReadPropertyString('DataActions')` während eines
+  Modul-Reloads `false` statt eines Strings liefert. (2) In der Kachel `ColorHex(false, ...)` →
+  TypeError, weil `ReadPropertyInteger('ColorActive')` ebenso `false` liefern kann.
+  - **Generische Lösung statt Einzelfixes**: Beide Module bekommen `ReadPropertyStringSafe()`/
+    `-IntegerSafe()`/`-FloatSafe()`/`-BooleanSafe()` (und im Datenmodul zusätzlich die
+    `Attribute`-Pendants) — dünne `(TYPE)`-Cast-Wrapper um die SDK-Methoden. ALLE
+    Property-/Attribut-Lesezugriffe in beiden Dateien wurden auf die Safe-Varianten umgestellt
+    (über 100 Stellen im Datenmodul), nicht nur die zwei konkret aufgefallenen — dieselbe
+    Fehlerklasse hätte sonst an jeder anderen Stelle jederzeit erneut zuschlagen können.
+  - **Zusätzlich, zweite Sicherheitsebene** (bewährtes Muster aus der Dashboard-Sitzung, dort
+    identisches Absturzbild): `MessageSink()` in beiden Modulen ignoriert Nachrichten jetzt, wenn
+    der Kernel noch nicht bereit ist oder die Instanz gerade nicht existiert
+    (`IPS_GetKernelRunlevel() !== KR_READY || !IPS_InstanceExists(...)`), zusätzlich mit
+    try/catch um die eigentliche Verarbeitung.
+  - Isoliert getestet: beide gemeldeten Absturzszenarien liefern jetzt einen sicheren Fallback
+    (leere Regel-Liste bzw. `#000000`) statt eines Fatal Errors; Normalfall unverändert korrekt.
+
 ## 2.8.9
 
 - **Nutzersichtbare Datumsformate auf TT.MM.JJJJ umgestellt** (Verbund-Regel 9b, SUITE.md,
