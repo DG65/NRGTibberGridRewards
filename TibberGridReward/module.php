@@ -1915,6 +1915,13 @@ class TibberGridReward extends IPSModule
      * zeigte: `me.vehicle(id)` erwartet offenbar eine ANDERE ID-Namensraum als die Grid-Rewards-
      * Subscription liefert. Diese Version fragt deshalb zuerst `me.myVehicles.vehicles{id,title}`
      * ab, um die dort tatsächlich erwartete ID zu ermitteln, bevor die Detailabfrage folgt.
+     *
+     * Zweiter Versuch (13.09.2026, 21:21 Uhr) zeigte einen echten GraphQL-Validierungsfehler
+     * (HTTP 400, "Cannot query field ... on type ChargingProgressAndPlanType") - aber unsere
+     * normale `HttpPost()` kürzt Fehlerantworten für den Debug-Log auf 500 Zeichen UND verwirft
+     * den vollständigen Body (gibt bei HTTP≥400 `null` zurück). Diese Funktion umgeht das bewusst
+     * mit einem eigenen, unbeschnittenen Roh-Request NUR für sich selbst - Rückgabe/Debug-Log der
+     * produktiven `HttpPost()` bleiben unverändert (siehe dort).
      */
     public function DebugVehicleQuery(string $VehicleId): string
     {
@@ -1922,8 +1929,27 @@ class TibberGridReward extends IPSModule
             return json_encode(['error' => 'Kein gültiger Login-Token verfügbar.']);
         }
 
+        $rawPost = function (string $query): array {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, self::GQL_URL);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['query' => $query]));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Bearer ' . $this->ReadAttributeStringSafe('JWT'),
+            ]);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            $resp = curl_exec($ch);
+            $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            return ['httpCode' => $code, 'body' => $resp === false ? null : $resp];
+        };
+
         $listQuery = 'query { me { myVehicles { vehicles { id title } } } }';
-        $listResult = $this->HttpPost(self::GQL_URL, json_encode(['query' => $listQuery]), true);
+        $listResult = $rawPost($listQuery);
 
         $detailQuery = 'query { me { vehicle(id: ' . json_encode($VehicleId) . ') { '
             . 'isAlive isCharging chargingStatus smartChargingStatus '
@@ -1931,11 +1957,11 @@ class TibberGridReward extends IPSModule
             . 'charging { sessionStartedAt targetedStateOfCharge targetedDepartureTime chargerId '
             . 'progress { cost energy speed reward savings averagePrice priceLevel socAtStart currency } } '
             . '} } }';
-        $detailResult = $this->HttpPost(self::GQL_URL, json_encode(['query' => $detailQuery]), true);
+        $detailResult = $rawPost($detailQuery);
 
         return json_encode([
-            'vehicleList'          => $listResult,
-            'detailWithGivenId'    => $detailResult,
+            'vehicleList'       => $listResult,
+            'detailWithGivenId' => $detailResult,
         ]);
     }
 

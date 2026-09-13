@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.8.13
+
+- **TEMPORÄR (Fortsetzung von 2.8.8/2.8.12, wird nach Abschluss wieder entfernt):**
+  `TIBBERGR_DebugVehicleQuery()` nutzt jetzt einen eigenen, unbeschnittenen Roh-Request statt
+  der produktiven `HttpPost()` — die kürzt Fehlerantworten für den Debug-Log auf 500 Zeichen
+  und verwirft den vollständigen Body bei HTTP≥400 komplett (gibt `null` zurück). Der zweite
+  Live-Test lieferte einen echten GraphQL-Validierungsfehler ("Cannot query field ... on type
+  ChargingProgressAndPlanType"), der dadurch abgeschnitten war. `HttpPost()` selbst bleibt
+  unverändert (produktives Verhalten, kein Bezug zu diesem Debug-Fund).
+
 ## 2.8.12
 
 - **TEMPORÄR (Fortsetzung von 2.8.8, wird nach Abschluss wieder entfernt):**
