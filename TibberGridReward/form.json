@@ -612,7 +612,7 @@
     {
       "type": "Button",
       "caption": "🔄 Übernehmen erzwingen (ohne Formularänderung)",
-      "onClick": "IPS_ApplyChanges($id); echo '✅ ApplyChanges() ausgeführt.';"
+      "onClick": "IPS_ApplyChanges($id); echo TIBBERGR_ApplyChangesConfirmation($id);"
     }
   ],
   "status": [

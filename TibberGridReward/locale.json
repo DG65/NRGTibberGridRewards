@@ -50,7 +50,14 @@
       "Status: the \"Current price\" variable does not exist yet - enter the token and select a home first.": "Status: Die Variable „Aktueller Preis“ existiert noch nicht – zuerst Token eintragen und Zuhause wählen.",
       "Status: no archive control found - archiving is not possible.": "Status: Kein Archive Control im System gefunden – Archivierung nicht möglich.",
       "Status: archiving is ACTIVE - the price history is being recorded.": "Status: Archivierung ist AKTIV – der Preisverlauf wird aufgezeichnet.",
-      "Status: archiving is NOT active - no price history is being recorded.": "Status: Archivierung ist NICHT aktiv – es entsteht keine Preishistorie."
+      "Status: archiving is NOT active - no price history is being recorded.": "Status: Archivierung ist NICHT aktiv – es entsteht keine Preishistorie.",
+      "⚠️ No credentials (email/password) entered.": "⚠️ Keine Zugangsdaten (E-Mail/Passwort) eingetragen.",
+      "❌ Login failed - check email/password.": "❌ Login fehlgeschlagen – E-Mail/Passwort prüfen.",
+      "⚠️ No home found.": "⚠️ Kein Zuhause gefunden.",
+      "✅ %d home(s) found.": "✅ %d Zuhause gefunden.",
+      "⚠️ No access token (Personal Access Token) entered.": "⚠️ Kein Zugangsschlüssel (Personal Access Token) eingetragen.",
+      "⚠️ No home found - check access token.": "⚠️ Kein Zuhause gefunden – Zugangsschlüssel prüfen.",
+      "✅ ApplyChanges() executed.": "✅ ApplyChanges() ausgeführt."
     }
   }
 }

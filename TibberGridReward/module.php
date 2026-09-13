@@ -690,18 +690,18 @@ class TibberGridReward extends IPSModule
     public function UpdateHomes(): string
     {
         if ($this->ReadPropertyStringSafe('Email') === '' || $this->GetPasswordSecret() === '') {
-            return $this->Translate('⚠️ Keine Zugangsdaten (E-Mail/Passwort) eingetragen.');
+            return $this->Translate('⚠️ No credentials (email/password) entered.');
         }
         if (!$this->EnsureToken()) {
-            return $this->Translate('❌ Login fehlgeschlagen - E-Mail/Passwort prüfen.');
+            return $this->Translate('❌ Login failed - check email/password.');
         }
         $this->GetHomesData();
         $this->ReloadForm();
         $count = count($this->BuildHomeOptions()) - 1;
         if ($count <= 0) {
-            return $this->Translate('⚠️ Kein Zuhause gefunden.');
+            return $this->Translate('⚠️ No home found.');
         }
-        return sprintf($this->Translate('✅ %d Zuhause gefunden.'), $count);
+        return sprintf($this->Translate('✅ %d home(s) found.'), $count);
     }
 
     // ---------------------------------------------------------------------
@@ -867,15 +867,26 @@ class TibberGridReward extends IPSModule
     public function UpdatePriceHomes(): string
     {
         if ($this->GetPriceApiToken() === '') {
-            return $this->Translate('⚠️ Kein Zugangsschlüssel (Personal Access Token) eingetragen.');
+            return $this->Translate('⚠️ No access token (Personal Access Token) entered.');
         }
         $this->FetchPriceHomes();
         $this->ReloadForm();
         $count = count($this->BuildPriceHomeOptions()) - 1;
         if ($count <= 0) {
-            return $this->Translate('⚠️ Kein Zuhause gefunden - Zugangsschlüssel prüfen.');
+            return $this->Translate('⚠️ No home found - check access token.');
         }
-        return sprintf($this->Translate('✅ %d Zuhause gefunden.'), $count);
+        return sprintf($this->Translate('✅ %d home(s) found.'), $count);
+    }
+
+    /**
+     * Button-Aktion "Übernehmen erzwingen": liefert nur den lokalisierten Bestätigungstext, der
+     * eigentliche `IPS_ApplyChanges($id)`-Aufruf steht direkt im `onClick` (Store-Checkliste Punkt 1:
+     * `IPS_ApplyChanges` ist hier ausdrücklich erwünscht, kein Selbstpersistenz-Verstoß, weil es genau
+     * den regulären Formular-Übernehmen-Vorgang auslöst statt eine Property ungefragt zu ändern).
+     */
+    public function ApplyChangesConfirmation(): string
+    {
+        return $this->Translate('✅ ApplyChanges() executed.');
     }
 
     private function FetchPriceHomes(): void

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.8.11
+
+- **Fix (Store-Checkliste Punkt 9, eigener Fund beim vollständigen Durchgang gegen SUITE.md):**
+  Sechs `Translate()`-Aufrufe in `UpdateHomes()`/`UpdatePriceHomes()` (aus 2.8.2) hatten deutsche
+  statt englische Quellstrings — bricht die Übersetzung auf einem englischsprachigen System
+  (`Translate()` übersetzt VON Englisch, ein deutscher Quellstring hat dort keinen Treffer und
+  würde unübersetzt als deutscher Text erscheinen). Auf englische Quellstrings umgestellt,
+  passende `locale.json`-Einträge ergänzt. Zusätzlich den Bestätigungstext des
+  "Übernehmen erzwingen"-Buttons (2.8.3) von einem fest verdrahteten deutschen Literal auf
+  `$this->Translate()` umgestellt (neue Methode `ApplyChangesConfirmation()`).
+  - Systematisch nachgeprüft: jeder `Translate()`-Aufruf in beiden Modulen hat jetzt eine
+    passende `locale.json`-Übersetzung (0 offene Lücken, automatisiert abgeglichen).
+- **Vollständiger Durchgang gegen die SUITE.md-Store-Checkliste** (Anstoß: InverterHub/Dietmars
+  Store-Reife-Zeitrahmen). Punkte 1–12 einzeln gegen den echten Code geprüft, nicht nur aus dem
+  Gedächtnis: 1/2/3/4/5/6/7/8/9c/9d/10/11a bereits konform bzw. nicht anwendbar, 9 (dieser
+  Eintrag) und 9b (2.8.9) waren die einzigen echten Funde.
+
 ## 2.8.10
 
 - **Fix (zwei Live-Abstürze, gefunden von Dashboard im Systemlog, 13.09.2026): `TypeError` bei
