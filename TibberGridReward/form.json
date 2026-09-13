@@ -301,7 +301,7 @@
         },
         {
           "type": "Label",
-          "caption": "Befristete Rabatte/Kampagnen (z. B. „Tibber-Grundgebühr-Rabatt“). Betrag signiert – ein Rabatt ist NEGATIV. „Gültig von/bis“ als YYYY-MM-DD; „bis“ schließt den Tag ein, leer = unbefristet. Nur die im Abrechnungszeitraum aktiven werden angewendet."
+          "caption": "Befristete Rabatte/Kampagnen (z. B. „Tibber-Grundgebühr-Rabatt“). Betrag signiert – ein Rabatt ist NEGATIV. „Gültig von/bis“ als TT.MM.JJJJ (bestehende Einträge im alten Format JJJJ-MM-TT werden weiterhin korrekt gelesen); „bis“ schließt den Tag ein, leer = unbefristet. Nur die im Abrechnungszeitraum aktiven werden angewendet."
         },
         {
           "type": "List",
@@ -326,14 +326,14 @@
               "edit": { "type": "NumberSpinner", "digits": 2 }
             },
             {
-              "caption": "Gültig von (YYYY-MM-DD, leer = ab Beginn)",
+              "caption": "Gültig von (TT.MM.JJJJ, leer = ab Beginn)",
               "name": "ValidFrom",
               "width": "220px",
               "add": "",
               "edit": { "type": "ValidationTextBox" }
             },
             {
-              "caption": "Gültig bis (YYYY-MM-DD, leer = unbefristet)",
+              "caption": "Gültig bis (TT.MM.JJJJ, leer = unbefristet)",
               "name": "ValidUntil",
               "width": "220px",
               "add": "",

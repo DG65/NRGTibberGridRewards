@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.8.9
+
+- **Nutzersichtbare Datumsformate auf TT.MM.JJJJ umgestellt** (Verbund-Regel 9b, SUITE.md,
+  Dietmars Wunsch, 13.09.2026): Die Kampagnen-Felder „Gültig von"/„Gültig bis" im Panel
+  „🧾 Tarif & Netzentgelt" zeigten bislang „YYYY-MM-DD" — jetzt „TT.MM.JJJJ". Keine Code-
+  Änderung an der Auswertung nötig: `strtotime()` liest beide Formate ("30.11.2027" wie
+  "2027-11-30") nachweislich identisch korrekt ein (isoliert getestet), bestehende
+  Kampagnen-Einträge im alten Format bleiben also ohne Migration gültig. Vorbelegter
+  Kampagnen-Beispieleintrag ebenfalls auf das neue Format umgestellt.
+- Ein Docblock-Kommentar mit ASCII-Ersatzschreibweise (waehrend/ueber/Rueckgabetyp) auf
+  echte Umlaute korrigiert (Regel 9b gilt streng genommen nur für nutzersichtbaren Text,
+  aber Konsistenz mit dem Rest der Datei).
+
 ## 2.8.8
 
 - **TEMPORÄR (wird nach Abschluss der Untersuchung wieder entfernt, analog 2.7.1):**

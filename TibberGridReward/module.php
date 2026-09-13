@@ -200,9 +200,11 @@ class TibberGridReward extends IPSModule
         $this->RegisterPropertyFloat('Paragraph14aReductionYear', 119.80); // €/a
         $this->RegisterPropertyFloat('TibberBaseFeeMonth', 5.03);          // €/Monat (Tibber-Grundgebühr)
         // Befristete Rabatte/Kampagnen (Tibber-Tarifartefakt): [{Label,AmountMonth(signiert,neg=Rabatt),
-        // ValidFrom,ValidUntil als "YYYY-MM-DD"}]. Vorbelegt mit der realen Tibber-Grundgebühr-Aktion.
+        // ValidFrom,ValidUntil als "TT.MM.JJJJ" (SUITE.md-Regel 9b) - strtotime() liest daneben
+        // weiterhin klaglos das alte "JJJJ-MM-TT" ein (beide Formate isoliert getestet), Bestandsdaten
+        // brauchen also keine Migration. Vorbelegt mit der realen Tibber-Grundgebühr-Aktion.
         $this->RegisterPropertyString('TariffCampaigns', json_encode([
-            ['Label' => 'Tibber-Grundgebühr-Rabatt', 'AmountMonth' => -5.03, 'ValidFrom' => '', 'ValidUntil' => '2027-11-30'],
+            ['Label' => 'Tibber-Grundgebühr-Rabatt', 'AmountMonth' => -5.03, 'ValidFrom' => '', 'ValidUntil' => '30.11.2027'],
         ]));
 
         $this->RegisterAttributeString('PriceHomes', '');
@@ -2602,10 +2604,10 @@ class TibberGridReward extends IPSModule
     /**
      * Grid-Rewards-App-Passwort (Attribut, nicht Property - siehe MigrateCredentialsToAttributes).
      * (string)-Cast bewusst: ReadAttributeString() liefert `false` statt eines Strings, wenn das
-     * Attribut (noch) nicht registriert ist (z. B. wenn diese Methode waehrend eines Kernel-/
-     * Modul-Reloads vor Create() aufgerufen wird) - ohne den Cast bricht der strikte Rueckgabetyp
-     * `: string` das mit einem TypeError ab und reisst jeden Aufrufer mit (Fund: OCPPHub-Sitzung,
-     * 31.08.2026, echter Absturz bei GetPriceApiToken() ueber GetPriceCurve() -> Dashboard).
+     * Attribut (noch) nicht registriert ist (z. B. wenn diese Methode während eines Kernel-/
+     * Modul-Reloads vor Create() aufgerufen wird) - ohne den Cast bricht der strikte Rückgabetyp
+     * `: string` das mit einem TypeError ab und reißt jeden Aufrufer mit (Fund: OCPPHub-Sitzung,
+     * 31.08.2026, echter Absturz bei GetPriceApiToken() über GetPriceCurve() -> Dashboard).
      */
     private function GetPasswordSecret(): string
     {
