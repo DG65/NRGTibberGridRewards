@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.8.12
+
+- **TEMPORÄR (Fortsetzung von 2.8.8, wird nach Abschluss wieder entfernt):**
+  `TIBBERGR_DebugVehicleQuery()` fragt jetzt zusätzlich `me.myVehicles.vehicles{id,title}` ab.
+  Erster Live-Test (14.09.2026) mit der Grid-Rewards-eigenen `vehicleId` ergab "Vehicle not
+  found" bei `me.vehicle(id)` — offenbar ein anderer ID-Namensraum als die Grid-Rewards-
+  Subscription liefert. Die Fahrzeugliste soll die dort tatsächlich erwartete ID zeigen.
+
 ## 2.8.11
 
 - **Fix (Store-Checkliste Punkt 9, eigener Fund beim vollständigen Durchgang gegen SUITE.md):**

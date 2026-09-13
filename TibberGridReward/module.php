@@ -1908,23 +1908,35 @@ class TibberGridReward extends IPSModule
      * für Session-Details (Kosten/Energie/Ladeleistung der laufenden Ladesession, EMS-Anfrage
      * 10.09.2026), REIN LESEND. Direkt bei Dietmar rückbestätigt vor dem Bauen. Anders als die
      * entfernte DebugAppApiQuery() aus 2.7.1 nimmt diese Funktion KEINEN freien Query-Text von
-     * außen entgegen, nur die VehicleId (json_encode-escaped in die Query eingesetzt) - die
-     * Query selbst ist fest im Code hinterlegt, kein Mutation-Schutz nötig, weil der Aufrufer keine
-     * eigene Operation einschleusen kann.
+     * außen entgegen - die beiden Query-Texte sind fest im Code hinterlegt, kein Mutation-Schutz
+     * nötig, weil der Aufrufer keine eigene Operation einschleusen kann.
+     *
+     * Erster Versuch (14.09.2026) mit der Grid-Rewards-eigenen vehicleId ("Vehicle not found")
+     * zeigte: `me.vehicle(id)` erwartet offenbar eine ANDERE ID-Namensraum als die Grid-Rewards-
+     * Subscription liefert. Diese Version fragt deshalb zuerst `me.myVehicles.vehicles{id,title}`
+     * ab, um die dort tatsächlich erwartete ID zu ermitteln, bevor die Detailabfrage folgt.
      */
     public function DebugVehicleQuery(string $VehicleId): string
     {
         if (!$this->EnsureToken()) {
             return json_encode(['error' => 'Kein gültiger Login-Token verfügbar.']);
         }
-        $query = 'query { me { vehicle(id: ' . json_encode($VehicleId) . ') { '
+
+        $listQuery = 'query { me { myVehicles { vehicles { id title } } } }';
+        $listResult = $this->HttpPost(self::GQL_URL, json_encode(['query' => $listQuery]), true);
+
+        $detailQuery = 'query { me { vehicle(id: ' . json_encode($VehicleId) . ') { '
             . 'isAlive isCharging chargingStatus smartChargingStatus '
             . 'battery { level estimatedRange canReadLevel } '
             . 'charging { sessionStartedAt targetedStateOfCharge targetedDepartureTime chargerId '
             . 'progress { cost energy speed reward savings averagePrice priceLevel socAtStart currency } } '
             . '} } }';
-        $result = $this->HttpPost(self::GQL_URL, json_encode(['query' => $query]), true);
-        return $result === null ? json_encode(['error' => 'Anfrage fehlgeschlagen.']) : json_encode($result);
+        $detailResult = $this->HttpPost(self::GQL_URL, json_encode(['query' => $detailQuery]), true);
+
+        return json_encode([
+            'vehicleList'          => $listResult,
+            'detailWithGivenId'    => $detailResult,
+        ]);
     }
 
     // ---------------------------------------------------------------------
