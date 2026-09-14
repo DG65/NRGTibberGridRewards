@@ -32,7 +32,12 @@ class TibberGridRewardTile extends IPSModule
 
     // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik", EMS-Auftrag 14.09.2026) —
     // derselbe Forum-Thread wie das Datenmodul, kein eigener.
-    private const FORUM_THREAD_URL = 'https://community.symcon.de/t/PLATZHALTER-tibber-thread-folgt/00000';
+    private const FORUM_THREAD_URL = 'https://community.symcon.de/t/modul-tibber-grid-rewards-grid-reward-signal-wallbox-ems-aufbereitung-fuer-ip-symcon/143996';
+
+    // Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - <Branch> zeigt auf den Branch,
+    // der wirklich den aktuellen PolyForm-Text trägt, NICHT blind main.
+    private const LICENSE_URL = 'https://github.com/DG65/NRGTibberGridRewards/blob/ems-integration/LICENSE';
+    private const PAYPAL_URL = 'https://paypal.me/DietmarGureth';
 
     public function Create()
     {
@@ -207,7 +212,6 @@ class TibberGridRewardTile extends IPSModule
             'caption' => '💬  Feedback im Symcon-Forum',
             'items' => [
                 ['type' => 'Label', 'caption' => 'Rückmeldungen zu diesem Modul sind ausdrücklich willkommen im Community-Thread.'],
-                ['type' => 'Label', 'caption' => '⚠️ Platzhalter-Verknüpfung, Thread noch nicht veröffentlicht.'],
                 ['type' => 'Button', 'caption' => 'Zum Forums-Thread', 'onClick' => "echo '" . self::FORUM_THREAD_URL . "';", 'link' => true],
                 ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TGRTILE_AckForumHint($id);'],
             ],
@@ -220,13 +224,33 @@ class TibberGridRewardTile extends IPSModule
         $this->UpdateFormField('ForumHintPanel', 'visible', false);
     }
 
+    /**
+     * Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - Wortlaut verbundweit identisch
+     * ("Variante A"), bewusst NICHT dismissible (Lizenz ist kein einmaliger Hinweis).
+     */
+    private function LicenseHint(): array
+    {
+        return [
+            'type' => 'ExpansionPanel', 'expanded' => false,
+            'caption' => '🧡  Über dieses Modul',
+            'items' => [
+                ['type' => 'Label', 'caption' => 'Entstanden aus echter Begeisterung für die eigene Anlage — und ein paar durchgetippten Abenden. Trotzdem: Software-Hobby hin oder her, das hier ist geistiges Eigentum und echte Arbeit steckt drin.'],
+                ['type' => 'Label', 'caption' => 'Lizenz: PolyForm Noncommercial 1.0.0 — privat und nicht-kommerziell frei nutzbar, für den gewerblichen Einsatz braucht es eine gesonderte Lizenz vom Rechteinhaber.'],
+                ['type' => 'Button', 'caption' => 'Lizenztext ansehen', 'onClick' => "echo '" . self::LICENSE_URL . "';", 'link' => true],
+                ['type' => 'Label', 'caption' => 'Gewerbliche Nutzung oder Fragen zur Lizenz? Einfach melden: dietmar@gureth.eu'],
+                ['type' => 'Label', 'caption' => 'Gefällt dir das Modul und du möchtest trotzdem etwas dalassen? Über eine kleine Spende freue ich mich — völlig freiwillig, keine Gegenleistung nötig.'],
+                ['type' => 'Button', 'caption' => '☕  Spenden via PayPal', 'onClick' => "echo '" . self::PAYPAL_URL . "';", 'link' => true],
+            ],
+        ];
+    }
+
     public function GetConfigurationForm()
     {
         $form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
         $form['elements'] = array_values(array_filter(array_merge(
             [$this->PurposeIntro()],
             $form['elements'],
-            [$this->ForumHint()]
+            [$this->ForumHint(), $this->LicenseHint()]
         )));
         return json_encode($form);
     }

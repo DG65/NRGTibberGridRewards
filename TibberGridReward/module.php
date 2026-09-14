@@ -50,8 +50,13 @@ class TibberGridReward extends IPSModule
     // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik") - NEWS_VERSION bei jedem
     // Release mit nutzerrelevanten Änderungen synchron zur library.json-Version halten.
     private const NEWS_VERSION = '2.9.0';
-    // ⚠️ Platzhalter, Thread noch nicht veröffentlicht - vor dem Store-Release ersetzen.
-    private const FORUM_THREAD_URL = 'https://community.symcon.de/t/PLATZHALTER-tibber-thread-folgt/00000';
+    private const FORUM_THREAD_URL = 'https://community.symcon.de/t/modul-tibber-grid-rewards-grid-reward-signal-wallbox-ems-aufbereitung-fuer-ip-symcon/143996';
+
+    // Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - <Branch> zeigt auf den Branch,
+    // der wirklich den aktuellen PolyForm-Text trägt, NICHT blind main (dort steht noch die alte
+    // MIT-Lizenz, siehe SUITE.md-Warnung).
+    private const LICENSE_URL = 'https://github.com/DG65/NRGTibberGridRewards/blob/ems-integration/LICENSE';
+    private const PAYPAL_URL = 'https://paypal.me/DietmarGureth';
 
     // Allowlist für SetVehicleSetting() - bewusst KEIN generischer Freitext-Schreibzugriff auf
     // beliebige Tibber-Einstellungen, nur die per Netzwerk-Mitschnitt verifizierten vier Schlüssel
@@ -449,7 +454,6 @@ class TibberGridReward extends IPSModule
             'caption' => '💬  Feedback im Symcon-Forum',
             'items' => [
                 ['type' => 'Label', 'caption' => 'Rückmeldungen zu diesem Modul sind ausdrücklich willkommen im Community-Thread.'],
-                ['type' => 'Label', 'caption' => '⚠️ Platzhalter-Verknüpfung, Thread noch nicht veröffentlicht.'],
                 ['type' => 'Button', 'caption' => 'Zum Forums-Thread', 'onClick' => "echo '" . self::FORUM_THREAD_URL . "';", 'link' => true],
                 ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TIBBERGR_AckForumHint($id);'],
             ],
@@ -462,16 +466,37 @@ class TibberGridReward extends IPSModule
         $this->UpdateFormField('ForumHintPanel', 'visible', false);
     }
 
+    /**
+     * Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - Wortlaut verbundweit identisch
+     * ("Variante A"), bewusst NICHT dismissible (Lizenz ist kein einmaliger Hinweis).
+     */
+    private function LicenseHint(): array
+    {
+        return [
+            'type' => 'ExpansionPanel', 'expanded' => false,
+            'caption' => '🧡  Über dieses Modul',
+            'items' => [
+                ['type' => 'Label', 'caption' => 'Entstanden aus echter Begeisterung für die eigene Anlage — und ein paar durchgetippten Abenden. Trotzdem: Software-Hobby hin oder her, das hier ist geistiges Eigentum und echte Arbeit steckt drin.'],
+                ['type' => 'Label', 'caption' => 'Lizenz: PolyForm Noncommercial 1.0.0 — privat und nicht-kommerziell frei nutzbar, für den gewerblichen Einsatz braucht es eine gesonderte Lizenz vom Rechteinhaber.'],
+                ['type' => 'Button', 'caption' => 'Lizenztext ansehen', 'onClick' => "echo '" . self::LICENSE_URL . "';", 'link' => true],
+                ['type' => 'Label', 'caption' => 'Gewerbliche Nutzung oder Fragen zur Lizenz? Einfach melden: dietmar@gureth.eu'],
+                ['type' => 'Label', 'caption' => 'Gefällt dir das Modul und du möchtest trotzdem etwas dalassen? Über eine kleine Spende freue ich mich — völlig freiwillig, keine Gegenleistung nötig.'],
+                ['type' => 'Button', 'caption' => '☕  Spenden via PayPal', 'onClick' => "echo '" . self::PAYPAL_URL . "';", 'link' => true],
+            ],
+        ];
+    }
+
     public function GetConfigurationForm()
     {
         $form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
 
-        // Formular-Konvention: "Wozu dieses Modul?"/"Was ist Neu" ganz vorn, Forum-Hinweis ganz
-        // hinten - array_filter entfernt die null-Einträge bereits bestätigter Panels.
+        // Formular-Konvention: "Wozu dieses Modul?"/"Was ist Neu" ganz vorn, Forum-Hinweis +
+        // "Über dieses Modul" ganz hinten - array_filter entfernt die null-Einträge bereits
+        // bestätigter Panels (LicenseHint() gibt nie null zurück, ist nicht dismissible).
         $form['elements'] = array_values(array_filter(array_merge(
             [$this->PurposeIntro(), $this->NewsBanner()],
             $form['elements'],
-            [$this->ForumHint()]
+            [$this->ForumHint(), $this->LicenseHint()]
         )));
 
         // Home-Dropdowns dynamisch füllen (Grid Rewards über die App-API, Preis-Zuhause über die

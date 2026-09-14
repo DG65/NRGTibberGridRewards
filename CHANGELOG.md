@@ -20,6 +20,21 @@
   (`TIBBERGR_DecomposePrice` + Zusammenspiel mit dem Panel „🧾 Tarif & Netzentgelt") und
   Demo-Modus. Panel „🎭 Demo-Modus" bekommt zusätzlich den 🆕-Präfix in der Caption (war neu in
   2.9.0, stand aber nur im News-Panel, nicht am Panel selbst).
+- **„🧡 Über dieses Modul"-Panel ergänzt** (SUITE.md Punkt 5, EMS-Auftrag 14.09.2026, Wortlaut
+  „Variante A" verbundweit identisch, Referenz MeterHub): Lizenzhinweis (PolyForm Noncommercial
+  1.0.0), Link zum Lizenztext, Kontakt für gewerbliche Nutzung, PayPal-Spendenlink. Bewusst NICHT
+  dismissible, ganz unten nach dem Forum-Hinweis, standardmäßig eingeklappt. `LICENSE_URL` zeigt
+  auf `ems-integration` (dort steht der aktuelle PolyForm-Text; `main` trägt noch die alte
+  MIT-Lizenz aus 2.0.0 – vor Augen behalten und nachziehen, sobald das Modul selbst auf `main`
+  promotet wird).
+- **Echter Forum-Thread gefunden, Platzhalter ersetzt:** Der Thread existierte bereits
+  ([„[Modul] Tibber Grid Rewards – Grid-Reward-Signal & Wallbox-/EMS-Aufbereitung für
+  IP-Symcon"](https://community.symcon.de/t/modul-tibber-grid-rewards-grid-reward-signal-wallbox-ems-aufbereitung-fuer-ip-symcon/143996),
+  Juni/Juli 2026, unter dem alten Namen/Repo) – EMS' erste Auskunft „nur InverterHub hat einen
+  Thread" war eine Fehlsuche. `FORUM_THREAD_URL` in beiden Modulen zeigt jetzt dorthin, der
+  „⚠️ Platzhalter"-Warnhinweis im Forum-Panel entfällt entsprechend. Ein Update-Beitrag für den
+  Thread (Umbenennung, neue Funktionen seit v1.15.0) ist entworfen, Veröffentlichung liegt bei
+  Dietmar.
 
 ## 2.8.16
 
