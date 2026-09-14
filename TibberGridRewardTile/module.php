@@ -30,10 +30,21 @@ class TibberGridRewardTile extends IPSModule
     private const DEF_FONT        = 'system';
     private const DEF_SCALE       = 1.0;
 
+    // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik", EMS-Auftrag 14.09.2026) —
+    // derselbe Forum-Thread wie das Datenmodul, kein eigener.
+    private const FORUM_THREAD_URL = 'https://community.symcon.de/t/PLATZHALTER-tibber-thread-folgt/00000';
+
     public function Create()
     {
         //Never delete this line!
         parent::Create();
+
+        // Formular-Konvention - Referenzimplementierung MeterHub. Kein News-Panel hier: an der
+        // Kachel selbst gab es zuletzt nichts eigenständig Neues zu vermelden (die Neuigkeiten
+        // betreffen alle das Datenmodul) - ein News-Panel ohne echten Inhalt wäre erfundene
+        // Neuigkeit (siehe "keine eigene Anlage als Norm" - analog: keine erfundenen Neuigkeiten).
+        $this->RegisterAttributeBoolean('PurposeIntroGone', false);
+        $this->RegisterAttributeBoolean('ForumHintGone', false);
 
         $this->RegisterPropertyInteger('SourceInstance', 0);
 
@@ -98,6 +109,13 @@ class TibberGridRewardTile extends IPSModule
         return (bool) $this->ReadPropertyBoolean($Name);
     }
 
+    // Erster Attribut-Lesezugriff in dieser Klasse (Formular-Konvention, 14.09.2026) - gleiches
+    // Cast-Muster wie die Property-Safe-Wrapper oben, siehe deren Begründung.
+    private function ReadAttributeBooleanSafe(string $Name): bool
+    {
+        return (bool) $this->ReadAttributeBoolean($Name);
+    }
+
     public function ApplyChanges()
     {
         //Never delete this line!
@@ -152,9 +170,64 @@ class TibberGridRewardTile extends IPSModule
         }
     }
 
+    /**
+     * Formular-Konvention (SUITE.md "Einheitliche Formular-Optik", EMS-Auftrag 14.09.2026,
+     * Referenzimplementierung MeterHub) - steht ganz vorn, einmalig dismissible.
+     */
+    private function PurposeIntro(): ?array
+    {
+        if ($this->ReadAttributeBooleanSafe('PurposeIntroGone')) {
+            return null;
+        }
+        return [
+            'type' => 'ExpansionPanel', 'name' => 'PurposeIntroPanel', 'expanded' => true,
+            'caption' => '👋  Wozu dieses Modul?',
+            'items' => [
+                ['type' => 'Label', 'caption' => 'Diese Kachel zeigt den Grid-Rewards-Status einer TibberGridReward-Instanz als eigenständige, frei gestaltbare Status-Kachel im WebFront — Einsatz, verdiente Prämie, Wallbox-Leistung und Energie-Statistik auf einen Blick.'],
+                ['type' => 'Label', 'caption' => 'Wähle unten deine Datenquelle (die TibberGridReward-Instanz) — die Farben/Schrift lassen sich darunter frei anpassen. Optional: ein Regel-Editor und Simulations-Schaltflächen zum Testen ohne echten Einsatz.'],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TGRTILE_AckPurposeIntro($id);'],
+            ],
+        ];
+    }
+
+    public function AckPurposeIntro(): void
+    {
+        $this->WriteAttributeBoolean('PurposeIntroGone', true);
+        $this->UpdateFormField('PurposeIntroPanel', 'visible', false);
+    }
+
+    /** Symcon-Forum-Hinweis — einmalig dismissible, kein Versionsbezug, siehe PurposeIntro(). */
+    private function ForumHint(): ?array
+    {
+        if ($this->ReadAttributeBooleanSafe('ForumHintGone')) {
+            return null;
+        }
+        return [
+            'type' => 'ExpansionPanel', 'name' => 'ForumHintPanel', 'expanded' => true,
+            'caption' => '💬  Feedback im Symcon-Forum',
+            'items' => [
+                ['type' => 'Label', 'caption' => 'Rückmeldungen zu diesem Modul sind ausdrücklich willkommen im Community-Thread.'],
+                ['type' => 'Label', 'caption' => '⚠️ Platzhalter-Verknüpfung, Thread noch nicht veröffentlicht.'],
+                ['type' => 'Button', 'caption' => 'Zum Forums-Thread', 'onClick' => "echo '" . self::FORUM_THREAD_URL . "';", 'link' => true],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TGRTILE_AckForumHint($id);'],
+            ],
+        ];
+    }
+
+    public function AckForumHint(): void
+    {
+        $this->WriteAttributeBoolean('ForumHintGone', true);
+        $this->UpdateFormField('ForumHintPanel', 'visible', false);
+    }
+
     public function GetConfigurationForm()
     {
         $form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
+        $form['elements'] = array_values(array_filter(array_merge(
+            [$this->PurposeIntro()],
+            $form['elements'],
+            [$this->ForumHint()]
+        )));
         return json_encode($form);
     }
 

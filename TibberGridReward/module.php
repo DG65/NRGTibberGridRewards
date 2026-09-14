@@ -47,6 +47,12 @@ class TibberGridReward extends IPSModule
     private const CONTRACT_SETVEHICLESETTING = '1.0';
     private const CONTRACT_DECOMPOSEPRICE = '1.0';
 
+    // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik") - NEWS_VERSION bei jedem
+    // Release mit nutzerrelevanten Änderungen synchron zur library.json-Version halten.
+    private const NEWS_VERSION = '2.9.0';
+    // ⚠️ Platzhalter, Thread noch nicht veröffentlicht - vor dem Store-Release ersetzen.
+    private const FORUM_THREAD_URL = 'https://community.symcon.de/t/PLATZHALTER-tibber-thread-folgt/00000';
+
     // Allowlist für SetVehicleSetting() - bewusst KEIN generischer Freitext-Schreibzugriff auf
     // beliebige Tibber-Einstellungen, nur die per Netzwerk-Mitschnitt verifizierten vier Schlüssel
     // (EMS-Sitzung, 24.07.2026). Neue Schlüssel hier erst nach erneuter Verifikation ergänzen.
@@ -78,6 +84,12 @@ class TibberGridReward extends IPSModule
         parent::Create();
 
         $this->RequireParent(self::WS_CLIENT_MODULE);
+
+        // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik", EMS-Auftrag 14.09.2026) —
+        // Referenzimplementierung MeterHub (siehe dort für die volle Herleitung).
+        $this->RegisterAttributeBoolean('PurposeIntroGone', false);
+        $this->RegisterAttributeString('SeenNews', '');
+        $this->RegisterAttributeBoolean('ForumHintGone', false);
 
         $this->RegisterPropertyBoolean('Active', false);
         $this->RegisterPropertyString('Email', '');
@@ -372,9 +384,95 @@ class TibberGridReward extends IPSModule
         $this->SetTimerInterval('EnergyTick', $this->ReadAttributeBooleanSafe('EventActive') ? 30000 : 0);
     }
 
+    /**
+     * Formular-Konvention (SUITE.md "Einheitliche Formular-Optik", EMS-Auftrag 14.09.2026,
+     * Referenzimplementierung MeterHub) - steht ganz vorn, noch vor dem News-Panel, einmalig
+     * dismissible (kein Versionsbezug, anders als das News-Panel).
+     */
+    private function PurposeIntro(): ?array
+    {
+        if ($this->ReadAttributeBooleanSafe('PurposeIntroGone')) {
+            return null;
+        }
+        return [
+            'type' => 'ExpansionPanel', 'name' => 'PurposeIntroPanel', 'expanded' => true,
+            'caption' => '👋  Wozu dieses Modul?',
+            'items' => [
+                ['type' => 'Label', 'caption' => 'Tibber Grid Rewards zeigt, wann Tibber selbst dein Fahrzeug oder deinen Heimspeicher steuert (Grid Rewards) — als IP-Symcon-Variablen, die du für eigene Automationen nutzen kannst. Ergänzt bewusst das Modul „Tibber V.2", das deinen Verbrauch/deine Live-Messung abdeckt.'],
+                ['type' => 'Label', 'caption' => 'Der Nutzen: Dein EMS oder eigene Automationen erfahren, wann Tibber gerade Netzüberschuss belohnt (dein Auto/deine Batterie lädt aus dem Netz) oder Netzknappheit ausgleicht (Drosselung) — und können darauf reagieren, statt gegen Tibber zu arbeiten.'],
+                ['type' => 'Label', 'caption' => 'Optional, unabhängig von Grid Rewards: die vollständige Tibber-Endkundenpreiskurve für preisgetriebene Automationen, sowie das Setzen einer Abfahrtszeit/Ladeziel-Präferenz direkt in Tibbers eigenem Smart-Charging.'],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TIBBERGR_AckPurposeIntro($id);'],
+            ],
+        ];
+    }
+
+    public function AckPurposeIntro(): void
+    {
+        $this->WriteAttributeBoolean('PurposeIntroGone', true);
+        $this->UpdateFormField('PurposeIntroPanel', 'visible', false);
+    }
+
+    /** Aufgeklappt und pro Version einmalig bestätigbar — Formular-Konvention, siehe PurposeIntro(). */
+    private function NewsBanner(): ?array
+    {
+        if ($this->ReadAttributeStringSafe('SeenNews') === self::NEWS_VERSION) {
+            return null;
+        }
+        return [
+            'type' => 'ExpansionPanel', 'name' => 'NewsPanel', 'expanded' => true,
+            'caption' => '🆕  Neu in dieser Version',
+            'items' => [
+                ['type' => 'Label', 'caption' => '• 🆕 Abfahrtszeit/Ladeziel setzen: TIBBERGR_SetVehicleSetting() trägt eine Präferenz (Abfahrtszeit je Wochentag, Mindest-Ladeschwelle, Smart-Charging an/aus) direkt in Tibbers eigenen Algorithmus ein — für EMS/Automationen, kein eigenes Formularfeld.'],
+                ['type' => 'Label', 'caption' => '• 🆕 Rechnungsprüfung: TIBBERGR_DecomposePrice() zerlegt einen historischen Preis in Börsenpreis/Beschaffung/Netzentgelt/Steuern — hilfreich, wenn du deine Tibber-Rechnung nachrechnen willst.'],
+                ['type' => 'Label', 'caption' => '• ⚠️🆕 Neues Häkchen „Demo-Override aktiv" (Panel „🎭 Demo-Modus"): NICHT für den normalen Betrieb — nur für Vorführ-/Testinstanzen, die eine manuell gesetzte Preiskurve statt echter Daten zeigen sollen.'],
+                ['type' => 'Label', 'caption' => '• 🔧 TIBBERGR_GetActiveControls(): „deviceId" liefert jetzt Tibbers echte Geräte-Kennung statt immer „0" — nützlich, wenn mehrere Fahrzeuge/Speicher an Grid Rewards teilnehmen.'],
+                ['type' => 'Label', 'caption' => '• Datumsfelder (Kampagnen-Gültigkeit) zeigen jetzt TT.MM.JJJJ statt YYYY-MM-DD.'],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TIBBERGR_AckNews($id);'],
+            ],
+        ];
+    }
+
+    public function AckNews(): void
+    {
+        $this->WriteAttributeString('SeenNews', self::NEWS_VERSION);
+        $this->UpdateFormField('NewsPanel', 'visible', false);
+    }
+
+    /** Symcon-Forum-Hinweis — einmalig dismissible, kein Versionsbezug, siehe PurposeIntro(). */
+    private function ForumHint(): ?array
+    {
+        if ($this->ReadAttributeBooleanSafe('ForumHintGone')) {
+            return null;
+        }
+        return [
+            'type' => 'ExpansionPanel', 'name' => 'ForumHintPanel', 'expanded' => true,
+            'caption' => '💬  Feedback im Symcon-Forum',
+            'items' => [
+                ['type' => 'Label', 'caption' => 'Rückmeldungen zu diesem Modul sind ausdrücklich willkommen im Community-Thread.'],
+                ['type' => 'Label', 'caption' => '⚠️ Platzhalter-Verknüpfung, Thread noch nicht veröffentlicht.'],
+                ['type' => 'Button', 'caption' => 'Zum Forums-Thread', 'onClick' => "echo '" . self::FORUM_THREAD_URL . "';", 'link' => true],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TIBBERGR_AckForumHint($id);'],
+            ],
+        ];
+    }
+
+    public function AckForumHint(): void
+    {
+        $this->WriteAttributeBoolean('ForumHintGone', true);
+        $this->UpdateFormField('ForumHintPanel', 'visible', false);
+    }
+
     public function GetConfigurationForm()
     {
         $form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
+
+        // Formular-Konvention: "Wozu dieses Modul?"/"Was ist Neu" ganz vorn, Forum-Hinweis ganz
+        // hinten - array_filter entfernt die null-Einträge bereits bestätigter Panels.
+        $form['elements'] = array_values(array_filter(array_merge(
+            [$this->PurposeIntro(), $this->NewsBanner()],
+            $form['elements'],
+            [$this->ForumHint()]
+        )));
 
         // Home-Dropdowns dynamisch füllen (Grid Rewards über die App-API, Preis-Zuhause über die
         // offizielle API - ein Personal Access Token kann andere/mehr Homes sehen als der App-Login).

@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.9.0
+
+- **Verbund-Formular-Konvention nachgezogen** (SUITE.md "Einheitliche Formular-Optik",
+  EMS-Auftrag 14.09.2026, Referenzimplementierung MeterHub): Beide Module (Datenmodul + Kachel)
+  bekommen jetzt „👋 Wozu dieses Modul?" (ganz oben, einmalig dismissible) und „💬 Feedback im
+  Symcon-Forum" (ganz unten, einmalig dismissible, Platzhalter-Verknüpfung — Thread noch nicht
+  veröffentlicht). Das Datenmodul bekommt zusätzlich „🆕 Neu in dieser Version" (pro Version
+  erneut dismissible) mit den nutzerrelevanten Änderungen seit 2.7.0 (Abfahrtszeit/Ladeziel
+  setzen, Rechnungsprüfung, Demo-Modus, echte deviceId, Datumsformat). Bei der Kachel bewusst
+  KEIN News-Panel — an ihr selbst gab es zuletzt nichts eigenständig Neues zu vermelden.
+  Isoliert getestet: Panel-Sichtbarkeit bei frischer Instanz/nach Bestätigung/bei
+  Versionswechsel, Reihenfolge im Formular.
+
 ## 2.8.16
 
 - **Temporärer Debug-Endpunkt `TIBBERGR_DebugVehicleQuery()` wieder entfernt**, wie in jedem
