@@ -12,6 +12,14 @@
   KEIN News-Panel — an ihr selbst gab es zuletzt nichts eigenständig Neues zu vermelden.
   Isoliert getestet: Panel-Sichtbarkeit bei frischer Instanz/nach Bestätigung/bei
   Versionswechsel, Reihenfolge im Formular.
+- **„📖 Dokumentation & Hilfe" nachgezogen** (EMS-Auftrag 14.09.2026, zweite Prüfrunde vor dem
+  Store-Launch): Versionsnummer steht jetzt als Text im Panel (bisher nirgends sichtbar, siehe
+  Verbund-Konvention „hier, nicht im News-Panel, gehört die Versionsnummer hin"). Drei neue
+  Abschnitte ergänzt, die seit 2.8.x fachlich existierten, aber in der dauerhaften Doku fehlten:
+  Abfahrtszeit/Ladeziel (`TIBBERGR_SetVehicleSetting`), Rechnungsprüfung/Tarifzerlegung
+  (`TIBBERGR_DecomposePrice` + Zusammenspiel mit dem Panel „🧾 Tarif & Netzentgelt") und
+  Demo-Modus. Panel „🎭 Demo-Modus" bekommt zusätzlich den 🆕-Präfix in der Caption (war neu in
+  2.9.0, stand aber nur im News-Panel, nicht am Panel selbst).
 
 ## 2.8.16
 

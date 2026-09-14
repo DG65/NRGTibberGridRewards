@@ -7,6 +7,10 @@
       "items": [
         {
           "type": "Label",
+          "caption": "Version 2.9.0."
+        },
+        {
+          "type": "Label",
           "caption": "── Funktionsweise ──"
         },
         {
