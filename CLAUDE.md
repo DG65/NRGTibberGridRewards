@@ -18,7 +18,7 @@ gemeinsame Regeln und dokumentierte Schnittstellen geeinigt haben.
 | **EMS** | Entscheidungslogik / Batteriefahrweise | EMS-Repo · `../EMS` | konsumiert unsere Statusvariablen (`Delivering`, `GridRewardMode`, `GridRewardWallboxRequest`) und `TIBBERGR_GetPriceCurve()` (Preiskurve, optional) |
 | **ChargerHub** | Wallboxen (Modbus TCP) | `DG65/ChargerHub` | keiner (Stand: Gerüst v0.1.0, noch ohne Fachlogik) |
 | **MigrationsHub** | Migration von Bestandsgeräten/Archivwerten | `DG65/MigrationsHub` | keiner (Stand: Gerüst v0.1.0, noch ohne Fachlogik) |
-| **Börsenpreis** (NRGSpotPrice) | Day-Ahead-Börsenpreise ohne Tibber-Konto | `DG65/NRGSpotPrice` | konsumiert seit 14.09.2026 optional `TIBBERGR_GetPriceCurve()` (nur `basis='endkunde'`, Major 1) für die Energie-Manager-Preisvariable — VOR EMS/Dashboard eine Änderung an `GetPriceCurve()` ankündigen, nicht nur an die beiden bisherigen Konsumenten denken |
+| **Börsenpreis** | Day-Ahead-Börsenpreise ohne Tibber-Konto | `DG65/NRGBoersenpreis` | konsumiert seit 14.09.2026 optional `TIBBERGR_GetPriceCurve()` (nur `basis='endkunde'`, Major 1) für die Energie-Manager-Preisvariable — VOR EMS/Dashboard eine Änderung an `GetPriceCurve()` ankündigen, nicht nur an die beiden bisherigen Konsumenten denken |
 
 ### Grundregel: jedes Modul bleibt eigenständig — und das wird geprüft
 
@@ -225,7 +225,7 @@ TIBBERGR_GetPriceCurve(int $id): array
   wird als Rest gebildet (Summe der components = price_netto per Konstruktion) und **kann negativ
   sein** (echte negative Börsenpreise) — nicht „reparieren". Netzgebiets-Werte stehen im Formular,
   bundesweite Sätze (Stromsteuer/Offshore/KWK/§19/MwSt) als Konstanten `TAX_*` im Modul (jährlich
-  pflegen, `TAX_STAND`). **Seit 14.09.2026 auch bei NRGSpotPrice (Börsenpreis) als eigene
+  pflegen, `TAX_STAND`). **Seit 14.09.2026 auch bei Börsenpreis als eigene
   Konstanten dupliziert, gleicher Stand 06/2026** — bei einer Änderung (z. B. Jahreswechsel) dort
   Bescheid geben, sonst laufen die beiden Module auseinander. FIXE Positionen (Netz-Grundpreis, §14a-Reduzierung, Tibber-Grundgebühr)
   gehören NICHT in `components` (nicht per kWh) — sie kommen über `TIBBERGR_GetTariffConfig()` (zweiter
