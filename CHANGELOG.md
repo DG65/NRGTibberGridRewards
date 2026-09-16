@@ -27,6 +27,14 @@
   auf `ems-integration` (dort steht der aktuelle PolyForm-Text; `main` trägt noch die alte
   MIT-Lizenz aus 2.0.0 – vor Augen behalten und nachziehen, sobald das Modul selbst auf `main`
   promotet wird).
+- **Toten SWITCH-Presentation-Zweig entfernt** (SUITE.md 9i, Tessie-Fund, EMS-Rundmeldung
+  15.09.2026): `GetTargetValueOptions()` versuchte bisher, `CAPTION_ON`/`CAPTION_OFF` von einer
+  `VARIABLE_PRESENTATION_SWITCH`-Presentation einer fremden Zielvariable zu lesen — diese
+  Parameter existieren dort laut SDK-Doku gar nicht, der Zweig griff also nie (kein Bruch,
+  reiner Dead Code). Eigener Ein/Aus-Klartext an einem Schalter läuft technisch über
+  `VARIABLE_PRESENTATION_ENUMERATION`, das deckt der bestehende Zweig bereits ab. Tibber SETZT
+  an keiner Stelle eigene Presentations (`IPS_SetVariableCustomPresentation`), das angekündigte
+  künftige harte Abbrechen bei ungültigen Parametern betrifft uns also nicht zusätzlich.
 - **Echter Forum-Thread gefunden, Platzhalter ersetzt:** Der Thread existierte bereits
   ([„[Modul] Tibber Grid Rewards – Grid-Reward-Signal & Wallbox-/EMS-Aufbereitung für
   IP-Symcon"](https://community.symcon.de/t/modul-tibber-grid-rewards-grid-reward-signal-wallbox-ems-aufbereitung-fuer-ip-symcon/143996),

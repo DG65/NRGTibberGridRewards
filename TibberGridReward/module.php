@@ -678,10 +678,10 @@ class TibberGridReward extends IPSModule
                         }
                     }
                 }
-            } elseif ($p === VARIABLE_PRESENTATION_SWITCH) {
-                $out[] = ['v' => 1, 'c' => (string) ($pres['CAPTION_ON'] ?? 'Ein')];
-                $out[] = ['v' => 0, 'c' => (string) ($pres['CAPTION_OFF'] ?? 'Aus')];
             }
+            // VARIABLE_PRESENTATION_SWITCH hat kein CAPTION_ON/CAPTION_OFF (SUITE.md 9i, Tessie-Fund) -
+            // ein eigener Ein/Aus-Klartext an einem Schalter läuft technisch über ENUMERATION, der obige
+            // Zweig deckt das bereits ab.
         }
 
         if (count($out) === 0) {
