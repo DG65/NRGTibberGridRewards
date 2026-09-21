@@ -27,7 +27,8 @@
   gespeichertem Zuhause zeigen es als „✏️ eigene Auswahl", Verhalten unverändert. Am ausgelieferten
   Formular-JSON beider Module geprüft (Zustände: ein/zwei/kein Zuhause bzw. Instanz, eigene Wahl,
   gelöschte Wahl, kein Token, Live-Push), `IPS_SetProperty`/`IPS_ApplyChanges` werden nicht mehr
-  aufgerufen.
+  aufgerufen. Die 🔗-Zeilen (Kachel-Quelle, Preis-Zuhause) werden grün dargestellt (Label-`color`
+  0x2E8B3D, im Live-Push mitgesetzt, sonst -1 = Standardfarbe), ✏️/ℹ️/⚠️ in Standardfarbe.
 - **Toten SWITCH-Presentation-Zweig entfernt** (SUITE.md 9i, Tessie-Fund, EMS-Rundmeldung
   15.09.2026): `GetTargetValueOptions()` versuchte bisher, `CAPTION_ON`/`CAPTION_OFF` von einer
   `VARIABLE_PRESENTATION_SWITCH`-Presentation einer fremden Zielvariable zu lesen — diese

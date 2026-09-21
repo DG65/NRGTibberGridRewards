@@ -39,6 +39,9 @@ class TibberGridRewardTile extends IPSModule
     private const LICENSE_URL = 'https://github.com/DG65/NRGTibberGridRewards/blob/ems-integration/LICENSE';
     private const PAYPAL_URL = 'https://paypal.me/DietmarGureth';
 
+    // Farbe der 🔗-Zeilen ("automatisch übernommen", SUITE.md "Wert kommt automatisch"); -1 = Standardfarbe.
+    private const COLOR_AUTO = 0x2E8B3D;
+
     public function Create()
     {
         //Never delete this line!
@@ -341,6 +344,7 @@ class TibberGridRewardTile extends IPSModule
         [$sourceLine, $hideSource] = $this->SourceFieldState();
         $this->SetFormProp($form['elements'], 'SourceAuto', 'caption', $sourceLine);
         $this->SetFormProp($form['elements'], 'SourceAuto', 'visible', $sourceLine !== '');
+        $this->SetFormProp($form['elements'], 'SourceAuto', 'color', $hideSource ? self::COLOR_AUTO : -1);
         $this->SetFormProp($form['elements'], 'SourceInstance', 'visible', !$hideSource);
         $form['elements'] = array_values(array_filter(array_merge(
             [$this->PurposeIntro()],

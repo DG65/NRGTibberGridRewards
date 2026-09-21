@@ -58,6 +58,9 @@ class TibberGridReward extends IPSModule
     private const LICENSE_URL = 'https://github.com/DG65/NRGTibberGridRewards/blob/ems-integration/LICENSE';
     private const PAYPAL_URL = 'https://paypal.me/DietmarGureth';
 
+    // Farbe der 🔗-Zeilen ("automatisch übernommen", SUITE.md "Wert kommt automatisch"); -1 = Standardfarbe.
+    private const COLOR_AUTO = 0x2E8B3D;
+
     // Allowlist für SetVehicleSetting() - bewusst KEIN generischer Freitext-Schreibzugriff auf
     // beliebige Tibber-Einstellungen, nur die per Netzwerk-Mitschnitt verifizierten vier Schlüssel
     // (EMS-Sitzung, 24.07.2026). Neue Schlüssel hier erst nach erneuter Verifikation ergänzen.
@@ -510,8 +513,9 @@ class TibberGridReward extends IPSModule
             $el['options'] = $priceOptions;
             $el['visible'] = !$priceHomeHide;
         });
-        $this->ReplaceFormElements($form['elements'], ['PriceHomeStatus'], function (array &$el) use ($priceHomeLine) {
+        $this->ReplaceFormElements($form['elements'], ['PriceHomeStatus'], function (array &$el) use ($priceHomeLine, $priceHomeHide) {
             $el['caption'] = $priceHomeLine;
+            $el['color'] = $priceHomeHide ? self::COLOR_AUTO : -1;
         });
 
         // Werte-Nachschau: Profil-Werte der gewählten Variable als Text anzeigen (IP-Symcon-Listen
@@ -656,6 +660,7 @@ class TibberGridReward extends IPSModule
     {
         [$line, $hide] = $this->PriceHomeFieldState();
         $this->UpdateFormField('PriceHomeStatus', 'caption', $line);
+        $this->UpdateFormField('PriceHomeStatus', 'color', $hide ? self::COLOR_AUTO : -1);
         $this->UpdateFormField('PriceHomeID', 'visible', !$hide);
     }
 
