@@ -61,6 +61,12 @@
       "caption": "Datenquelle wird ermittelt …"
     },
     {
+      "type": "Label",
+      "name": "SourceAuto",
+      "caption": "",
+      "visible": false
+    },
+    {
       "type": "SelectInstance",
       "name": "SourceInstance",
       "caption": "Datenquelle (leer = automatisch erkennen)",

@@ -296,18 +296,38 @@ class TibberGridRewardTile extends IPSModule
         return (string) GetValueFormatted($vid);
     }
 
-    /** Setzt die Beschriftung eines benannten Formularelements, sucht rekursiv durch alle "items". */
-    private function SetFormLabel(array &$elements, string $name, string $caption): bool
+    /**
+     * Zustand des Quellen-Felds als [Zeile, Auswahlfeld ausblenden?] (SUITE.md "Wert kommt
+     * automatisch"): 🔗 genau eine Instanz erkannt und keine gewählt -> Auswahl weg, Zeile mit Quelle;
+     * ✏️ eigene Auswahl -> Feld bleibt; sonst keine Zeile (⚠️/ℹ️ steht in der Statuszeile darüber, das
+     * Auswahlfeld bleibt sichtbar). Der erkannte Wert wird NIE in die Property geschrieben.
+     */
+    private function SourceFieldState(): array
+    {
+        $configured = $this->ReadPropertyIntegerSafe('SourceInstance');
+        if ($configured > 0 && IPS_InstanceExists($configured)) {
+            return ['✏️ Quelle: #' . $configured . ' „' . IPS_GetName($configured) . '" (eigene Auswahl)', false];
+        }
+        $list = IPS_GetInstanceListByModuleID(self::SOURCE_MODULE);
+        if ($configured <= 0 && count($list) === 1) {
+            $id = (int) $list[0];
+            return ['🔗 Quelle: #' . $id . ' „' . IPS_GetName($id) . '" (automatisch erkannt: einzige Instanz)', true];
+        }
+        return ['', false];
+    }
+
+    /** Setzt eine Eigenschaft eines benannten Formularelements, sucht rekursiv durch alle "items". */
+    private function SetFormProp(array &$elements, string $name, string $key, $value): bool
     {
         foreach ($elements as &$el) {
             if (!is_array($el)) {
                 continue;
             }
             if (($el['name'] ?? '') === $name) {
-                $el['caption'] = $caption;
+                $el[$key] = $value;
                 return true;
             }
-            if (isset($el['items']) && is_array($el['items']) && $this->SetFormLabel($el['items'], $name, $caption)) {
+            if (isset($el['items']) && is_array($el['items']) && $this->SetFormProp($el['items'], $name, $key, $value)) {
                 return true;
             }
         }
@@ -317,7 +337,11 @@ class TibberGridRewardTile extends IPSModule
     public function GetConfigurationForm()
     {
         $form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
-        $this->SetFormLabel($form['elements'], 'SourceStatus', $this->SourceStatusLine());
+        $this->SetFormProp($form['elements'], 'SourceStatus', 'caption', $this->SourceStatusLine());
+        [$sourceLine, $hideSource] = $this->SourceFieldState();
+        $this->SetFormProp($form['elements'], 'SourceAuto', 'caption', $sourceLine);
+        $this->SetFormProp($form['elements'], 'SourceAuto', 'visible', $sourceLine !== '');
+        $this->SetFormProp($form['elements'], 'SourceInstance', 'visible', !$hideSource);
         $form['elements'] = array_values(array_filter(array_merge(
             [$this->PurposeIntro()],
             $form['elements'],

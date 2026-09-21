@@ -139,6 +139,11 @@
           "caption": "Zugangsschlüssel (bei Tibber „Personal Access Token“)"
         },
         {
+          "type": "Label",
+          "name": "PriceHomeStatus",
+          "caption": "Zuhause für die Preiskurve wird ermittelt …"
+        },
+        {
           "type": "Select",
           "name": "PriceHomeID",
           "caption": "Zuhause für die Preiskurve",

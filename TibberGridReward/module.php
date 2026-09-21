@@ -336,11 +336,8 @@ class TibberGridReward extends IPSModule
         $this->RegisterProfiles();
 
         // Preiskurve (offizielle API) – bewusst UNABHÄNGIG vom Grid-Rewards-Teil unten: läuft auch,
-        // wenn "Active" aus ist oder keine App-Zugangsdaten hinterlegt sind. Wählt ggf. das einzige
-        // Zuhause automatisch aus und stößt dabei ein erneutes ApplyChanges an – dann hier abbrechen.
-        if ($this->ApplyPriceChanges()) {
-            return;
-        }
+        // wenn "Active" aus ist oder keine App-Zugangsdaten hinterlegt sind.
+        $this->ApplyPriceChanges();
 
         if (!$this->ReadPropertyBooleanSafe('Active')) {
             $this->SetTimerInterval('TokenRefresh', 0);
@@ -508,8 +505,13 @@ class TibberGridReward extends IPSModule
             $el['options'] = $options;
         });
         $priceOptions = $this->BuildPriceHomeOptions();
-        $this->ReplaceFormElements($form['elements'], ['PriceHomeID'], function (array &$el) use ($priceOptions) {
+        [$priceHomeLine, $priceHomeHide] = $this->PriceHomeFieldState();
+        $this->ReplaceFormElements($form['elements'], ['PriceHomeID'], function (array &$el) use ($priceOptions, $priceHomeHide) {
             $el['options'] = $priceOptions;
+            $el['visible'] = !$priceHomeHide;
+        });
+        $this->ReplaceFormElements($form['elements'], ['PriceHomeStatus'], function (array &$el) use ($priceHomeLine) {
+            $el['caption'] = $priceHomeLine;
         });
 
         // Werte-Nachschau: Profil-Werte der gewählten Variable als Text anzeigen (IP-Symcon-Listen
@@ -602,6 +604,59 @@ class TibberGridReward extends IPSModule
             $options[] = ['caption' => $caption, 'value' => (string) $home['id']];
         }
         return $options;
+    }
+
+    /**
+     * Das für die Preiskurve geltende Zuhause: die eigene Auswahl, sonst - hat der Zugang genau ein
+     * Zuhause - dieses. '0' = keins bestimmbar. Bewusst NICHT in die Property geschrieben (SUITE.md
+     * "Wert kommt automatisch"): sonst würde der automatische Wert beim nächsten Übernehmen zur
+     * eigenen Angabe und folgte späteren Änderungen am Zugang nicht mehr.
+     */
+    private function EffectivePriceHomeId(): string
+    {
+        $own = $this->ReadPropertyStringSafe('PriceHomeID');
+        if ($own !== '' && $own !== '0') {
+            return $own;
+        }
+        $homes = $this->BuildPriceHomeOptions(); // [0] ist der "Bitte wählen"-Platzhalter
+        return (count($homes) === 2) ? (string) $homes[1]['value'] : '0';
+    }
+
+    /**
+     * Zustand des Preis-Zuhause-Felds als [Zeile, Eingabefeld ausblenden?]. 🔗 automatisch (Feld weg),
+     * ✏️ eigene Auswahl (Feld bleibt), ⚠️ mehrere ohne Auswahl, ℹ️ nichts verfügbar.
+     */
+    private function PriceHomeFieldState(): array
+    {
+        $homes = $this->BuildPriceHomeOptions();
+        $own = $this->ReadPropertyStringSafe('PriceHomeID');
+        if ($own !== '' && $own !== '0') {
+            $name = $own;
+            foreach ($homes as $h) {
+                if ((string) $h['value'] === $own) {
+                    $name = (string) $h['caption'];
+                }
+            }
+            return ['✏️ Zuhause für die Preiskurve: ' . $name . ' (eigene Auswahl)', false];
+        }
+        if ($this->GetPriceApiToken() === '') {
+            return ['ℹ️ Ohne Zugangsschlüssel gibt es keine Preiskurve - erst den Schlüssel eintragen, dann erscheint hier das Zuhause.', false];
+        }
+        if (count($homes) === 2) {
+            return ['🔗 Zuhause für die Preiskurve: ' . $homes[1]['caption'] . ' (automatisch: einziges Zuhause dieses Zugangs)', true];
+        }
+        if (count($homes) > 2) {
+            return ['⚠️ ' . (count($homes) - 1) . ' Zuhause bei diesem Zugang gefunden, aber keins gewählt - bitte unten wählen, sonst gibt es keine Preiskurve.', false];
+        }
+        return ['ℹ️ Noch keine Zuhause geladen - „Preis-Zuhause-Liste neu laden" klicken. Ohne Zuhause gibt es keine Preiskurve.', false];
+    }
+
+    /** Zieht Statuszeile und Sichtbarkeit des Preis-Zuhause-Felds im offenen Formular nach. */
+    private function PushPriceHomeFieldState(): void
+    {
+        [$line, $hide] = $this->PriceHomeFieldState();
+        $this->UpdateFormField('PriceHomeStatus', 'caption', $line);
+        $this->UpdateFormField('PriceHomeID', 'visible', !$hide);
     }
 
     /**
@@ -939,10 +994,10 @@ class TibberGridReward extends IPSModule
      * den Preis-Refresh-Timer. Läuft unabhängig vom Grid-Rewards-Status/-Fehlercode - ein falscher
      * oder fehlender PriceApiToken darf den Grid-Rewards-Teil nicht beeinflussen und umgekehrt.
      *
-     * @return bool true, wenn ein Zuhause automatisch vorausgewählt und deshalb ein erneutes
-     *              ApplyChanges angestoßen wurde (Aufrufer bricht dann ab).
+     * Hat der Zugang genau ein Zuhause und ist keins gewählt, gilt dieses (EffectivePriceHomeId()) -
+     * ohne es als eigene Angabe in die Property zu schreiben.
      */
-    private function ApplyPriceChanges(): bool
+    private function ApplyPriceChanges(): void
     {
         $this->MaintainVariable('CurrentPrice', $this->Translate('Current price'), VARIABLETYPE_FLOAT, 'Tibber.PricePerKWh', 100, true);
         $this->MaintainVariable('CurrentPriceLevel', $this->Translate('Current price level'), VARIABLETYPE_STRING, '', 101, true);
@@ -952,7 +1007,7 @@ class TibberGridReward extends IPSModule
         if ($token === '') {
             $this->SetTimerInterval('PriceRefresh', 0);
             $this->SetTimerInterval('PriceTick', 0);
-            return false;
+            return;
         }
 
         // Home-Liste holen, wenn sie fehlt ODER der Token gewechselt hat (ein anderer Token kann
@@ -963,24 +1018,14 @@ class TibberGridReward extends IPSModule
             $this->WriteAttributeString('PriceHomesToken', $tokenHash);
         }
 
-        // Genau ein Zuhause -> automatisch auswählen, statt den Nutzer ein Dropdown ohne Alternative
-        // bedienen zu lassen. Einmalig, da PriceHomeID danach nicht mehr '0' ist (keine Schleife).
-        if ($this->ReadPropertyStringSafe('PriceHomeID') === '0') {
-            $homes = $this->BuildPriceHomeOptions(); // [0] ist der "Bitte wählen"-Platzhalter
-            if (count($homes) === 2) {
-                $this->SendDebug(__FUNCTION__, 'Einziges Preis-Zuhause automatisch gewählt: ' . $homes[1]['caption'], 0);
-                IPS_SetProperty($this->InstanceID, 'PriceHomeID', $homes[1]['value']);
-                IPS_ApplyChanges($this->InstanceID);
-                return true;
-            }
+        if ($this->EffectivePriceHomeId() === '0') {
             $this->SetTimerInterval('PriceRefresh', 0);
             $this->SetTimerInterval('PriceTick', 0);
-            return false;
+            return;
         }
 
         $this->FetchAndCachePriceCurve();
         $this->SetTimerInterval('PriceRefresh', 20 * 60 * 1000);
-        return false;
     }
 
     /**
@@ -1030,12 +1075,13 @@ class TibberGridReward extends IPSModule
         // Das bereits geöffnete Formular direkt nachziehen: GetConfigurationForm() läuft nur beim
         // Öffnen, ohne diesen Push bliebe das Dropdown bis zum Schließen/Neuöffnen leer.
         $this->UpdateFormField('PriceHomeID', 'options', json_encode($this->BuildPriceHomeOptions()));
+        $this->PushPriceHomeFieldState();
     }
 
     /** Timer-Callback: Preiskurve neu abfragen (alle 20 Minuten, siehe Create()). */
     public function PriceRefresh(): void
     {
-        if ($this->GetPriceApiToken() === '' || $this->ReadPropertyStringSafe('PriceHomeID') === '0') {
+        if ($this->GetPriceApiToken() === '' || $this->EffectivePriceHomeId() === '0') {
             return;
         }
         $this->FetchAndCachePriceCurve();
@@ -1156,7 +1202,7 @@ class TibberGridReward extends IPSModule
     private function FetchAndCachePriceCurve(): bool
     {
         $token = $this->GetPriceApiToken();
-        $homeId = $this->ReadPropertyStringSafe('PriceHomeID');
+        $homeId = $this->EffectivePriceHomeId();
         if ($token === '' || $homeId === '0') {
             return false;
         }
@@ -1318,7 +1364,7 @@ class TibberGridReward extends IPSModule
             return $demo;
         }
 
-        if ($this->GetPriceApiToken() === '' || $this->ReadPropertyStringSafe('PriceHomeID') === '0') {
+        if ($this->GetPriceApiToken() === '' || $this->EffectivePriceHomeId() === '0') {
             return [];
         }
         $cache = json_decode($this->ReadAttributeStringSafe('PriceCache'), true);

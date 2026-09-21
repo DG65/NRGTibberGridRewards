@@ -11,6 +11,23 @@
   Auswahlhinweis) oder gewählte Instanz existiert nicht mehr; ℹ️ keine Instanz gefunden (Kachel zeigt
   dann „Keine Quelle gewählt"). Das Label wird rekursiv über alle `items` gesucht. Am ausgelieferten
   Formular-JSON in allen Zuständen geprüft (echtes `module.php` + `form.json`).
+- **Automatisch ermittelte Werte ersetzen das Eingabefeld** (SUITE.md „Wert kommt automatisch",
+  EMS-Auftrag 21.09.2026): Liefert eine automatische Verbindung einen Wert, wird das Feld
+  ausgeblendet und stattdessen eine Zeile „🔗 …" mit Wert und Quelle gezeigt; eigene Angabe bleibt
+  sichtbar („✏️ …", Vorrang), sonst ℹ️/⚠️ mit sichtbarem Feld. Der automatische Wert wird nie ins
+  Feld geschrieben. Kachel: genau eine TibberGridReward-Instanz erkannt und keine gewählt →
+  Auswahl aus, „🔗 Quelle: #ID Name". Datenmodul „Zuhause für die Preiskurve": hat der Zugang genau
+  ein Zuhause und ist keins gewählt → Feld aus, „🔗 Zuhause für die Preiskurve: … (automatisch:
+  einziges Zuhause dieses Zugangs)"; „Preis-Zuhause-Liste neu laden" zieht Zeile und Sichtbarkeit im
+  offenen Formular nach.
+  **Verhaltensänderung, bewusst:** Das Datenmodul schrieb das einzige Preis-Zuhause bisher per
+  `IPS_SetProperty` + `IPS_ApplyChanges` in die eigene Property (Selbstpersistenz, dazu ein
+  rekursives ApplyChanges). Das entfällt: `EffectivePriceHomeId()` liefert die eigene Auswahl, sonst
+  das einzige Zuhause zur Laufzeit; die Property bleibt '0'. Bestehende Instanzen mit bereits
+  gespeichertem Zuhause zeigen es als „✏️ eigene Auswahl", Verhalten unverändert. Am ausgelieferten
+  Formular-JSON beider Module geprüft (Zustände: ein/zwei/kein Zuhause bzw. Instanz, eigene Wahl,
+  gelöschte Wahl, kein Token, Live-Push), `IPS_SetProperty`/`IPS_ApplyChanges` werden nicht mehr
+  aufgerufen.
 - **Toten SWITCH-Presentation-Zweig entfernt** (SUITE.md 9i, Tessie-Fund, EMS-Rundmeldung
   15.09.2026): `GetTargetValueOptions()` versuchte bisher, `CAPTION_ON`/`CAPTION_OFF` von einer
   `VARIABLE_PRESENTATION_SWITCH`-Presentation einer fremden Zielvariable zu lesen — diese
