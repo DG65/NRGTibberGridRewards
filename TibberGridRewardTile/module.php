@@ -244,9 +244,80 @@ class TibberGridRewardTile extends IPSModule
         ];
     }
 
+    /**
+     * Live berechnete Statuszeile zur automatischen Datenquellen-Erkennung (SUITE.md "Verbund-
+     * Verbindungen im Formular sichtbar machen"): ✅ verbunden (mit den übernommenen Werten und ihrer
+     * Quelle), ⚠️ verbunden, aber Instanz nicht aktiv / mehrere Instanzen ohne Auswahl, ℹ️ nichts
+     * gefunden (und was dann gilt).
+     */
+    private function SourceStatusLine(): string
+    {
+        $configured = $this->ReadPropertyIntegerSafe('SourceInstance');
+        $list = IPS_GetInstanceListByModuleID(self::SOURCE_MODULE);
+        $src = $this->ResolveSource();
+
+        if ($src <= 0 || !IPS_InstanceExists($src)) {
+            if (count($list) === 0) {
+                return 'ℹ️ Keine Instanz „Tibber Grid Rewards" (TibberGridReward) gefunden. Solange es keine gibt, zeigt die Kachel „Keine Quelle gewählt" und keine Werte - zuerst die Datenmodul-Instanz anlegen.';
+            }
+            $names = [];
+            foreach ($list as $id) {
+                $names[] = '#' . $id . ' „' . IPS_GetName((int) $id) . '"';
+            }
+            return '⚠️ ' . count($list) . ' TibberGridReward-Instanzen gefunden, aber keine ausgewählt (' . implode(', ', $names) . ') - bitte unten die Datenquelle wählen, sonst zeigt die Kachel keine Werte.';
+        }
+
+        $how = ($configured === $src) ? 'manuell gewählt' : 'automatisch erkannt, einzige Instanz';
+        $head = '#' . $src . ' „' . IPS_GetName($src) . '" (' . $how . ')';
+
+        $status = (int) (IPS_GetInstance($src)['InstanceStatus'] ?? 0);
+        $flex = trim((string) $this->ReadSourceValue($src, 'FlexDevices', ''));
+        $devices = ($flex === '') ? 0 : count(preg_split('/\R/', $flex));
+        $values = 'Status „' . ((string) $this->ReadSourceValue($src, 'State', '') ?: 'unbekannt') . '"'
+            . ', Grid-Reward-Modus ' . $this->FormattedSourceValue($src, 'GridRewardMode')
+            . ', ' . $devices . ' Flex-' . ($devices === 1 ? 'Gerät' : 'Geräte')
+            . ' (Quelle: Variablen dieser Instanz)';
+
+        if ($configured > 0 && $configured !== $src) {
+            return '⚠️ Die gewählte Datenquelle #' . $configured . ' existiert nicht mehr - ersatzweise wird ' . $head . ' verwendet. Übernommen werden: ' . $values . '. Bitte die Auswahl unten leeren oder neu wählen.';
+        }
+        if ($status !== 102) {
+            return '⚠️ Datenquelle ' . $head . ' gefunden, aber die Instanz ist nicht aktiv (Status ' . $status . ') - die Werte können veraltet sein. Zuletzt übernommen: ' . $values . '.';
+        }
+        return '✅ Datenquelle ' . $head . ' verbunden. Übernommen werden: ' . $values . '.';
+    }
+
+    private function FormattedSourceValue(int $instanceID, string $ident): string
+    {
+        $vid = @IPS_GetObjectIDByIdent($ident, $instanceID);
+        if ($vid === false || $vid <= 0) {
+            return 'unbekannt';
+        }
+        return (string) GetValueFormatted($vid);
+    }
+
+    /** Setzt die Beschriftung eines benannten Formularelements, sucht rekursiv durch alle "items". */
+    private function SetFormLabel(array &$elements, string $name, string $caption): bool
+    {
+        foreach ($elements as &$el) {
+            if (!is_array($el)) {
+                continue;
+            }
+            if (($el['name'] ?? '') === $name) {
+                $el['caption'] = $caption;
+                return true;
+            }
+            if (isset($el['items']) && is_array($el['items']) && $this->SetFormLabel($el['items'], $name, $caption)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function GetConfigurationForm()
     {
         $form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
+        $this->SetFormLabel($form['elements'], 'SourceStatus', $this->SourceStatusLine());
         $form['elements'] = array_values(array_filter(array_merge(
             [$this->PurposeIntro()],
             $form['elements'],

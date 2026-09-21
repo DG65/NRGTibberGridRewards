@@ -7,7 +7,7 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Version 2.9.0."
+          "caption": "Version 2.9.1."
         },
         {
           "type": "Label",
@@ -53,7 +53,12 @@
     },
     {
       "type": "Label",
-      "caption": "Eigenständige Kachel für die Tibber Grid Rewards. Die Datenquelle wird automatisch erkannt, wenn es genau eine TibberGridReward-Instanz gibt – nur bei mehreren musst du unten manuell wählen. Die Kachel füllt die Tile randlos und ist von der Datenverbindung getrennt."
+      "caption": "Eigenständige Kachel für die Tibber Grid Rewards. Die Kachel füllt die Tile randlos und ist von der Datenverbindung getrennt."
+    },
+    {
+      "type": "Label",
+      "name": "SourceStatus",
+      "caption": "Datenquelle wird ermittelt …"
     },
     {
       "type": "SelectInstance",
