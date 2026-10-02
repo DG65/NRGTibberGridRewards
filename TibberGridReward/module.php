@@ -46,10 +46,11 @@ class TibberGridReward extends IPSModule
     private const CONTRACT_ACTIVECONTROLS = '2.0'; // 1.0 deviceId immer 0 (int), 2.0 = echte Tibber-vehicleId/batteryId (string)
     private const CONTRACT_SETVEHICLESETTING = '1.0';
     private const CONTRACT_DECOMPOSEPRICE = '1.0';
+    private const CONTRACT_FLEXDEVICES = '1.0';
 
     // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik") - NEWS_VERSION bei jedem
     // Release mit nutzerrelevanten Änderungen synchron zur library.json-Version halten.
-    private const NEWS_VERSION = '2.9.0';
+    private const NEWS_VERSION = '2.9.2';
     private const FORUM_THREAD_URL = 'https://community.symcon.de/t/modul-tibber-grid-rewards-grid-reward-signal-wallbox-ems-aufbereitung-fuer-ip-symcon/143996';
 
     // Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - <Branch> zeigt auf den Branch,
@@ -431,6 +432,7 @@ class TibberGridReward extends IPSModule
                 ['type' => 'Label', 'caption' => '• 🆕 Rechnungsprüfung: TIBBERGR_DecomposePrice() zerlegt einen historischen Preis in Börsenpreis/Beschaffung/Netzentgelt/Steuern — hilfreich, wenn du deine Tibber-Rechnung nachrechnen willst.'],
                 ['type' => 'Label', 'caption' => '• ⚠️🆕 Neues Häkchen „Demo-Override aktiv" (Panel „🎭 Demo-Modus"): NICHT für den normalen Betrieb — nur für Vorführ-/Testinstanzen, die eine manuell gesetzte Preiskurve statt echter Daten zeigen sollen.'],
                 ['type' => 'Label', 'caption' => '• 🔧 TIBBERGR_GetActiveControls(): „deviceId" liefert jetzt Tibbers echte Geräte-Kennung statt immer „0" — nützlich, wenn mehrere Fahrzeuge/Speicher an Grid Rewards teilnehmen.'],
+                ['type' => 'Label', 'caption' => '• 🔧 Neu: TIBBERGR_GetFlexDevices() liefert ALLE an Grid Rewards teilnehmenden Fahrzeuge/Speicher (nicht nur die gerade aktiven) — Grundlage für EMS, eine Wallbox/ein Fahrzeug einem Tibber-Gerät zuzuordnen.'],
                 ['type' => 'Label', 'caption' => '• Datumsfelder (Kampagnen-Gültigkeit) zeigen jetzt TT.MM.JJJJ statt YYYY-MM-DD.'],
                 ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TIBBERGR_AckNews($id);'],
             ],
@@ -1957,6 +1959,51 @@ class TibberGridReward extends IPSModule
                 'reason'          => $reasonText,
                 'since'           => $since,
                 'valid'           => $valid,
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Öffentlicher Vertrag (EMS-abgestimmt, 02.10.2026): ALLE bei Tibber für Grid Rewards
+     * registrierten Geräte, unabhängig vom aktuellen Zustand (Ergänzung zu GetActiveControls(),
+     * das bewusst nur GERADE aktiv liefernde Geräte zeigt - dort NICHT mitgeändert, bestehende
+     * Konsumenten verlassen sich auf "Eintrag = liefert jetzt").
+     *
+     * Gedacht für die einmalige, vom Nutzer bestätigte Zuordnung eines Tibber-Geräts zu einer
+     * lokalen Instanz (z. B. Wallbox/Fahrzeug) - KEIN Namensabgleich automatisch, siehe
+     * MigrationsHubs eigene Lehre (Match nie über den Namen). deviceId bleibt Tibbers interne
+     * UUID, keine VIN, keine lokale Symcon-ID.
+     *
+     * Rückgabe je bekanntem Gerät: ['contractVersion'=>'1.0', 'type'=>'vehicle'|'battery',
+     * 'deviceId'=>string, 'name'=>string, 'make'=>string, 'isPluggedIn'=>bool|null (nur vehicle),
+     * 'isSmartChargingEnabled'=>bool|null (nur vehicle), 'isSmartModeEnabled'=>bool|null (nur
+     * battery)]. Bewusst Tibbers getrennte Felder je Geräteart übernommen statt zu einem
+     * gemeinsamen Flag zusammengefasst - ob "Smart Charging" (Fahrzeug) und "Smart Mode"
+     * (Batterie) dieselbe Bedeutung haben, ist an keiner echten Batterie verifiziert (siehe
+     * GetActiveControls()-Dokumentation: noch nie ein echter GridRewardBattery-Eintrag gesehen).
+     * Leere Liste, wenn noch kein Status empfangen wurde (frisch angelegte Instanz).
+     */
+    public function GetFlexDevices(): array
+    {
+        $status = json_decode($this->ReadAttributeStringSafe('LastRealStatus'), true);
+        $devices = is_array($status['flexDevices'] ?? null) ? $status['flexDevices'] : [];
+
+        $out = [];
+        foreach ($devices as $d) {
+            if (!is_array($d)) {
+                continue;
+            }
+            $isBattery = ($d['__typename'] ?? '') === 'GridRewardBattery';
+            $out[] = [
+                'contractVersion'        => self::CONTRACT_FLEXDEVICES,
+                'type'                   => $isBattery ? 'battery' : 'vehicle',
+                'deviceId'               => (string) ($d['vehicleId'] ?? $d['batteryId'] ?? ''),
+                'name'                   => (string) ($d['shortName'] ?? ($d['make'] ?? '?')),
+                'make'                   => (string) ($d['make'] ?? ''),
+                'isPluggedIn'            => $isBattery ? null : (bool) ($d['isPluggedIn'] ?? false),
+                'isSmartChargingEnabled' => $isBattery ? null : (bool) ($d['isSmartChargingEnabled'] ?? false),
+                'isSmartModeEnabled'     => $isBattery ? (bool) ($d['isSmartModeEnabled'] ?? false) : null,
             ];
         }
         return $out;

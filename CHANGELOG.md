@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.9.2
+
+- **Neu: `TIBBERGR_GetFlexDevices()`** (EMS-abgestimmt, 02.10.2026): Öffentlicher Vertrag,
+  contractVersion '1.0', liefert ALLE bei Tibber für Grid Rewards registrierten Fahrzeuge/
+  Speicher - unabhängig vom aktuellen Zustand. Ergänzt bewusst `GetActiveControls()`, das NICHT
+  geändert wurde (zeigt weiterhin nur GERADE aktiv liefernde Geräte - bestehende Konsumenten
+  verlassen sich auf "Eintrag = liefert jetzt"). Je Gerät: `type` ('vehicle'|'battery'),
+  `deviceId` (dieselbe Tibber-UUID wie bei `GetActiveControls()`), `name`, `make`,
+  `isPluggedIn`/`isSmartChargingEnabled` (nur `vehicle`, sonst `null`), `isSmartModeEnabled` (nur
+  `battery`, sonst `null`) - bewusst Tibbers eigene, getrennte Felder übernommen statt zu einem
+  gemeinsamen Flag zusammengefasst, da an keiner echten Batterie verifiziert ist, ob "Smart
+  Charging" und "Smart Mode" dieselbe Bedeutung haben.
+  Gedacht als Grundlage für EMS' Wallbox-Konfiguration (Dropdown "Tibber-Fahrzeug", Anzeige
+  "name (make)", Wert `deviceId`) - die Zuordnung bleibt dort eine einmalige, vom Nutzer
+  bestätigte Auswahl, KEIN automatischer Namensabgleich (siehe MigrationsHubs eigene Lehre: Match
+  nie über den Namen). Isoliert gegen das echte `module.php` geprüft (9 Fälle: leer, ein/zwei
+  Fahrzeuge unabhängig vom Liefer-Zustand, Batterie, ungültige Einträge, Regressionsschutz für
+  `GetActiveControls()`).
+
 ## 2.9.1
 
 - **Kachel: Statuszeile zur Datenquelle** (SUITE.md „Verbund-Verbindungen im Formular sichtbar
