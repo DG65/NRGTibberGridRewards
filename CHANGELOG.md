@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.9.3
+
+- **`library.json`: `date` gesetzt** (war überall 0): Dietmars Store-Prüfung „Prüfe auf aktuellen
+  Stand“ meldete Tibber Grid Rewards (beta) als nicht aktuell, obwohl Store und Repo beide 2.9.2
+  Build 71 hatten. Die Module, die nicht gemeldet wurden, tragen alle einen echten Unix-Zeitstempel.
+  Ursache ist damit wahrscheinlich, aber nicht belegt; ob die Meldung nach diesem Release
+  verschwindet, wird im Store geprüft. Künftig bei jedem Release `date` auf die Unix-Zeit des
+  Veröffentlichungstags setzen. Keine Funktionsänderung.
+
 ## 2.9.2
 
 - **Neu: `TIBBERGR_GetFlexDevices()`** (EMS-abgestimmt, 02.10.2026): Öffentlicher Vertrag,
