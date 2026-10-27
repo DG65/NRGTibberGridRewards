@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.9.4
+
+- **Lizenz-Verknüpfung zeigt auf `main`** statt auf `ems-integration` („🧡 Über dieses Modul“, Knopf
+  „Lizenztext ansehen“, beide Module). Hintergrund: Alle Betas sind jetzt Stable, `main` trägt seit
+  2.9.3 den PolyForm-Text, der Branch `ems-integration` entfällt und würde sonst einen toten Link
+  hinterlassen. `library.json`: `date` aktualisiert. Keine Funktionsänderung.
+
 ## 2.9.3
 
 - **`library.json`: `date` gesetzt** (war überall 0): Dietmars Store-Prüfung „Prüfe auf aktuellen

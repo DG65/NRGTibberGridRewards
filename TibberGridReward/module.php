@@ -53,10 +53,9 @@ class TibberGridReward extends IPSModule
     private const NEWS_VERSION = '2.9.2';
     private const FORUM_THREAD_URL = 'https://community.symcon.de/t/modul-tibber-grid-rewards-grid-reward-signal-wallbox-ems-aufbereitung-fuer-ip-symcon/143996';
 
-    // Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - <Branch> zeigt auf den Branch,
-    // der wirklich den aktuellen PolyForm-Text trägt, NICHT blind main (dort steht noch die alte
-    // MIT-Lizenz, siehe SUITE.md-Warnung).
-    private const LICENSE_URL = 'https://github.com/DG65/NRGTibberGridRewards/blob/ems-integration/LICENSE';
+    // Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - main trägt seit 2.9.3 den
+    // PolyForm-Text (Branch ems-integration entfällt, alle Betas sind Stable).
+    private const LICENSE_URL = 'https://github.com/DG65/NRGTibberGridRewards/blob/main/LICENSE';
     private const PAYPAL_URL = 'https://paypal.me/DietmarGureth';
 
     // Farbe der 🔗-Zeilen ("automatisch übernommen", SUITE.md "Wert kommt automatisch"); -1 = Standardfarbe.
