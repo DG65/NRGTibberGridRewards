@@ -7,7 +7,7 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Version 2.9.4."
+          "caption": "Version 2.10.0."
         },
         {
           "type": "Label",
@@ -74,6 +74,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelColors",
       "caption": "🎨 Statusfarben",
       "items": [
         { "type": "SelectColor", "name": "ColorActive", "caption": "Laden aus Netz (excess)" },
@@ -84,6 +85,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelSurfaces",
       "caption": "🖌️ Flächen & Text",
       "items": [
         { "type": "SelectColor", "name": "ColorBackground", "caption": "Hintergrund" },
@@ -94,6 +96,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelSim",
       "caption": "🧪 Simulations-Schaltflächen auf der Kachel",
       "items": [
         {
@@ -109,6 +112,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelRules",
       "caption": "🤖 Automationen anzeigen",
       "items": [
         {
@@ -124,6 +128,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelFont",
       "caption": "🔤 Schrift",
       "items": [
         {

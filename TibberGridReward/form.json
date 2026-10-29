@@ -7,7 +7,7 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Version 2.9.4."
+          "caption": "Version 2.10.0."
         },
         {
           "type": "Label",
@@ -127,6 +127,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelPrice",
       "caption": "💶 Preiskurve (offizielle Tibber-API)",
       "items": [
         {
@@ -191,6 +192,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelTariff",
       "caption": "🧾 Tarif & Netzentgelt (Rechnungsprüfung)",
       "items": [
         {
@@ -378,6 +380,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelWallbox",
       "caption": "🔌 Wallboxen (Netzbezug-Berechnung)",
       "items": [
         {
@@ -442,6 +445,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelRules",
       "caption": "🎯 Automationen (Wenn → Dann)",
       "items": [
         {
@@ -583,6 +587,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelSim",
       "caption": "🧪 Simulation (zum Testen ohne echten Einsatz)",
       "items": [
         {
@@ -622,6 +627,7 @@
     },
     {
       "type": "ExpansionPanel",
+      "name": "PanelDemo",
       "caption": "🆕 🎭 Demo-Modus (nur für Vorführ-/Testinstanzen)",
       "items": [
         {

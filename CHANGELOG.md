@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.10.0
+
+- **„🪟 Formular: Aufbau“ in beiden Modulen** (SUITE.md 3a, Auftrag Dietmar 29.10.2026, Referenz
+  Batteriewächter): Je Fachpanel wählt der Nutzer „Aufgeklappt“, „Zugeklappt“ oder „🙈 Ausgeblendet“
+  und eine Position 1–99, kein Haken = Standard (Vorrang bei Widerspruch: ausgeblendet vor
+  zugeklappt vor aufgeklappt). Ausgeblendet heißt `visible: false`, die Werte bleiben erhalten und
+  wirken weiter; die Caption nennt die Zahl ausgeblendeter Bereiche. Datenmodul: Preiskurve, Tarif &
+  Netzentgelt, Wallboxen, Automationen, Simulation, Demo-Modus. Kachel: Statusfarben, Flächen & Text,
+  Simulations-Schaltflächen, Automationen anzeigen, Schrift. Fest bleiben oben Zweck/Neu/Dokumentation
+  und unten Forum/Über dieses Modul. Neue Property `FormLayout` (String, Standard `[]`), neuer
+  Aufruf `TIBBERGR_ResetFormLayout()` bzw. `TGRTILE_ResetFormLayout()` für „Auf Standard
+  zurücksetzen“ (nur im offenen Formular, keine Selbstpersistenz). Stabile Schlüssel sind die
+  `name`-Felder der Fachpanels in `form.json`; unbekannte oder neue Schlüssel fallen auf Standard
+  zurück. Das Formular bleibt aus `form.json` gelesen, die Fachpanels tauschen nur untereinander die
+  Plätze, freistehende Felder dazwischen (Zugangsdaten, Quelle) bleiben, wo sie sind.
+  Prüfstand `.tools/test-formlayout.php` (57 Prüfungen am ausgelieferten Formular-JSON beider Module:
+  Reihenfolge, Aufklapp-Zustand, `visible: false`, Rückfall bei unbekanntem Schlüssel/kaputtem JSON,
+  Positionsgrenzen, Gleichstand, Reset).
+- **Kachel: „🆕 Neu in dieser Version“** (bisher bewusst ohne, weil es an der Kachel nichts Eigenes zu
+  vermelden gab): Formular-Aufbau und die Quellen-Anzeige aus 2.9.1/2.9.4. Neues Attribut `SeenNews`,
+  neuer Aufruf `TGRTILE_AckNews()`.
+- `library.json`: `date` aktualisiert.
+
 ## 2.9.4
 
 - **Lizenz-Verknüpfung zeigt auf `main`** statt auf `ems-integration` („🧡 Über dieses Modul“, Knopf

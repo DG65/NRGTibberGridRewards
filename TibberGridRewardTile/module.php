@@ -39,6 +39,9 @@ class TibberGridRewardTile extends IPSModule
     private const LICENSE_URL = 'https://github.com/DG65/NRGTibberGridRewards/blob/main/LICENSE';
     private const PAYPAL_URL = 'https://paypal.me/DietmarGureth';
 
+    // Neu-Panel der Kachel (erst seit 2.10.0: erste echte Neuerung an der Kachel selbst).
+    private const NEWS_VERSION = '2.10.0';
+
     // Farbe der 🔗-Zeilen ("automatisch übernommen", SUITE.md "Wert kommt automatisch"); -1 = Standardfarbe.
     private const COLOR_AUTO = 0x2E8B3D;
 
@@ -47,12 +50,11 @@ class TibberGridRewardTile extends IPSModule
         //Never delete this line!
         parent::Create();
 
-        // Formular-Konvention - Referenzimplementierung MeterHub. Kein News-Panel hier: an der
-        // Kachel selbst gab es zuletzt nichts eigenständig Neues zu vermelden (die Neuigkeiten
-        // betreffen alle das Datenmodul) - ein News-Panel ohne echten Inhalt wäre erfundene
-        // Neuigkeit (siehe "keine eigene Anlage als Norm" - analog: keine erfundenen Neuigkeiten).
+        // Formular-Konvention - Referenzimplementierung MeterHub. Das Neu-Panel erscheint nur, wenn es an der
+        // Kachel selbst etwas Echtes zu vermelden gibt (keine erfundenen Neuigkeiten), siehe NEWS_VERSION.
         $this->RegisterAttributeBoolean('PurposeIntroGone', false);
         $this->RegisterAttributeBoolean('ForumHintGone', false);
+        $this->RegisterAttributeString('SeenNews', '');
 
         $this->RegisterPropertyInteger('SourceInstance', 0);
 
@@ -77,6 +79,8 @@ class TibberGridRewardTile extends IPSModule
         // StromGedachtTile, dort Standard AN) – hier steuert das Modul reale Aktoren (GoodWe-
         // Speicher/Wallbox), daher bewusst erst nach explizitem Einschalten sichtbar.
         $this->RegisterPropertyBoolean('ShowAutomations', false);
+        // Formular: Aufbau (SUITE.md 3a): Liste {Key, Panel, Opened, Closed, Hidden, Pos}
+        $this->RegisterPropertyString('FormLayout', '[]');
 
         // Als HTML-Kachel-Visualisierung anmelden
         $this->SetVisualizationType(1);
@@ -122,6 +126,11 @@ class TibberGridRewardTile extends IPSModule
     private function ReadAttributeBooleanSafe(string $Name): bool
     {
         return (bool) $this->ReadAttributeBoolean($Name);
+    }
+
+    private function ReadAttributeStringSafe(string $Name): string
+    {
+        return (string) $this->ReadAttributeString($Name);
     }
 
     public function ApplyChanges()
@@ -202,6 +211,29 @@ class TibberGridRewardTile extends IPSModule
     {
         $this->WriteAttributeBoolean('PurposeIntroGone', true);
         $this->UpdateFormField('PurposeIntroPanel', 'visible', false);
+    }
+
+    /** Aufgeklappt und pro Version einmalig bestätigbar - Formular-Konvention, siehe PurposeIntro(). */
+    private function NewsBanner(): ?array
+    {
+        if ($this->ReadAttributeStringSafe('SeenNews') === self::NEWS_VERSION) {
+            return null;
+        }
+        return [
+            'type' => 'ExpansionPanel', 'name' => 'NewsPanel', 'expanded' => true,
+            'caption' => '🆕  Neu in dieser Version',
+            'items' => [
+                ['type' => 'Label', 'caption' => '• 🪟 Neu: Formular-Aufbau selbst wählen - im Panel „🪟 Formular: Aufbau“ legst du je Bereich fest, ob er beim Öffnen aufgeklappt, zugeklappt oder ausgeblendet ist und an welcher Position er steht.'],
+                ['type' => 'Label', 'caption' => '• 🔗 Die Datenquelle zeigt jetzt live, welche Instanz erkannt wurde; wird genau eine gefunden, entfällt die Auswahl.'],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TGRTILE_AckNews($id);'],
+            ],
+        ];
+    }
+
+    public function AckNews(): void
+    {
+        $this->WriteAttributeString('SeenNews', self::NEWS_VERSION);
+        $this->UpdateFormField('NewsPanel', 'visible', false);
     }
 
     /** Symcon-Forum-Hinweis — einmalig dismissible, kein Versionsbezug, siehe PurposeIntro(). */
@@ -337,6 +369,142 @@ class TibberGridRewardTile extends IPSModule
         return false;
     }
 
+    // ---------------------------------------------------------------------
+    // Formular: Aufbau (SUITE.md 3a) - je Fachpanel aufgeklappt/zugeklappt/ausgeblendet + Position.
+    // Stabile Schlüssel sind die "name"-Felder der Fachpanels in form.json (nicht die Caption).
+    // ---------------------------------------------------------------------
+
+    /** Name der Fachpanels in Standardreihenfolge (wie in form.json). */
+    private const FORM_PANELS = ['PanelColors', 'PanelSurfaces', 'PanelSim', 'PanelRules', 'PanelFont'];
+
+    /**
+     * Reihenfolge und Aufklapp-Zustand der Fachpanels aus der Einstellung "FormLayout". Unbekannte oder
+     * fehlende Einträge fallen auf Standard und Standardposition zurück.
+     *
+     * @param string[] $keys Schlüssel der vorhandenen Fachpanels in Standardreihenfolge
+     * @return array key => ['open' => 'std'|'open'|'closed'|'hidden', 'pos' => int, 'idx' => int], in anzuwendender Reihenfolge
+     */
+    private function FormLayout(array $keys): array
+    {
+        $saved = json_decode($this->ReadPropertyStringSafe('FormLayout'), true);
+        $by = [];
+        foreach (is_array($saved) ? $saved : [] as $row) {
+            if (is_array($row) && isset($row['Key'])) {
+                $by[(string) $row['Key']] = $row;
+            }
+        }
+        $out = [];
+        foreach ($keys as $i => $k) {
+            $r = $by[$k] ?? [];
+            // Vorrang bei Widerspruch: ausgeblendet vor zugeklappt vor aufgeklappt, kein Haken = Standard
+            $open = !empty($r['Hidden']) ? 'hidden' : (!empty($r['Closed']) ? 'closed' : (!empty($r['Opened']) ? 'open' : 'std'));
+            $out[$k] = [
+                'open' => $open,
+                'pos'  => isset($r['Pos']) ? max(1, min(99, (int) $r['Pos'])) : $i + 1,
+                'idx'  => $i,
+            ];
+        }
+        uasort($out, function ($a, $b) { return [$a['pos'], $a['idx']] <=> [$b['pos'], $b['idx']]; });
+        return $out;
+    }
+
+    /** Beschriftung ohne Klammerzusatz, z. B. "💶 Preiskurve (offizielle Tibber-API)" -> "💶 Preiskurve". */
+    private function FormPanelName(string $caption): string
+    {
+        return trim((string) preg_replace('/\s*\(.*$/u', '', $caption));
+    }
+
+    /**
+     * Wendet den gewählten Aufbau auf die Fachpanels an. Die Panels tauschen nur untereinander die Plätze,
+     * freistehende Felder dazwischen bleiben, wo sie sind. Ausgeblendet heißt visible=false, nie weglassen
+     * (die Werte bleiben erhalten und wirken weiter).
+     *
+     * @return array{0:array,1:array} [Elemente, Panel "Formular: Aufbau"]
+     */
+    private function ApplyFormLayout(array $elements): array
+    {
+        $slots = [];
+        $panels = [];
+        foreach ($elements as $i => $el) {
+            if (is_array($el) && ($el['type'] ?? '') === 'ExpansionPanel' && in_array($el['name'] ?? '', self::FORM_PANELS, true)) {
+                $slots[] = $i;
+                $panels[$el['name']] = $el;
+            }
+        }
+        $layout = $this->FormLayout(array_keys($panels));
+        $order = array_keys($layout);
+        foreach ($slots as $j => $slot) {
+            $key = $order[$j];
+            $panel = $panels[$key];
+            $state = $layout[$key]['open'];
+            if ($state === 'open') {
+                $panel['expanded'] = true;
+            } elseif ($state === 'closed') {
+                $panel['expanded'] = false;
+            } elseif ($state === 'hidden') {
+                $panel['visible'] = false;
+            }
+            $elements[$slot] = $panel;
+        }
+        return [$elements, $this->LayoutPanel($layout, $panels)];
+    }
+
+    /** Wählbarer Aufbau des Formulars: je Fachpanel Aufklapp-Zustand beim Öffnen und Position. */
+    private function LayoutPanel(array $layout, array $panels): array
+    {
+        $rows = [];
+        $hidden = [];
+        foreach ($layout as $key => $l) {
+            $name = $this->FormPanelName((string) ($panels[$key]['caption'] ?? $key));
+            $rows[] = ['Key' => $key, 'Panel' => $name, 'Opened' => $l['open'] === 'open', 'Closed' => $l['open'] === 'closed',
+                'Hidden' => $l['open'] === 'hidden', 'Pos' => $l['pos']];
+            if ($l['open'] === 'hidden') {
+                $hidden[] = trim((string) preg_replace('/^[^\p{L}\p{N}]+/u', '', $name));
+            }
+        }
+        $hiddenLine = $hidden
+            ? [['type' => 'Label', 'caption' => '🙈 Ausgeblendet: ' . implode(', ', $hidden) . ' — zum Wiederzeigen den Haken bei „Ausgeblendet“ entfernen. Ausgeblendete Bereiche arbeiten weiter, nur die Anzeige fehlt.']]
+            : [];
+        return [
+            'type' => 'ExpansionPanel', 'expanded' => false,
+            'caption' => '🪟  Formular: Aufbau' . ($hidden ? ' (' . count($hidden) . ' ausgeblendet)' : ''),
+            'items' => array_merge($hiddenLine, [
+                ['type' => 'Label', 'caption' => 'Hier legst du fest, welche Bereiche beim Öffnen des Formulars aufgeklappt sind und in welcher Reihenfolge sie stehen. Symcon merkt sich das Auf- und Zuklappen nicht selbst, deshalb gilt die Einstellung hier jedes Mal beim Öffnen. Sie wirkt nach „Übernehmen“ beim nächsten Öffnen des Formulars.'],
+                ['type' => 'Label', 'caption' => 'Kein Haken heißt „Standard“: wie das Modul es vorsieht. Wer „Zugeklappt“ wählt, sieht dann auch Neues dort nicht sofort. Die Position ist eine Zahl; bei gleicher Zahl bleibt die Standardreihenfolge. „Ausgeblendet“ nimmt einen Bereich aus der Anzeige, ohne dass er etwas verliert: seine Einstellungen bleiben erhalten und wirken weiter (gedacht für Bereiche, die man selten braucht). Zum Wiederzeigen den Haken bei „Ausgeblendet“ entfernen oder „Auf Standard zurücksetzen“ klicken. Sind mehrere Haken gesetzt, gilt „Ausgeblendet“ vor „Zugeklappt“ vor „Aufgeklappt“. Die Bereiche oben (Zweck, Neuigkeiten, Dokumentation) und unten (Rückmeldungen, Über dieses Modul) bleiben, wo sie sind, und lassen sich nicht ausblenden.'],
+                [
+                    'type' => 'List', 'name' => 'FormLayout', 'caption' => 'Bereiche', 'rowCount' => count($rows), 'add' => false, 'delete' => false,
+                    'loadValuesFromConfiguration' => false,
+                    'values' => $rows,
+                    'columns' => [
+                        ['caption' => 'Bereich', 'name' => 'Panel', 'width' => 'auto', 'add' => ''],
+                        ['caption' => 'Schlüssel', 'name' => 'Key', 'width' => '0px', 'visible' => false, 'add' => '', 'save' => true],
+                        ['caption' => 'Aufgeklappt', 'name' => 'Opened', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
+                        ['caption' => 'Zugeklappt', 'name' => 'Closed', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
+                        ['caption' => '🙈 Ausgeblendet', 'name' => 'Hidden', 'width' => '130px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
+                        ['caption' => 'Position', 'name' => 'Pos', 'width' => '100px', 'add' => 1, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 1, 'maximum' => 99]],
+                    ],
+                ],
+                ['type' => 'Button', 'caption' => '↩️ Auf Standard zurücksetzen', 'onClick' => 'echo TGRTILE_ResetFormLayout($id);'],
+            ]),
+        ];
+    }
+
+    /** Setzt Aufklapp-Zustand und Reihenfolge der Fachpanels im offenen Formular auf den Standard (gilt nach „Übernehmen“). */
+    public function ResetFormLayout(): string
+    {
+        $form = json_decode((string) file_get_contents(__DIR__ . '/form.json'), true);
+        $rows = [];
+        $i = 0;
+        foreach ($form['elements'] ?? [] as $el) {
+            if (is_array($el) && ($el['type'] ?? '') === 'ExpansionPanel' && in_array($el['name'] ?? '', self::FORM_PANELS, true)) {
+                $rows[] = ['Key' => $el['name'], 'Panel' => $this->FormPanelName((string) ($el['caption'] ?? $el['name'])),
+                    'Opened' => false, 'Closed' => false, 'Hidden' => false, 'Pos' => ++$i];
+            }
+        }
+        $this->UpdateFormField('FormLayout', 'values', json_encode($rows, JSON_UNESCAPED_UNICODE));
+        return 'ℹ️ Auf Standard gesetzt. Zum Speichern unten „Übernehmen“ klicken.';
+    }
+
     public function GetConfigurationForm()
     {
         $form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
@@ -346,10 +514,12 @@ class TibberGridRewardTile extends IPSModule
         $this->SetFormProp($form['elements'], 'SourceAuto', 'visible', $sourceLine !== '');
         $this->SetFormProp($form['elements'], 'SourceAuto', 'color', $hideSource ? self::COLOR_AUTO : -1);
         $this->SetFormProp($form['elements'], 'SourceInstance', 'visible', !$hideSource);
+        // Fachpanels nach dem gewählten Aufbau (SUITE.md 3a), Panel "Formular: Aufbau" davor.
+        [$fachElements, $layoutPanel] = $this->ApplyFormLayout($form['elements']);
         $form['elements'] = array_values(array_filter(array_merge(
-            [$this->PurposeIntro()],
-            $form['elements'],
-            [$this->ForumHint(), $this->LicenseHint()]
+            [$this->PurposeIntro(), $this->NewsBanner()],
+            $fachElements,
+            [$layoutPanel, $this->ForumHint(), $this->LicenseHint()]
         )));
         return json_encode($form);
     }
