@@ -2,63 +2,63 @@
   "elements": [
     {
       "type": "ExpansionPanel",
-      "caption": "📖 Dokumentation & Hilfe",
+      "caption": "📖 Documentation & help",
       "expanded": false,
       "items": [
         {
           "type": "Label",
-          "caption": "Version 2.10.0."
+          "caption": "Version 2.11.0."
         },
         {
           "type": "Label",
-          "caption": "── Funktionsweise ──"
+          "caption": "── How it works ──"
         },
         {
           "type": "Label",
-          "caption": "Die Kachel ist eine eigenständige Instanz für die Visualisierung und von der Datenverbindung getrennt: Sie liest ihre Werte aus einer TibberGridReward-Instanz und aktualisiert sich sofort, wenn sich dort etwas ändert. Gibt es genau eine TibberGridReward-Instanz, wird sie automatisch als Quelle erkannt – nur bei mehreren musst du unten manuell wählen."
+          "caption": "The tile is a standalone instance for the visualization and is separate from the data connection: it reads its values from a TibberGridReward instance and updates immediately when something changes there. If there is exactly one TibberGridReward instance, it is detected automatically as the source – only with several do you have to choose manually below."
         },
         {
           "type": "Label",
-          "caption": "── Darstellung ──"
+          "caption": "── Appearance ──"
         },
         {
           "type": "Label",
-          "caption": "Statusfarben, Flächen-/Text- und Schriftoptionen passen die Kachel an deine Visualisierung an; ohne eigene Angabe folgt die Kachel dem hellen/dunklen Design des Endgeräts. Die Schaltfläche „Farben & Schrift auf Standard zurücksetzen“ ändert nur das offene Formular – gespeichert wird erst mit „Änderungen übernehmen“."
+          "caption": "Status colors, surface/text and font options adapt the tile to your visualization; without your own setting the tile follows the light/dark design of the device. The button “Reset colors & font to default” only changes the open form – it is saved only with “Apply changes”."
         },
         {
           "type": "Label",
-          "caption": "── Automationen ──"
+          "caption": "── Automations ──"
         },
         {
           "type": "Label",
-          "caption": "Mit „Automationen (Wenn->Dann) auf der Kachel anzeigen und bearbeiten“ verwaltet die Kachel die Regeln der TibberGridReward-Quelle vollständig: „+ Neue Regel“ legt eine Regel an, ✎ bearbeitet, der Papierkorb löscht (mit Rückfrage), der Schalter aktiviert/deaktiviert. Im Editor lassen sich beliebig viele UND-Bedingungen und bis zu 6 Aktionen je Regel anlegen; bei „Wert setzen“ erscheinen dort, wo vorhanden, die im Profil/der Darstellung definierten Werte als Auswahlliste. ACHTUNG: löst dabei wirklich die konfigurierten Automationen der Datenquelle aus – daher standardmäßig deaktiviert."
+          "caption": "With “Show and edit automations (If->Then) on the tile” the tile manages the rules of the TibberGridReward source completely: “+ New rule” creates a rule, ✎ edits, the trash can deletes (with confirmation), the switch enables/disables. In the editor you can create any number of AND conditions and up to 6 actions per rule; for “Set value” the values defined in the profile/presentation are offered as a selection list where available. CAUTION: this really triggers the configured automations of the data source – therefore disabled by default."
         },
         {
           "type": "Label",
-          "caption": "── Simulations-Schaltflächen ──"
+          "caption": "── Simulation buttons ──"
         },
         {
           "type": "Label",
-          "caption": "Blendet auf der Kachel selbst Schaltflächen ein, mit denen sich Verfügbar/Laden/Drosselung simulieren und die Simulation wieder beenden lässt. ACHTUNG: Löst dabei wirklich die konfigurierten Automationen der Datenquelle aus – daher ebenfalls standardmäßig deaktiviert."
+          "caption": "Shows buttons on the tile itself to simulate available / charging / curtailment and to end the simulation again. CAUTION: this really triggers the configured automations of the data source – therefore also disabled by default."
         },
         {
           "type": "Label",
-          "caption": "── Weitere Hilfe ──"
+          "caption": "── More help ──"
         },
         {
           "type": "Label",
-          "caption": "Ausführliche Dokumentation, Beispiele und Hintergründe: github.com/DG65/NRGTibberGridRewards."
+          "caption": "Detailed documentation, examples and background: github.com/DG65/NRGTibberGridRewards."
         }
       ]
     },
     {
       "type": "Label",
-      "caption": "Eigenständige Kachel für die Tibber Grid Rewards. Die Kachel füllt die Tile randlos und ist von der Datenverbindung getrennt."
+      "caption": "Standalone tile for Tibber Grid Rewards. The tile fills the surface without a border and is separate from the data connection."
     },
     {
       "type": "Label",
       "name": "SourceStatus",
-      "caption": "Datenquelle wird ermittelt …"
+      "caption": "Data source is being determined …"
     },
     {
       "type": "Label",
@@ -69,86 +69,86 @@
     {
       "type": "SelectInstance",
       "name": "SourceInstance",
-      "caption": "Datenquelle (leer = automatisch erkennen)",
+      "caption": "Data source (empty = detect automatically)",
       "validModules": ["{E92F62F4-88A6-4C6E-9F0D-E76C3B1C9A01}"]
     },
     {
       "type": "ExpansionPanel",
       "name": "PanelColors",
-      "caption": "🎨 Statusfarben",
+      "caption": "🎨 Status colors",
       "items": [
-        { "type": "SelectColor", "name": "ColorActive", "caption": "Laden aus Netz (excess)" },
-        { "type": "SelectColor", "name": "ColorCurtailment", "caption": "Drosselung (shortage)" },
-        { "type": "SelectColor", "name": "ColorAvailable", "caption": "Verfügbar / Auto lädt" },
-        { "type": "SelectColor", "name": "ColorUnavailable", "caption": "Nicht verfügbar" }
+        { "type": "SelectColor", "name": "ColorActive", "caption": "Charging from grid (excess)" },
+        { "type": "SelectColor", "name": "ColorCurtailment", "caption": "Curtailment (shortage)" },
+        { "type": "SelectColor", "name": "ColorAvailable", "caption": "Available / car charging" },
+        { "type": "SelectColor", "name": "ColorUnavailable", "caption": "Unavailable" }
       ]
     },
     {
       "type": "ExpansionPanel",
       "name": "PanelSurfaces",
-      "caption": "🖌️ Flächen & Text",
+      "caption": "🖌️ Surfaces & text",
       "items": [
-        { "type": "SelectColor", "name": "ColorBackground", "caption": "Hintergrund" },
-        { "type": "SelectColor", "name": "ColorBox", "caption": "Kacheln/Boxen" },
-        { "type": "SelectColor", "name": "ColorText", "caption": "Text (Werte)" },
-        { "type": "SelectColor", "name": "ColorTextMuted", "caption": "Text (Beschriftungen)" }
+        { "type": "SelectColor", "name": "ColorBackground", "caption": "Background" },
+        { "type": "SelectColor", "name": "ColorBox", "caption": "Cards/boxes" },
+        { "type": "SelectColor", "name": "ColorText", "caption": "Text (values)" },
+        { "type": "SelectColor", "name": "ColorTextMuted", "caption": "Text (labels)" }
       ]
     },
     {
       "type": "ExpansionPanel",
       "name": "PanelSim",
-      "caption": "🧪 Simulations-Schaltflächen auf der Kachel",
+      "caption": "🧪 Simulation buttons on the tile",
       "items": [
         {
           "type": "Label",
-          "caption": "Blendet auf der Kachel selbst Schaltflächen ein, mit denen sich Verfügbar/Laden/Drosselung simulieren und die Simulation wieder beenden lässt – ohne die Instanzkonfiguration zu öffnen. ACHTUNG: Löst dabei wirklich die in der Datenquelle konfigurierten EMS-Automationen aus (echte RequestAction-Befehle)! Standardmäßig deaktiviert, da jeder mit Zugriff aufs Webfront die Schaltflächen antippen könnte."
+          "caption": "Shows buttons on the tile itself to simulate available / charging / curtailment and to end the simulation again – without opening the instance configuration. CAUTION: this really triggers the EMS automations configured in the data source (real RequestAction commands)! Disabled by default because anyone with access to the WebFront could tap the buttons."
         },
         {
           "type": "CheckBox",
           "name": "ShowSimControls",
-          "caption": "Simulations-Schaltflächen auf der Kachel anzeigen"
+          "caption": "Show simulation buttons on the tile"
         }
       ]
     },
     {
       "type": "ExpansionPanel",
       "name": "PanelRules",
-      "caption": "🤖 Automationen anzeigen",
+      "caption": "🤖 Show automations",
       "items": [
         {
           "type": "Label",
-          "caption": "Zeigt die in der Datenquelle konfigurierten Wenn->Dann-Regeln auf der Kachel an, mit Ein-/Ausschalten je Regel und einem eigenen Regel-Editor (beliebig viele UND-Bedingungen und Aktionen je Regel, inkl. abhängiger Auswahllisten für Vergleichs- und Zielwerte). ACHTUNG: Über den Editor lassen sich hier wirklich die EMS-Automationen der Datenquelle anlegen/ändern/löschen – inklusive Aktoren wie GoodWe-Speicher und Wallbox. Standardmäßig deaktiviert, da jeder mit Zugriff aufs Webfront damit reale Aktionen konfigurieren könnte."
+          "caption": "Shows the If->Then rules configured in the data source on the tile, with switch on/off per rule and its own rule editor (any number of AND conditions and actions per rule, including dependent selection lists for comparison and target values). CAUTION: through the editor you can really create/change/delete the EMS automations of the data source here – including actors such as the GoodWe storage and wallbox. Disabled by default because anyone with access to the WebFront could configure real actions with it."
         },
         {
           "type": "CheckBox",
           "name": "ShowAutomations",
-          "caption": "Automationen (Wenn->Dann) auf der Kachel anzeigen und bearbeiten"
+          "caption": "Show and edit automations (If->Then) on the tile"
         }
       ]
     },
     {
       "type": "ExpansionPanel",
       "name": "PanelFont",
-      "caption": "🔤 Schrift",
+      "caption": "🔤 Font",
       "items": [
         {
           "type": "Select",
           "name": "FontFamily",
-          "caption": "Schriftart",
+          "caption": "Typeface",
           "options": [
-            { "caption": "System (Standard)", "value": "system" },
+            { "caption": "System (default)", "value": "system" },
             { "caption": "Arial", "value": "arial" },
             { "caption": "Verdana", "value": "verdana" },
             { "caption": "Tahoma", "value": "tahoma" },
             { "caption": "Trebuchet MS", "value": "trebuchet" },
-            { "caption": "Georgia (Serif)", "value": "georgia" },
-            { "caption": "Courier New (Monospace)", "value": "courier" }
+            { "caption": "Georgia (serif)", "value": "georgia" },
+            { "caption": "Courier New (monospace)", "value": "courier" }
           ]
         },
         {
           "type": "NumberSpinner",
           "name": "FontScale",
-          "caption": "Schriftgröße (Faktor)",
+          "caption": "Font size (factor)",
           "digits": 2,
           "minimum": 0.5,
           "maximum": 2.5,
@@ -160,12 +160,12 @@
   "actions": [
     {
       "type": "Button",
-      "caption": "Farben & Schrift auf Standard zurücksetzen",
+      "caption": "Reset colors & font to default",
       "onClick": "TGRTILE_ResetStyle($id);"
     }
   ],
   "status": [
-    { "code": 102, "icon": "active", "caption": "Aktiv" },
-    { "code": 104, "icon": "inactive", "caption": "Keine Datenquelle gewählt" }
+    { "code": 102, "icon": "active", "caption": "Active" },
+    { "code": 104, "icon": "inactive", "caption": "No data source selected" }
   ]
 }

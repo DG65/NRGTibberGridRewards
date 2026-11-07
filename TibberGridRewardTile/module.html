@@ -332,27 +332,75 @@
 
     <div class="tgr-ed" id="tgr-ed">
         <div class="tgr-ed-card">
-            <h3 id="ed-title">Regel bearbeiten</h3>
+            <h3 id="ed-title"></h3>
 
-            <label>Wenn (mehrere Bedingungen werden mit UND verknüpft)</label>
+            <label id="ed-l-if"></label>
             <div id="ed-conditions"></div>
-            <button class="tgr-add" type="button" id="ed-addcond">+ Bedingung (UND)</button>
+            <button class="tgr-add" type="button" id="ed-addcond"></button>
 
-            <label>Dann (bis zu 6 Aktionen gleichzeitig)</label>
+            <label id="ed-l-then"></label>
             <div id="ed-actions"></div>
-            <button class="tgr-add" type="button" id="ed-addact">+ Aktion</button>
-            <div class="tgr-ed-hint">Angeboten werden schaltbare Variablen (mit Aktion). Andere Ziele lassen sich im Instanzformular wählen. Platzhalter „WALLBOX" als Wert wird laufend durch die aktuell benötigte Wallbox-Leistung ersetzt.</div>
+            <button class="tgr-add" type="button" id="ed-addact"></button>
+            <div class="tgr-ed-hint" id="ed-hint"></div>
 
             <div class="tgr-ed-actions">
-                <button class="tgr-btn" id="ed-cancel">Abbrechen</button>
-                <button class="tgr-btn on" id="ed-save">Speichern</button>
+                <button class="tgr-btn" id="ed-cancel"></button>
+                <button class="tgr-btn on" id="ed-save"></button>
             </div>
         </div>
     </div>
 
     <script>
+        // Anzeigetexte: englische Vorgaben, die Instanz liefert sie in der Symcon-Sprache mit (data.ui).
+        var UI = {
+            edTitleEdit: "Edit rule",
+            edTitleNew: "New rule",
+            edIf: "If (several conditions are combined with AND)",
+            edAddCond: "+ Condition (AND)",
+            edThen: "Then (up to 6 actions at the same time)",
+            edAddAct: "+ Action",
+            edHint: "Switchable variables (with an action) are offered. Other targets can be chosen in the instance form. The placeholder “WALLBOX” as a value is continuously replaced by the wallbox power currently required.",
+            edCancel: "Cancel",
+            edSave: "Save",
+            rulesHeader: "Automations",
+            ruleNew: "+ New rule",
+            ruleDelete: "Delete rule",
+            ruleSure: "Sure?",
+            ruleDisable: "Disable rule: ",
+            ruleEnable: "Enable rule: ",
+            opTrue: "turns ON (true)",
+            opFalse: "turns OFF (false)",
+            opEq: "= (equal)",
+            opNe: "≠ (not equal)",
+            opGt: "> (greater)",
+            opGe: "≥ (greater or equal)",
+            opLt: "< (less)",
+            opLe: "≤ (less or equal)",
+            opChange: "changes",
+            condRemove: "Remove condition",
+            cmpPlaceholder: "Comparison value",
+            actRemove: "Remove action",
+            targetFilter: "Search target variable (name or path) …",
+            actOn: "Switch on",
+            actOff: "Switch off",
+            actToggle: "Toggle",
+            actValue: "Set value",
+            valPlaceholder: "Value (e.g. WALLBOX)",
+            tagIf: "IF",
+            tagAnd: "AND",
+            tagAction: "ACTION"
+        };
+        function applyUi(ui) {
+            for (var k in ui) { if (Object.prototype.hasOwnProperty.call(ui, k)) { UI[k] = ui[k]; } }
+            function set(id, text) { var el = document.getElementById(id); if (el) { el.textContent = text; } }
+            set('ed-l-if', UI.edIf); set('ed-addcond', UI.edAddCond); set('ed-l-then', UI.edThen); set('ed-addact', UI.edAddAct);
+            set('ed-hint', UI.edHint); set('ed-cancel', UI.edCancel); set('ed-save', UI.edSave);
+        }
+        applyUi({});
+
         function handleMessage(payload) {
             var data = (typeof payload === 'string') ? JSON.parse(payload) : payload;
+            if (data && data.ui) { applyUi(data.ui); }
             if (!data) {
                 return;
             }
@@ -432,10 +480,10 @@
 
             var simRow = document.getElementById('sim-controls');
             if (data.sim) {
-                document.getElementById('sim-available').textContent = data.simAvailable || 'Verfügbar';
-                document.getElementById('sim-excess').textContent = data.simExcess || 'Laden simulieren';
-                document.getElementById('sim-shortage').textContent = data.simShortage || 'Drosselung simulieren';
-                document.getElementById('sim-reset').textContent = data.simReset || 'Zurück zum echten Status';
+                document.getElementById('sim-available').textContent = data.simAvailable || 'Available';
+                document.getElementById('sim-excess').textContent = data.simExcess || 'Simulate charging (excess)';
+                document.getElementById('sim-shortage').textContent = data.simShortage || 'Simulate curtailment (shortage)';
+                document.getElementById('sim-reset').textContent = data.simReset || 'Back to real status';
                 simRow.style.display = '';
             } else {
                 simRow.style.display = 'none';
@@ -477,10 +525,10 @@
                 hdrow.className = 'hdrow';
                 var hd = document.createElement('div');
                 hd.className = 'hd';
-                hd.textContent = 'Automationen';
+                hd.textContent = UI.rulesHeader;
                 var add = document.createElement('button');
                 add.className = 'tgr-add';
-                add.textContent = '+ Neue Regel';
+                add.textContent = UI.ruleNew;
                 add.onclick = function () { edOpen(-1, null); };
                 hdrow.appendChild(hd);
                 hdrow.appendChild(add);
@@ -495,22 +543,22 @@
                     var ed = document.createElement('button');
                     ed.className = 'tgr-ico';
                     ed.textContent = '✎';
-                    ed.title = 'Regel bearbeiten';
+                    ed.title = UI.edTitleEdit;
                     ed.onclick = function () { edOpen(r.i, r.rule, r.active); };
                     var del = document.createElement('button');
                     del.className = 'tgr-ico';
                     del.textContent = '\u{1F5D1}';
-                    del.title = 'Regel löschen';
+                    del.title = UI.ruleDelete;
                     del.onclick = function () {
                         if (del.dataset.confirm === '1') { requestAction('ruleDelete', r.i); return; }
                         del.dataset.confirm = '1';
-                        del.textContent = 'Sicher?';
+                        del.textContent = UI.ruleSure;
                         del.className = 'tgr-ico warn';
                         setTimeout(function () { del.dataset.confirm = ''; del.textContent = '\u{1F5D1}'; del.className = 'tgr-ico'; }, 3000);
                     };
                     var sw = document.createElement('button');
                     sw.className = 'tgr-sw' + (r.active ? ' on' : '');
-                    sw.setAttribute('aria-label', (r.active ? 'Regel deaktivieren: ' : 'Regel aktivieren: ') + r.text);
+                    sw.setAttribute('aria-label', (r.active ? UI.ruleDisable : UI.ruleEnable) + r.text);
                     sw.onclick = function () { requestAction('rule', JSON.stringify({ i: r.i, on: !r.active })); };
                     row.appendChild(t);
                     row.appendChild(ed);
@@ -528,17 +576,19 @@
         // ------------------------------------------------------------------
         var ED = { data: null, i: -1, rule: null, active: true, pendingOpen: false };
         var NUM_OPS = ['eq', 'ne', 'gt', 'ge', 'lt', 'le'];
-        var OP_OPTIONS = [
-            { v: 'true', c: 'wird EIN (true)' },
-            { v: 'false', c: 'wird AUS (false)' },
-            { v: 'eq', c: '= (gleich)' },
-            { v: 'ne', c: '≠ (ungleich)' },
-            { v: 'gt', c: '> (größer)' },
-            { v: 'ge', c: '≥ (größer gleich)' },
-            { v: 'lt', c: '< (kleiner)' },
-            { v: 'le', c: '≤ (kleiner gleich)' },
-            { v: 'change', c: 'ändert sich' }
-        ];
+        function opOptions() {
+            return [
+                { v: 'true', c: UI.opTrue },
+                { v: 'false', c: UI.opFalse },
+                { v: 'eq', c: UI.opEq },
+                { v: 'ne', c: UI.opNe },
+                { v: 'gt', c: UI.opGt },
+                { v: 'ge', c: UI.opGe },
+                { v: 'lt', c: UI.opLt },
+                { v: 'le', c: UI.opLe },
+                { v: 'change', c: UI.opChange }
+            ];
+        }
 
         function edOpen(i, rule, active) {
             ED.i = i;
@@ -562,7 +612,7 @@
             del.type = 'button';
             del.className = 'tgr-ico warn';
             del.textContent = '\u{1F5D1}';
-            del.title = 'Bedingung entfernen';
+            del.title = UI.condRemove;
             del.onclick = function () { box.remove(); edRefreshConditionTags(); };
             hd.appendChild(del);
             box.appendChild(hd);
@@ -579,7 +629,7 @@
 
             var op = document.createElement('select');
             op.className = 'ed-cond-op';
-            OP_OPTIONS.forEach(function (o) {
+            opOptions().forEach(function (o) {
                 var e = document.createElement('option');
                 e.value = o.v; e.textContent = o.c;
                 op.appendChild(e);
@@ -597,7 +647,7 @@
             var cmp = document.createElement('input');
             cmp.type = 'text';
             cmp.className = 'ed-cond-cmp';
-            cmp.placeholder = 'Vergleichswert';
+            cmp.placeholder = UI.cmpPlaceholder;
             cmp.value = cond.Compare || '';
             box.appendChild(cmp);
 
@@ -664,7 +714,7 @@
         function edRefreshConditionTags() {
             var boxes = document.querySelectorAll('#ed-conditions .ed-cond-box');
             boxes.forEach(function (box, idx) {
-                box.querySelector('.ed-cond-tag').textContent = (idx === 0) ? 'WENN' : 'UND';
+                box.querySelector('.ed-cond-tag').textContent = (idx === 0) ? UI.tagIf : UI.tagAnd;
                 var del = box.querySelector('.tgr-ico');
                 del.style.visibility = (boxes.length > 1) ? 'visible' : 'hidden';
             });
@@ -689,7 +739,7 @@
             del.type = 'button';
             del.className = 'tgr-ico warn';
             del.textContent = '\u{1F5D1}';
-            del.title = 'Aktion entfernen';
+            del.title = UI.actRemove;
             del.onclick = function () { box.remove(); edRefreshActionTags(); };
             hd.appendChild(del);
             box.appendChild(hd);
@@ -697,7 +747,7 @@
             var tfilter = document.createElement('input');
             tfilter.type = 'text';
             tfilter.className = 'ed-act-tfilter';
-            tfilter.placeholder = 'Zielvariable suchen (Name oder Pfad) …';
+            tfilter.placeholder = UI.targetFilter;
             tfilter.autocomplete = 'off';
             box.appendChild(tfilter);
 
@@ -707,7 +757,7 @@
 
             var actSel = document.createElement('select');
             actSel.className = 'ed-act-action';
-            [['on', 'Einschalten'], ['off', 'Ausschalten'], ['toggle', 'Umschalten'], ['value', 'Wert setzen']].forEach(function (p) {
+            [['on', UI.actOn], ['off', UI.actOff], ['toggle', UI.actToggle], ['value', UI.actValue]].forEach(function (p) {
                 var o = document.createElement('option');
                 o.value = p[0]; o.textContent = p[1];
                 actSel.appendChild(o);
@@ -723,7 +773,7 @@
             var valInp = document.createElement('input');
             valInp.type = 'text';
             valInp.className = 'ed-act-val';
-            valInp.placeholder = 'Wert (z. B. WALLBOX)';
+            valInp.placeholder = UI.valPlaceholder;
             valInp.value = act.Value || '';
             valWrap.appendChild(valSel);
             valWrap.appendChild(valInp);
@@ -776,7 +826,7 @@
         function edRefreshActionTags() {
             var boxes = document.querySelectorAll('#ed-actions .ed-act-box');
             boxes.forEach(function (box, idx) {
-                box.querySelector('.ed-cond-tag').textContent = 'AKTION ' + (idx + 1);
+                box.querySelector('.ed-cond-tag').textContent = UI.tagAction + ' ' + (idx + 1);
                 var del = box.querySelector('.tgr-ico');
                 del.style.visibility = (boxes.length > 1) ? 'visible' : 'hidden';
             });
@@ -834,7 +884,7 @@
             acts.forEach(function (a) { actsWrap.appendChild(edBuildActionRow(a)); });
             edRefreshActionTags();
 
-            document.getElementById('ed-title').textContent = (ED.i < 0) ? 'Neue Regel' : 'Regel bearbeiten';
+            document.getElementById('ed-title').textContent = (ED.i < 0) ? UI.edTitleNew : UI.edTitleEdit;
             document.getElementById('tgr-ed').classList.add('open');
         }
 

@@ -5,7 +5,17 @@ declare(strict_types=1);
 // Lädt das ECHTE module.php beider Module mit minimal gestubbten IPS-Funktionen und prüft das
 // ausgelieferte Formular-JSON: Reihenfolge, Aufklapp-Zustand, visible:false, Rückfall bei
 // unbekanntem Schlüssel, Reset. Aufruf: php .tools/test-formlayout.php (0 = alles bestanden)
+// Sprache: Standard Englisch (Quelltexte); TESTLANG=de übersetzt wie Symcon über die locale.json.
 
+$DE = [];
+if (getenv('TESTLANG') === 'de') {
+    foreach (['TibberGridReward', 'TibberGridRewardTile'] as $mod) {
+        $loc = json_decode((string) file_get_contents(__DIR__ . "/../$mod/locale.json"), true);
+        $DE = array_merge($DE, $loc['translations']['de'] ?? []);
+    }
+}
+/** Erwarteter Text je Sprache. */
+function L(string $en, string $de): string { return getenv('TESTLANG') === 'de' ? $de : $en; }
 $W = ['props' => [], 'attrs' => [], 'instances' => [], 'lookup' => [], 'pushed' => []];
 
 class IPSModule {
@@ -18,7 +28,7 @@ class IPSModule {
     public function ReadAttributeBoolean($n) { global $W; return $W['attrs'][$n] ?? false; }
     public function ReadAttributeString($n) { global $W; return $W['attrs'][$n] ?? ''; }
     public function ReadAttributeInteger($n) { global $W; return $W['attrs'][$n] ?? 0; }
-    public function Translate($t) { return $t; }
+    public function Translate($t) { global $DE; return $DE[$t] ?? $t; }
     public function SendDebug($a, $b, $c) {}
     public function UpdateFormField($n, $k, $v) { global $W; $W['pushed'][$n][$k] = $v; }
 }
@@ -130,9 +140,9 @@ foreach ($modules as [$class, $default, $prefix]) {
     expect('Ausgeblendet: Inhalt (items) bleibt erhalten', $pb !== null && !empty($pb['items']));
     $caps = topLevelCaptions($f);
     $hit = array_values(array_filter($caps, fn($x) => str_starts_with($x, '🪟')));
-    expect('Caption nennt die Zahl ausgeblendeter Bereiche', count($hit) === 1 && str_contains($hit[0], '(2 ausgeblendet)'), json_encode($hit));
+    expect('Caption nennt die Zahl ausgeblendeter Bereiche', count($hit) === 1 && str_contains($hit[0], L('(2 hidden)', '(2 ausgeblendet)')), json_encode($hit));
     $firstItem = $f['elements'][array_search($hit[0], $caps, true)]['items'][0]['caption'] ?? '';
-    expect('Erste Zeile im Panel nennt die ausgeblendeten Bereiche', str_starts_with($firstItem, '🙈 Ausgeblendet:'), $firstItem);
+    expect('Erste Zeile im Panel nennt die ausgeblendeten Bereiche', str_starts_with($firstItem, L('🙈 Hidden:', '🙈 Ausgeblendet:')), $firstItem);
     expect('Ausgeblendet gewinnt gegen Aufgeklappt/Zugeklappt', (function () use ($class, $a) {
         [$g] = form($class, json_encode([['Key' => $a, 'Opened' => true, 'Closed' => true, 'Hidden' => true]]));
         return (panel($g, $a)['visible'] ?? true) === false;
@@ -161,7 +171,7 @@ foreach ($modules as [$class, $default, $prefix]) {
     $m = (new ReflectionClass($class))->newInstanceWithoutConstructor();
     $text = $m->ResetFormLayout();
     $pushed = json_decode((string) ($GLOBALS['W']['pushed']['FormLayout']['values'] ?? ''), true);
-    expect('Reset: Klartext mit Hinweis auf Übernehmen', str_contains($text, 'Übernehmen'), $text);
+    expect('Reset: Klartext mit Hinweis auf Übernehmen', str_contains($text, L('Apply', 'Übernehmen')), $text);
     expect('Reset: Liste enthält alle Fachpanels in Standardreihenfolge ohne Haken', is_array($pushed) && array_column($pushed, 'Key') === $default
         && !array_filter($pushed, fn($r) => $r['Opened'] || $r['Closed'] || $r['Hidden']) && array_column($pushed, 'Pos') === range(1, count($default)));
     expect('Reset: Knopf im Panel ruft ' . $prefix . '_ResetFormLayout', str_contains($json, $prefix . '_ResetFormLayout'));
@@ -170,7 +180,7 @@ foreach ($modules as [$class, $default, $prefix]) {
     [$f, $json] = form($class, '[]');
     $W['attrs'] = [];
     [$f, $json] = form($class, '[]');
-    expect('Neu-Panel erwähnt „Formular-Aufbau“', str_contains(json_encode($f, JSON_UNESCAPED_UNICODE), 'Formular-Aufbau selbst wählen'));
+    expect('Neu-Panel erwähnt „Formular-Aufbau“', str_contains(json_encode($f, JSON_UNESCAPED_UNICODE), 'choose the form layout yourself') /* Panel-Captions übersetzt die Konsole, nicht Translate() */);
     expect('Pflicht-Panels bleiben: Forum und Über dieses Modul unten', (function ($f) {
         $caps = topLevelCaptions($f); $n = count($caps);
         return str_starts_with($caps[$n - 2], '💬') && str_starts_with($caps[$n - 1], '🧡');

@@ -2,52 +2,52 @@
   "elements": [
     {
       "type": "ExpansionPanel",
-      "caption": "📖 Dokumentation & Hilfe",
+      "caption": "📖 Documentation & help",
       "expanded": false,
       "items": [
         {
           "type": "Label",
-          "caption": "Version 2.10.0."
+          "caption": "Version 2.11.0."
         },
         {
           "type": "Label",
-          "caption": "── Funktionsweise ──"
+          "caption": "── How it works ──"
         },
         {
           "type": "Label",
-          "caption": "Tibber Grid Rewards – liefert den Grid-Reward-Status (u. a. das 'Delivering'-Signal) als Variablen. Voraussetzung: Teilnahme an Grid Rewards mit einem unterstützten Gerät (z. B. Tesla). Ergänzt das Modul 'Tibber V.2' (offizielle API)."
+          "caption": "Tibber Grid Rewards – provides the Grid Reward status (including the 'Delivering' signal) as variables. Requirement: participation in Grid Rewards with a supported device (e.g. Tesla). Complements the 'Tibber V.2' module (official API)."
         },
         {
           "type": "Label",
-          "caption": "── Einrichten ──"
+          "caption": "── Setup ──"
         },
         {
           "type": "Label",
-          "caption": "E-Mail/Passwort deiner Tibber-App eintragen, Aktiv anhaken, Übernehmen. Dann unten „Zuhause-Liste neu laden“ klicken, dein Zuhause auswählen, erneut Übernehmen. Die Verbindung steht, sobald der Status oben „Aktiv“ zeigt."
+          "caption": "Enter the email address and password of your Tibber app, tick Active and click Apply. Then click “Reload home list” below, choose your home and click Apply again. The connection is established as soon as the status at the top shows “Active”."
         },
         {
           "type": "Label",
-          "caption": "── Wallboxen ──"
+          "caption": "── Wallboxes ──"
         },
         {
           "type": "Label",
-          "caption": "Optional, aber empfohlen: Im Panel „🔌 Wallboxen“ die Wirkleistungs-Datenpunkte deiner Wallbox(en) eintragen. Daraus berechnet das Modul, ob und wie viel gerade geladen wird – Grundlage für den Grid-Reward-Modus und die Automationen."
+          "caption": "Optional but recommended: in the “🔌 Wallboxes” panel, enter the active power data points of your wallbox(es). From them the module works out whether and how much is currently being charged – the basis for the Grid Reward mode and the automations."
         },
         {
           "type": "Label",
-          "caption": "── Grid-Reward-Modus ──"
+          "caption": "── Grid Reward mode ──"
         },
         {
           "type": "Label",
-          "caption": "Variable „Grid-Reward-Modus“ (0–3):\n0 Normal – kein Einsatz, Auto lädt nicht.\n1 Auto lädt (kein Reward) – Smart-Charge/Zwangsbeladen/Freigabe: Strom soll aus dem Netz kommen, nicht aus der Batterie.\n2 Grid Reward: Laden (Tibber-Status „excess“) – Netzüberschuss, belohnt: Auto UND Batterie aus dem Netz laden.\n3 Grid Reward: Drosselung (Tibber-Status „shortage“) – Netzknappheit: Auto aus, Haus möglichst aus Batterie/PV versorgen, Netzbezug minimieren."
+          "caption": "Variable “Grid reward mode” (0–3):\n0 Normal – no event, car is not charging.\n1 Car charging (no reward) – smart charge / forced charging / release: power should come from the grid, not from the battery.\n2 Grid Reward: charge (Tibber status “excess”) – grid surplus, rewarded: charge the car AND the battery from the grid.\n3 Grid Reward: curtailment (Tibber status “shortage”) – grid shortage: car off, supply the house from battery/PV where possible, minimise grid import."
         },
         {
           "type": "Label",
-          "caption": "── Automationen (Wenn → Dann) ──"
+          "caption": "── Automations (If → Then) ──"
         },
         {
           "type": "Label",
-          "caption": "Panel „🎯 Automationen“: Jede Regel prüft eine Bedingung über einen Datenpunkt dieser Instanz (z. B. Grid-Reward-Modus = 2) und setzt beim Eintreten bis zu ZWEI Zielvariablen gleichzeitig – der typische Fall für einen Grid-Reward-Einsatz (z. B. EMS-Betriebsmodus UND Leistungssollwert in einem Rutsch). Flankengesteuert: eine Regel feuert beim Eintreten der Bedingung, nicht bei jeder Datenmeldung erneut. Der eingegebene Wert wird automatisch in den Typ der Zielvariable umgewandelt (Zahl, true/false oder Text). Der Platzhalter „WALLBOX“ (egal ob groß/klein geschrieben) wird durch die aktuell benötigte Wallbox-Leistung ersetzt und laufend live nachgeführt, solange die Bedingung erfüllt bleibt – ideal für einen Leistungssollwert. Mehrere Bedingungen (UND-verknüpft) oder mehr als zwei Zielvariablen pro Regel? Dafür bietet die Kachel „TibberGridRewardTile“ einen komfortablen Regel-Editor mit beliebig vielen Bedingungen und Aktionen (siehe deren Panel „🤖 Automationen anzeigen“)."
+          "caption": "Panel “🎯 Automations (If → Then)”: every rule checks a condition on a data point of this instance (e.g. Grid reward mode = 2) and, when it occurs, sets up to TWO target variables at the same time – the typical case for a Grid Reward event (e.g. EMS operating mode AND power setpoint in one go). Edge-triggered: a rule fires when the condition becomes true, not again with every data message. The value you enter is converted automatically to the type of the target variable (number, true/false or text). The placeholder “WALLBOX” (upper or lower case) is replaced by the wallbox power currently required and is tracked live as long as the condition stays true – ideal for a power setpoint. Several conditions (AND) or more than two target variables per rule? For that, the “TibberGridRewardTile” tile offers a convenient rule editor with any number of conditions and actions (see its panel “🤖 Show automations”)."
         },
         {
           "type": "Label",
@@ -55,72 +55,72 @@
         },
         {
           "type": "Label",
-          "caption": "Panel „🧪 Simulation“: Über die Schaltflächen lässt sich jeder der drei Zustände (Verfügbar/Laden/Drosselung) auslösen und durchläuft dabei exakt denselben Code wie ein echtes Tibber-Ereignis – inklusive der oben konfigurierten Automationen. „↩ Zurück zum echten Status“ beendet die Simulation und holt aktiv den aktuellen echten Stand von Tibber."
+          "caption": "Panel “🧪 Simulation (for testing without a real event)”: the buttons trigger each of the three states (available / charge / curtailment) and run through exactly the same code as a real Tibber event – including the automations configured above. “↩ Back to real status” ends the simulation and actively fetches the current real state from Tibber."
         },
         {
           "type": "Label",
-          "caption": "── Preiskurve ──"
+          "caption": "── Price curve ──"
         },
         {
           "type": "Label",
-          "caption": "Panel „💶 Preiskurve“: Optional, unabhängig von Grid Rewards. Mit einem Zugangsschlüssel (developer.tibber.com/settings/access-token, dort „Personal Access Token“ genannt) liefert das Modul den vollständigen Tibber-Endkundenpreis – inklusive evtl. zeitvariabler Netzentgelte (z. B. §14a Modul 3), nicht nur den reinen Spotpreis – als Preiskurve für preisgetriebene Automationen/EMS (Funktion TIBBERGR_GetPriceCurve). Die Komfort-Variablen „Aktueller Preis“/„Aktuelles Preisniveau (Tibber)“ zeigen den jeweils laufenden Zeitabschnitt; das Preisniveau ist unverändert Tibbers eigene Einstufung, keine allgemeingültige Bewertung – die eigentliche Einstufung für Automationen sollte einheitlich im EMS erfolgen. Die Kurve wird alle 20 Minuten neu abgefragt, damit die Preise für morgen zeitnah übernommen werden, sobald Tibber sie veröffentlicht (üblicherweise zwischen 13 und 14 Uhr); der angezeigte Preis selbst wechselt exakt zum Stunden-/Viertelstundenwechsel. Mit dem Häkchen „Preisverlauf archivieren“ entsteht daraus eine lückenlose Preishistorie als Grundlage für eine Rechnungsprüfung."
+          "caption": "Panel “💶 Price curve (official Tibber API)”: optional, independent of Grid Rewards. With an access token (developer.tibber.com/settings/access-token, called “Personal Access Token” there) the module delivers the complete Tibber end-customer price – including any time-variable grid fees (e.g. §14a module 3), not just the pure spot price – as a price curve for price-driven automations/EMS (function TIBBERGR_GetPriceCurve). The convenience variables “Current price” / “Current price level” show the period that is running now; the price level is still Tibber's own classification, not a general assessment – the actual classification for automations should be done uniformly in the EMS. The curve is requested again every 20 minutes so that tomorrow's prices are picked up promptly once Tibber publishes them (usually between 1 and 2 pm); the displayed price itself changes exactly at the change of the hour or quarter hour. With the checkbox “Archive price history” this builds a gap-free price history as the basis for an invoice check."
         },
         {
           "type": "Label",
-          "caption": "── Abfahrtszeit/Ladeziel ──"
+          "caption": "── Departure time / charge target ──"
         },
         {
           "type": "Label",
-          "caption": "Über TIBBERGR_SetVehicleSetting() lässt sich eine Präferenz (Abfahrtszeit je Wochentag, Mindest-Ladeschwelle, Smart-Charging an/aus) direkt in Tibbers eigenem Lade-Algorithmus hinterlegen – z. B. aus dem EMS heraus. Kein eigenes Formularfeld hier, da sich die Funktion direkt an Tibbers Cloud richtet, nicht an dieses Modul."
+          "caption": "With TIBBERGR_SetVehicleSetting() a preference (departure time per weekday, minimum charge level, smart charging on/off) can be stored directly in Tibber's own charging algorithm – e.g. from the EMS. There is no form field for it here because the function addresses Tibber's cloud directly, not this module."
         },
         {
           "type": "Label",
-          "caption": "── Rechnungsprüfung (Tarifzerlegung) ──"
+          "caption": "── Invoice check (tariff breakdown) ──"
         },
         {
           "type": "Label",
-          "caption": "Zwei unabhängige Wege, den Tibber-Preis in Börsenpreis/Beschaffung/Netzentgelt/Steuern zu zerlegen – beide setzen die aktivierte Preiszerlegung (Häkchen im Panel „🧾 Tarif & Netzentgelt“) voraus: das Panel selbst rechnet laufend für die aktuelle Preiskurve mit; TIBBERGR_DecomposePrice() zerlegt zusätzlich einen einzelnen historischen Preis auf Abruf, z. B. für eine einzelne Rechnungsposition."
+          "caption": "Two independent ways to break the Tibber price down into exchange price / procurement / grid fee / taxes – both require the price breakdown to be enabled (checkbox in the panel “🧾 Tariff & grid fees”): the panel itself keeps calculating along for the current price curve; TIBBERGR_DecomposePrice() additionally breaks down a single historical price on request, e.g. for one invoice line."
         },
         {
           "type": "Label",
-          "caption": "── Demo-Modus ──"
+          "caption": "── Demo mode ──"
         },
         {
           "type": "Label",
-          "caption": "Panel „🎭 Demo-Modus“: ausschließlich für Vorführungen/Tests – ersetzt die echte Preiskurve durch eine über TIBBERGR_SetDemoPriceCurve() gesetzte. Auf einer normal genutzten Instanz deaktiviert lassen."
+          "caption": "Panel “🎭 Demo mode”: exclusively for demonstrations/tests – replaces the real price curve with one set via TIBBERGR_SetDemoPriceCurve(). Leave it disabled on an instance that is used normally."
         },
         {
           "type": "Label",
-          "caption": "── Weitere Hilfe ──"
+          "caption": "── More help ──"
         },
         {
           "type": "Label",
-          "caption": "Ausführliche Dokumentation, Beispiele und Hintergründe: github.com/DG65/NRGTibberGridRewards."
+          "caption": "Detailed documentation, examples and background: github.com/DG65/NRGTibberGridRewards."
         }
       ]
     },
     {
       "type": "CheckBox",
       "name": "Active",
-      "caption": "Aktiv"
+      "caption": "Active"
     },
     {
       "type": "ValidationTextBox",
       "name": "Email",
-      "caption": "Tibber App – E-Mail"
+      "caption": "Tibber app – email"
     },
     {
       "type": "PasswordTextBox",
       "name": "Password",
-      "caption": "Tibber App – Passwort"
+      "caption": "Tibber app – password"
     },
     {
       "type": "Select",
       "name": "Home_ID",
-      "caption": "Zuhause (Home)",
+      "caption": "Home",
       "options": [
         {
-          "caption": "Bitte wählen",
+          "caption": "Please select",
           "value": "0"
         }
       ]
@@ -128,143 +128,143 @@
     {
       "type": "ExpansionPanel",
       "name": "PanelPrice",
-      "caption": "💶 Preiskurve (offizielle Tibber-API)",
+      "caption": "💶 Price curve (official Tibber API)",
       "items": [
         {
           "type": "Label",
-          "caption": "Optional und unabhängig von Grid Rewards oben: liefert den Endkunden-Strompreis (inkl. evtl. zeitvariabler Netzentgelte) als Preiskurve für preisgetriebene Automationen/EMS. Dafür wird ein Zugangsschlüssel von developer.tibber.com/settings/access-token benötigt – dort heißt er „Personal Access Token“. Das ist ein eigener Zugang, NICHT das App-Passwort von oben."
+          "caption": "Optional and independent of Grid Rewards above: provides the end-customer electricity price (including any time-variable grid fees) as a price curve for price-driven automations/EMS. This requires an access token from developer.tibber.com/settings/access-token – it is called “Personal Access Token” there. It is a separate access, NOT the app password from above."
         },
         {
           "type": "PasswordTextBox",
           "name": "PriceApiToken",
-          "caption": "Zugangsschlüssel (bei Tibber „Personal Access Token“)"
+          "caption": "Access token (called “Personal Access Token” at Tibber)"
         },
         {
           "type": "Label",
           "name": "PriceHomeStatus",
-          "caption": "Zuhause für die Preiskurve wird ermittelt …"
+          "caption": "Home for the price curve is being determined …"
         },
         {
           "type": "Select",
           "name": "PriceHomeID",
-          "caption": "Zuhause für die Preiskurve",
+          "caption": "Home for the price curve",
           "options": [
             {
-              "caption": "Bitte wählen",
+              "caption": "Please select",
               "value": "0"
             }
           ]
         },
         {
           "type": "Button",
-          "caption": "Preis-Zuhause-Liste neu laden",
+          "caption": "Reload price home list",
           "onClick": "echo TIBBERGR_UpdatePriceHomes($id);"
         },
         {
           "type": "Select",
           "name": "PriceResolution",
-          "caption": "Preisauflösung",
+          "caption": "Price resolution",
           "options": [
-            { "caption": "Automatisch (viertelstündlich, sonst stündlich)", "value": "auto" },
-            { "caption": "Viertelstündlich erzwingen", "value": "quarter" },
-            { "caption": "Stündlich erzwingen", "value": "hourly" }
+            { "caption": "Automatic (quarter-hourly, otherwise hourly)", "value": "auto" },
+            { "caption": "Force quarter-hourly", "value": "quarter" },
+            { "caption": "Force hourly", "value": "hourly" }
           ]
         },
         {
           "type": "Label",
-          "caption": "Seit dem 1.10.2025 rechnet Tibber in Deutschland viertelstündlich ab. „Automatisch“ fragt die feineren 15-Minuten-Preise ab und fällt auf Stundenwerte zurück, falls der Tarif sie nicht liefert. Nur ändern, wenn die automatische Erkennung nicht das gewünschte Ergebnis bringt."
+          "caption": "Since 1 October 2025 Tibber has billed quarter-hourly in Germany. “Automatic” requests the finer 15-minute prices and falls back to hourly values if the tariff does not provide them. Only change this if the automatic detection does not give the result you want."
         },
         {
           "type": "CheckBox",
           "name": "ArchivePrice",
-          "caption": "Preisverlauf archivieren (Grundlage für eine Rechnungsprüfung)"
+          "caption": "Archive price history (basis for an invoice check)"
         },
         {
           "type": "Label",
           "name": "ArchiveStatus",
-          "caption": "Status: wird beim Öffnen des Formulars ermittelt."
+          "caption": "Status: determined when the form is opened."
         },
         {
           "type": "Label",
-          "caption": "Das Häkchen oben aktiviert die Archivierung der Variable „Aktueller Preis“ – dasselbe lässt sich auch direkt an der Variable einschalten (im Objektbaum Rechtsklick auf „Aktueller Preis“ → Archivierung). Der Preis wird exakt zum Stunden-/Viertelstundenwechsel umgeschaltet, sodass der archivierte Verlauf die Preisstufen zeitgenau abbildet. WICHTIG: Ohne Archivierung gibt es keinen Preis-Rückblick – die Funktion TIBBERGR_GetPriceCurve liefert nur heute und morgen, jede Auswertung der Vergangenheit (Rechnungsprüfung, historische Preiskurve in Kacheln wie dem InverterHub-Monitoring) speist sich aus dem Archiv. Aufgezeichnet wird erst ab dem Einschalten, rückwirkend gibt es keine Daten. Das Häkchen schaltet die Archivierung nur EIN – eine anderswo gesetzte Archivierung wird beim Entfernen des Häkchens nicht wieder abgeschaltet (sonst ginge die weitere Aufzeichnung stillschweigend verloren); zum Abschalten die Archivierung direkt an der Variable entfernen."
+          "caption": "The checkbox above enables archiving of the variable “Current price” – you can also switch it on directly at the variable (in the object tree right-click “Current price” → Archiving). The price is switched exactly at the change of the hour/quarter hour, so the archived history reproduces the price steps with exact timing. IMPORTANT: without archiving there is no price look-back – the function TIBBERGR_GetPriceCurve only returns today and tomorrow, any analysis of the past (invoice check, historical price curve in tiles such as the InverterHub monitoring) is fed from the archive. Recording only starts at the moment you switch it on, nothing is recorded retroactively. The checkbox only switches archiving ON – archiving that was enabled elsewhere is not switched off when you clear the checkbox (otherwise further recording would silently be lost); to switch it off, remove archiving directly at the variable."
         }
       ]
     },
     {
       "type": "ExpansionPanel",
       "name": "PanelTariff",
-      "caption": "🧾 Tarif & Netzentgelt (Rechnungsprüfung)",
+      "caption": "🧾 Tariff & grid fees (invoice check)",
       "items": [
         {
           "type": "Label",
-          "caption": "Zerlegt den Tibber-Endkundenpreis in seine Bestandteile (Börsenpreis, Beschaffung, Netzentgelt, Steuern/Abgaben), damit sich eine Tibber-Rechnung nachrechnen lässt. Optional, standardmäßig AUS (Häkchen unten) – für alle, die keine Rechnungsprüfung brauchen, bleibt dieses Panel folgenlos. ⚠️ ALLE Zahlenwerte unten (Netzentgelt HT/ST/NT, Zeitfenster, Grundpreis, Rabatt-Zeile) sind NICHT allgemeingültig, sondern 1:1 Dietmars eigenes Preisblatt (E-Werk Netze GmbH, vormals Überlandwerk Mittelbaden) als Formatbeispiel – vor dem Aktivieren durch die Werte deines EIGENEN Netzbetreibers/Tibber-Vertrags ersetzen, sonst rechnet die Zerlegung mit falschen Zahlen. Die bundesweit gleichen Sätze (Stromsteuer, Umlagen, MwSt) sind im Modul hinterlegt und müssen nicht angepasst werden. Die Aufschlüsselung erscheint als „components“ in TIBBERGR_GetPriceCurve; der Gesamtpreis „price“ bleibt Tibbers maßgebliche Zahl."
+          "caption": "Breaks the Tibber end-customer price down into its components (exchange price, procurement, grid fee, taxes/levies) so that a Tibber invoice can be recalculated. Optional, OFF by default (checkbox below) – for everyone who does not need an invoice check this panel has no effect. ⚠️ ALL numbers below (grid fee HT/ST/NT, time windows, base price, discount row) are NOT generally valid but 1:1 the author's own price sheet (E-Werk Netze GmbH, formerly Überlandwerk Mittelbaden) as a format example – before enabling, replace them with the values of YOUR OWN grid operator / Tibber contract, otherwise the breakdown calculates with wrong numbers. The rates that are the same nationwide (electricity tax, levies, VAT) are stored in the module and do not have to be adjusted. The breakdown appears as “components” in TIBBERGR_GetPriceCurve; the total price “price” remains Tibber's authoritative figure."
         },
         {
           "type": "CheckBox",
           "name": "TariffEnabled",
-          "caption": "Preiszerlegung aktivieren"
+          "caption": "Enable price breakdown"
         },
         {
           "type": "NumberSpinner",
           "name": "PriceBeschaffung",
-          "caption": "Weitere Beschaffungskosten (Tibber §4 AGB, ct/kWh netto)",
+          "caption": "Additional procurement costs (Tibber §4 terms, ct/kWh net)",
           "digits": 3
         },
         {
           "type": "Label",
-          "caption": "── Netzentgelt §14a Modul 3 (zeitvariabel) ──"
+          "caption": "── Grid fee under §14a module 3 (time-variable) ──"
         },
         {
           "type": "NumberSpinner",
           "name": "NetzHT",
-          "caption": "Hochtarif HT (ct/kWh netto)",
+          "caption": "Peak rate HT (ct/kWh net)",
           "digits": 3
         },
         {
           "type": "NumberSpinner",
           "name": "NetzST",
-          "caption": "Standardtarif ST (ct/kWh netto)",
+          "caption": "Standard rate ST (ct/kWh net)",
           "digits": 3
         },
         {
           "type": "NumberSpinner",
           "name": "NetzNT",
-          "caption": "Niedrigtarif NT (ct/kWh netto)",
+          "caption": "Off-peak rate NT (ct/kWh net)",
           "digits": 3
         },
         {
           "type": "List",
           "name": "NetzWindows",
-          "caption": "Zeitfenster je Tarifstufe (mehrere je Stufe erlaubt)",
+          "caption": "Time windows per rate level (several per level allowed)",
           "rowCount": 6,
           "add": true,
           "delete": true,
           "columns": [
             {
-              "caption": "Von (HH:MM)",
+              "caption": "From (HH:MM)",
               "name": "From",
               "width": "120px",
               "add": "00:00",
               "edit": { "type": "ValidationTextBox" }
             },
             {
-              "caption": "Bis (HH:MM)",
+              "caption": "To (HH:MM)",
               "name": "To",
               "width": "120px",
               "add": "06:00",
               "edit": { "type": "ValidationTextBox" }
             },
             {
-              "caption": "Stufe",
+              "caption": "Rate",
               "name": "Band",
               "width": "auto",
               "add": "NT",
               "edit": {
                 "type": "Select",
                 "options": [
-                  { "caption": "Hochtarif (HT)", "value": "HT" },
-                  { "caption": "Standardtarif (ST)", "value": "ST" },
-                  { "caption": "Niedrigtarif (NT)", "value": "NT" }
+                  { "caption": "Peak rate (HT)", "value": "HT" },
+                  { "caption": "Standard rate (ST)", "value": "ST" },
+                  { "caption": "Off-peak rate (NT)", "value": "NT" }
                 ]
               }
             }
@@ -272,103 +272,103 @@
         },
         {
           "type": "Label",
-          "caption": "„Bis 00:00“ meint das Tagesende (24:00). Fenster dürfen über Mitternacht gehen. Fällt eine Uhrzeit in kein Fenster, gilt der Arbeitspreis unten."
+          "caption": "“To 00:00” means the end of the day (24:00). Windows may span midnight. If a time falls into no window, the work price below applies."
         },
         {
           "type": "Label",
-          "caption": "── Modul-3-Gültigkeit je Quartal ──"
+          "caption": "── Module 3 validity per quarter ──"
         },
         {
           "type": "Label",
-          "caption": "Modul 3 gilt nicht zwingend ganzjährig (gesetzlich mind. 2 von 4 Quartalen, vom Netzbetreiber kalenderjährlich festgelegt). In „Nein“-Quartalen gilt statt der Zeittarife der normale Arbeitspreis."
+          "caption": "Module 3 does not necessarily apply all year (by law at least 2 of 4 quarters, set by the grid operator per calendar year). In “No” quarters the normal work price applies instead of the time-of-use rates."
         },
         {
           "type": "RowLayout",
           "items": [
-            { "type": "CheckBox", "name": "Modul3Q1", "caption": "Q1 (Jan–Mär)" },
+            { "type": "CheckBox", "name": "Modul3Q1", "caption": "Q1 (Jan–Mar)" },
             { "type": "CheckBox", "name": "Modul3Q2", "caption": "Q2 (Apr–Jun)" },
             { "type": "CheckBox", "name": "Modul3Q3", "caption": "Q3 (Jul–Sep)" },
-            { "type": "CheckBox", "name": "Modul3Q4", "caption": "Q4 (Okt–Dez)" }
+            { "type": "CheckBox", "name": "Modul3Q4", "caption": "Q4 (Oct–Dec)" }
           ]
         },
         {
           "type": "NumberSpinner",
           "name": "NetzArbeitspreis",
-          "caption": "Normaler Netz-Arbeitspreis, wenn Modul 3 im Quartal inaktiv (ct/kWh netto)",
+          "caption": "Normal grid work price when module 3 is inactive in the quarter (ct/kWh net)",
           "digits": 3
         },
         {
           "type": "NumberSpinner",
           "name": "PriceKonzession",
-          "caption": "Konzessionsabgabe (ct/kWh netto)",
+          "caption": "Concession levy (ct/kWh net)",
           "digits": 3
         },
         {
           "type": "Label",
-          "caption": "── Fixe Positionen (nicht per kWh) ──"
+          "caption": "── Fixed items (not per kWh) ──"
         },
         {
           "type": "Label",
-          "caption": "Diese Jahresbeträge fließen NICHT in die per-kWh-Zerlegung, sondern in eine getrennte Monatsrechnung. Als Jahreswert eintragen – das Modul rechnet auf den Tag herunter (/365)."
+          "caption": "These annual amounts do NOT flow into the per-kWh breakdown but into a separate monthly bill. Enter them as an annual value – the module divides it down to the day (/365)."
         },
         {
           "type": "NumberSpinner",
           "name": "NetzGrundpreisYear",
-          "caption": "Netz-Jahresgrundpreis (€/Jahr)",
+          "caption": "Grid annual base price (€/year)",
           "digits": 2
         },
         {
           "type": "CheckBox",
           "name": "Paragraph14aEnabled",
-          "caption": "§14a Modul 1 Reduzierung anwenden (nur für §14a-Teilnehmer)"
+          "caption": "Apply §14a module 1 reduction (only for §14a participants)"
         },
         {
           "type": "NumberSpinner",
           "name": "Paragraph14aReductionYear",
-          "caption": "§14a Modul 1 Reduzierung (€/Jahr)",
+          "caption": "§14a module 1 reduction (€/year)",
           "digits": 2
         },
         {
           "type": "NumberSpinner",
           "name": "TibberBaseFeeMonth",
-          "caption": "Tibber-Grundgebühr (€/Monat)",
+          "caption": "Tibber base fee (€/month)",
           "digits": 2
         },
         {
           "type": "Label",
-          "caption": "Befristete Rabatte/Kampagnen (z. B. „Tibber-Grundgebühr-Rabatt“). Betrag signiert – ein Rabatt ist NEGATIV. „Gültig von/bis“ als TT.MM.JJJJ (bestehende Einträge im alten Format JJJJ-MM-TT werden weiterhin korrekt gelesen); „bis“ schließt den Tag ein, leer = unbefristet. Nur die im Abrechnungszeitraum aktiven werden angewendet."
+          "caption": "Time-limited discounts/campaigns (e.g. “Tibber base fee discount”). The amount is signed – a discount is NEGATIVE. “Valid from/to” as DD.MM.YYYY (existing entries in the old format YYYY-MM-DD are still read correctly); “to” includes that day, empty = unlimited. Only those active in the billing period are applied."
         },
         {
           "type": "List",
           "name": "TariffCampaigns",
-          "caption": "Rabatte/Kampagnen",
+          "caption": "Discounts/campaigns",
           "rowCount": 3,
           "add": true,
           "delete": true,
           "columns": [
             {
-              "caption": "Bezeichnung",
+              "caption": "Name",
               "name": "Label",
               "width": "auto",
               "add": "",
               "edit": { "type": "ValidationTextBox" }
             },
             {
-              "caption": "Betrag (€/Monat, negativ = Rabatt)",
+              "caption": "Amount (€/month, negative = discount)",
               "name": "AmountMonth",
               "width": "200px",
               "add": 0,
               "edit": { "type": "NumberSpinner", "digits": 2 }
             },
             {
-              "caption": "Gültig von (TT.MM.JJJJ, leer = ab Beginn)",
+              "caption": "Valid from (DD.MM.YYYY, empty = from the beginning)",
               "name": "ValidFrom",
               "width": "220px",
               "add": "",
               "edit": { "type": "ValidationTextBox" }
             },
             {
-              "caption": "Gültig bis (TT.MM.JJJJ, leer = unbefristet)",
+              "caption": "Valid to (DD.MM.YYYY, empty = unlimited)",
               "name": "ValidUntil",
               "width": "220px",
               "add": "",
@@ -381,43 +381,43 @@
     {
       "type": "ExpansionPanel",
       "name": "PanelWallbox",
-      "caption": "🔌 Wallboxen (Netzbezug-Berechnung)",
+      "caption": "🔌 Wallboxes (grid import calculation)",
       "items": [
         {
           "type": "Label",
-          "caption": "Pro Wallbox die Wirkleistung wählen (Pflicht, für EMS-Sollwert & Summe). Faktor z. B. 1000, falls eine Quelle in kW statt W liefert. Optional zusätzlich den Energiezähler „abgegebene Energie im Ladezyklus“ (kWh) wählen – dann wird die Grid-Reward-Energie exakt aus diesem Zähler berechnet (reset-fest), sonst aus der Leistung integriert."
+          "caption": "For each wallbox choose the active power (required, for the EMS setpoint and the sum). Factor e.g. 1000 if a source delivers kW instead of W. Optionally also choose the energy meter “energy delivered in the charging cycle” (kWh) – the Grid Reward energy is then calculated exactly from that meter (reset-proof), otherwise it is integrated from the power."
         },
         {
           "type": "List",
           "name": "Wallboxes",
-          "caption": "Wallboxen",
+          "caption": "Wallboxes",
           "rowCount": 5,
           "add": true,
           "delete": true,
           "columns": [
             {
-              "caption": "Aktiv",
+              "caption": "Active",
               "name": "Active",
               "width": "60px",
               "add": true,
               "edit": { "type": "CheckBox" }
             },
             {
-              "caption": "Wirkleistung (Variable)",
+              "caption": "Active power (variable)",
               "name": "PowerID",
               "width": "auto",
               "add": 0,
               "edit": { "type": "SelectVariable" }
             },
             {
-              "caption": "Faktor (Leistung)",
+              "caption": "Factor (power)",
               "name": "Factor",
               "width": "120px",
               "add": 1,
               "edit": { "type": "NumberSpinner", "digits": 3 }
             },
             {
-              "caption": "Energie Ladezyklus (kWh, optional)",
+              "caption": "Energy of the charging cycle (kWh, optional)",
               "name": "EnergyID",
               "width": "auto",
               "add": 0,
@@ -428,47 +428,47 @@
         {
           "type": "NumberSpinner",
           "name": "ChargingThreshold",
-          "caption": "Schwelle „lädt“ (W)",
+          "caption": "“Charging” threshold (W)",
           "digits": 0
         },
         {
           "type": "NumberSpinner",
           "name": "MaxAge",
-          "caption": "Max. Alter der Messwerte (s, 0 = aus)",
+          "caption": "Max. age of the readings (s, 0 = off)",
           "digits": 0
         },
         {
           "type": "Label",
-          "caption": "Modus (Variable „Grid-Reward-Modus“) als ein Wert fürs EMS: 0 = Normal · 1 = Auto lädt ohne Reward (Smart-Charge/Zwangsbeladen/Freigabe → Strom aus Netz, Batterie nicht fürs Auto entladen) · 2 = Grid Reward Laden/excess (aus Netz + Batterie aus Netz laden, nie entladen) · 3 = Grid Reward Drosselung/shortage (Auto aus, Haus aus Batterie). Die Preis-Feinsteuerung (wann Batterie laden/entladen) bleibt im EMS."
+          "caption": "Mode (variable “Grid reward mode”) as a single value for the EMS: 0 = normal · 1 = car charging without reward (smart charge / forced charging / release → power from the grid, do not discharge the battery for the car) · 2 = Grid Reward charge/excess (charge from the grid + charge the battery from the grid, never discharge) · 3 = Grid Reward curtailment/shortage (car off, house from battery). The price fine-tuning (when to charge/discharge the battery) stays in the EMS."
         }
       ]
     },
     {
       "type": "ExpansionPanel",
       "name": "PanelRules",
-      "caption": "🎯 Automationen (Wenn → Dann)",
+      "caption": "🎯 Automations (If → Then)",
       "items": [
         {
           "type": "Label",
-          "caption": "Regeln über die Datenpunkte dieser Instanz (z. B. Grid-Reward-Modus, Wallbox lädt). Sobald die Bedingung erfüllt wird, setzt die Regel bis zu zwei Zielvariablen gleichzeitig. Flankengesteuert – eine Regel feuert beim Eintreten der Bedingung, nicht bei jeder Datenmeldung erneut. Werte werden automatisch in den Typ der Zielvariable umgewandelt (Zahl, true/false oder Text). Platzhalter „WALLBOX“ = aktuell benötigte Wallbox-Leistung, wird laufend live nachgeführt, solange die Bedingung erfüllt bleibt. Die Kachel „TibberGridRewardTile“ kann diese Regeln anzeigen, verwalten und ein-/ausschalten – und bietet dort einen Editor mit beliebig vielen Bedingungen (UND) und Aktionen je Regel."
+          "caption": "Rules over the data points of this instance (e.g. Grid reward mode, wallbox charging). As soon as the condition is met, the rule sets up to two target variables at the same time. Edge-triggered – a rule fires when the condition becomes true, not again with every data message. Values are converted automatically to the type of the target variable (number, true/false or text). Placeholder “WALLBOX” = wallbox power currently required, tracked live as long as the condition stays true. The tile “TibberGridRewardTile” can show, manage and switch these rules on/off – and offers an editor there with any number of conditions (AND) and actions per rule."
         },
         {
           "type": "List",
           "name": "DataActions",
-          "caption": "Regeln",
+          "caption": "Rules",
           "rowCount": 8,
           "add": true,
           "delete": true,
           "columns": [
             {
-              "caption": "Aktiv",
+              "caption": "Active",
               "name": "Active",
               "width": "60px",
               "add": true,
               "edit": { "type": "CheckBox" }
             },
             {
-              "caption": "Wenn Datenpunkt",
+              "caption": "If data point",
               "name": "Source",
               "width": "170px",
               "add": "",
@@ -478,85 +478,85 @@
               }
             },
             {
-              "caption": "Bedingung",
+              "caption": "Condition",
               "name": "Op",
               "width": "140px",
               "add": "true",
               "edit": {
                 "type": "Select",
                 "options": [
-                  { "caption": "wird EIN (true)", "value": "true" },
-                  { "caption": "wird AUS (false)", "value": "false" },
-                  { "caption": "= (gleich)", "value": "eq" },
-                  { "caption": "≠ (ungleich)", "value": "ne" },
-                  { "caption": "> (größer)", "value": "gt" },
-                  { "caption": "≥ (größer gleich)", "value": "ge" },
-                  { "caption": "< (kleiner)", "value": "lt" },
-                  { "caption": "≤ (kleiner gleich)", "value": "le" },
-                  { "caption": "ändert sich", "value": "change" }
+                  { "caption": "turns ON (true)", "value": "true" },
+                  { "caption": "turns OFF (false)", "value": "false" },
+                  { "caption": "= (equal)", "value": "eq" },
+                  { "caption": "≠ (not equal)", "value": "ne" },
+                  { "caption": "> (greater)", "value": "gt" },
+                  { "caption": "≥ (greater or equal)", "value": "ge" },
+                  { "caption": "< (less)", "value": "lt" },
+                  { "caption": "≤ (less or equal)", "value": "le" },
+                  { "caption": "changes", "value": "change" }
                 ]
               }
             },
             {
-              "caption": "Vergleichswert",
+              "caption": "Comparison value",
               "name": "Compare",
               "width": "100px",
               "add": "",
               "edit": { "type": "ValidationTextBox" }
             },
             {
-              "caption": "Zielvariable 1",
+              "caption": "Target variable 1",
               "name": "Target1",
               "width": "auto",
               "add": 0,
               "edit": { "type": "SelectVariable" }
             },
             {
-              "caption": "Aktion 1",
+              "caption": "Action 1",
               "name": "Action1",
               "width": "120px",
               "add": "on",
               "edit": {
                 "type": "Select",
                 "options": [
-                  { "caption": "Einschalten", "value": "on" },
-                  { "caption": "Ausschalten", "value": "off" },
-                  { "caption": "Umschalten", "value": "toggle" },
-                  { "caption": "Wert setzen", "value": "value" }
+                  { "caption": "Switch on", "value": "on" },
+                  { "caption": "Switch off", "value": "off" },
+                  { "caption": "Toggle", "value": "toggle" },
+                  { "caption": "Set value", "value": "value" }
                 ]
               }
             },
             {
-              "caption": "Wert 1",
+              "caption": "Value 1",
               "name": "Value1",
               "width": "100px",
               "add": "",
               "edit": { "type": "ValidationTextBox" }
             },
             {
-              "caption": "Zielvariable 2 (optional)",
+              "caption": "Target variable 2 (optional)",
               "name": "Target2",
               "width": "auto",
               "add": 0,
               "edit": { "type": "SelectVariable" }
             },
             {
-              "caption": "Aktion 2",
+              "caption": "Action 2",
               "name": "Action2",
               "width": "120px",
               "add": "on",
               "edit": {
                 "type": "Select",
                 "options": [
-                  { "caption": "Einschalten", "value": "on" },
-                  { "caption": "Ausschalten", "value": "off" },
-                  { "caption": "Umschalten", "value": "toggle" },
-                  { "caption": "Wert setzen", "value": "value" }
+                  { "caption": "Switch on", "value": "on" },
+                  { "caption": "Switch off", "value": "off" },
+                  { "caption": "Toggle", "value": "toggle" },
+                  { "caption": "Set value", "value": "value" }
                 ]
               }
             },
             {
-              "caption": "Wert 2 (optional)",
+              "caption": "Value 2 (optional)",
               "name": "Value2",
               "width": "100px",
               "add": "",
@@ -566,78 +566,78 @@
         },
         {
           "type": "Label",
-          "caption": "🔍 Werte nachschlagen: IP-Symcon-Listen können pro Zeile keine abhängige Auswahlliste anzeigen (jede Zeile kann eine andere Zielvariable mit anderem Profil haben). Wähle hier stattdessen eine Variable, übernimm, und klicke „Werte anzeigen“ – darunter erscheinen alle möglichen Werte zum Ablesen/Abtippen in Vergleichswert/Wert 1/2."
+          "caption": "🔍 Look up values: Symcon lists cannot show a dependent selection list per row (every row can have a different target variable with a different profile). Instead choose a variable here, apply, and click “Show values” – below it all possible values appear, to read off or type into comparison value / value 1/2."
         },
         {
           "type": "SelectVariable",
           "name": "LookupVariable",
-          "caption": "Werte nachschlagen für"
+          "caption": "Look up values for"
         },
         {
           "type": "Button",
-          "caption": "Werte anzeigen",
+          "caption": "Show values",
           "onClick": "TIBBERGR_ShowLookupValues($id);"
         },
         {
           "type": "Label",
           "name": "LookupResult",
-          "caption": "Wähle oben eine Variable, übernimm, dann „Werte anzeigen“ klicken."
+          "caption": "Choose a variable above, apply, then click “Show values”."
         }
       ]
     },
     {
       "type": "ExpansionPanel",
       "name": "PanelSim",
-      "caption": "🧪 Simulation (zum Testen ohne echten Einsatz)",
+      "caption": "🧪 Simulation (for testing without a real event)",
       "items": [
         {
           "type": "Label",
-          "caption": "Simuliert einen Grid-Reward-Status und durchläuft dabei exakt denselben Code wie ein echtes Tibber-Ereignis – inklusive der oben konfigurierten Automationen (werden also wirklich ausgeführt!) und der Energiezählung. So lässt sich die eigene EMS-Verdrahtung testen, ohne auf einen echten, oft seltenen Einsatz zu warten. Wichtig: Die Simulation bleibt bestehen, bis entweder die nächste echte Statusmeldung von Tibber eintrifft oder du unten auf „Zurück zum echten Status“ klickst – das fordert aktiv einen frischen Status direkt von Tibber an, statt auf die nächste Meldung zu warten."
+          "caption": "Simulates a Grid Reward status and runs through exactly the same code as a real Tibber event – including the automations configured above (so they really are executed!) and the energy counting. This lets you test your own EMS wiring without waiting for a real, often rare event. Important: the simulation stays in place until either the next real status message from Tibber arrives or you click “Back to real status” below – that actively requests a fresh status directly from Tibber instead of waiting for the next message."
         },
         {
           "type": "RowLayout",
           "items": [
             {
               "type": "Button",
-              "caption": "Verfügbar (kein Einsatz)",
+              "caption": "Available (no event)",
               "onClick": "TIBBERGR_Simulate($id, 'available');"
             },
             {
               "type": "Button",
-              "caption": "Laden simulieren (excess)",
+              "caption": "Simulate charging (excess)",
               "onClick": "TIBBERGR_Simulate($id, 'excess');"
             },
             {
               "type": "Button",
-              "caption": "Drosselung simulieren (shortage)",
+              "caption": "Simulate curtailment (shortage)",
               "onClick": "TIBBERGR_Simulate($id, 'shortage');"
             }
           ]
         },
         {
           "type": "Button",
-          "caption": "↩ Zurück zum echten Status",
+          "caption": "↩ Back to real status",
           "onClick": "TIBBERGR_ResetSimulation($id);"
         }
       ]
     },
     {
       "type": "Label",
-      "caption": "Die Kachel-Darstellung erfolgt über das separate Modul „TibberGridRewardTile“ (eigene Instanz). Dort liegen auch alle Kachel-Einstellungen (Farben, Schrift)."
+      "caption": "The tile display is provided by the separate module “TibberGridRewardTile” (its own instance). All tile settings (colors, font) are found there as well."
     },
     {
       "type": "ExpansionPanel",
       "name": "PanelDemo",
-      "caption": "🆕 🎭 Demo-Modus (nur für Vorführ-/Testinstanzen)",
+      "caption": "🆕 🎭 Demo mode (for demo/test instances only)",
       "items": [
         {
           "type": "Label",
-          "caption": "⚠️ NICHT auf einer echten, produktiven Instanz aktivieren. Ersetzt die Preiskurve (TIBBERGR_GetPriceCurve) durch eine manuell per TIBBERGR_SetDemoPriceCurve() gesetzte – für Vorführ-Szenarien (z. B. günstig/teuer/Einspeiseüberschuss durchschalten), unabhängig von echten Zugangsdaten. Solange dieses Häkchen aus ist, hat TIBBERGR_SetDemoPriceCurve() keine Wirkung."
+          "caption": "⚠️ Do NOT enable on a real, productive instance. Replaces the price curve (TIBBERGR_GetPriceCurve) with one set manually via TIBBERGR_SetDemoPriceCurve() – for demo scenarios (e.g. stepping through cheap/expensive/feed-in surplus), independent of real credentials. As long as this checkbox is off, TIBBERGR_SetDemoPriceCurve() has no effect."
         },
         {
           "type": "CheckBox",
           "name": "DemoOverrideEnabled",
-          "caption": "Demo-Override aktiv"
+          "caption": "Demo override active"
         }
       ]
     }
@@ -645,12 +645,12 @@
   "actions": [
     {
       "type": "Button",
-      "caption": "Zuhause-Liste neu laden",
+      "caption": "Reload home list",
       "onClick": "echo TIBBERGR_UpdateHomes($id);"
     },
     {
       "type": "Button",
-      "caption": "🔄 Übernehmen erzwingen (ohne Formularänderung)",
+      "caption": "🔄 Force apply (without a form change)",
       "onClick": "IPS_ApplyChanges($id); echo TIBBERGR_ApplyChangesConfirmation($id);"
     }
   ],
@@ -658,27 +658,27 @@
     {
       "code": 102,
       "icon": "active",
-      "caption": "Aktiv"
+      "caption": "Active"
     },
     {
       "code": 104,
       "icon": "inactive",
-      "caption": "Inaktiv"
+      "caption": "Inactive"
     },
     {
       "code": 201,
       "icon": "error",
-      "caption": "Keine Zugangsdaten (E-Mail/Passwort)"
+      "caption": "No credentials (email/password)"
     },
     {
       "code": 202,
       "icon": "error",
-      "caption": "Kein Zuhause gewählt"
+      "caption": "No home selected"
     },
     {
       "code": 210,
       "icon": "error",
-      "caption": "Login fehlgeschlagen"
+      "caption": "Login failed"
     }
   ]
 }

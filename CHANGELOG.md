@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.11.0
+
+- **Zweisprachig Deutsch/Englisch** (SUITE.md Punkt 9, Store-Checkliste 25–29, Auftrag Dietmar
+  07.11.2026) in beiden Modulen: Konfigurationsformular, Status-/Hinweistexte, Vertragsmeldungen und
+  die Kachel (Regelliste und Regel-Editor) folgen der Symcon-Sprache. Quelltexte sind jetzt Englisch,
+  `locale.json` (je Modul) trägt die deutsche Übersetzung; Formular-Beschriftungen übersetzt die
+  Konsole selbst, Texte mit Werten laufen über `Translate()` + `sprintf()`. Idents, Eigenschaften,
+  Funktionsnamen und Vertragsschlüssel sind unverändert (Migrationsvergleich ohne Fund).
+  `SendDebug`-Meldungen bleiben bewusst deutsch.
+- **Kachel:** Die Texte des Regel-Editors (vorher fest in `module.html`) kommen als Tabelle `ui` aus
+  dem Modul. Die Tabelle wird gepuffert (Buffer `UiTexts`) und nur bei Sprachwechsel neu aufgebaut,
+  damit nicht bei jedem Kachel-Update hunderte `Translate()`-Aufrufe die `locale.json` lesen
+  (Stolperstein 24).
+- **Datenmodul:** Die Vorbelegung der Kampagnen-Zeile („Tibber base fee discount“) ist sprachabhängig;
+  bestehende Instanzen behalten ihre Einträge. `CurrentPriceLevel` und die Regelbeschreibungen
+  („If … → …“) werden in der Systemsprache ausgegeben.
+- **Namensregel:** „IP-Symcon“ wurde in allen Texten durch „Symcon“ ersetzt.
+- Neuer Prüfstand `.tools/check-locale.php`: jeder Text im Code und in `form.json` hat einen Eintrag in
+  `locale.json`, Quelltexte sind Englisch, Platzhalter stimmen überein, keine verwaisten Einträge.
+- `README.en.md` ergänzt.
+- Hinweis: Die Sprachregel „alles Nutzersichtbare auf Deutsch“ aus `CLAUDE.md` gilt für die
+  deutsche Anzeige weiter (jetzt über `locale.json`), nicht mehr für die Quelltexte.
+
 ## 2.10.0
 
 - **„🪟 Formular: Aufbau“ in beiden Modulen** (SUITE.md 3a, Auftrag Dietmar 29.10.2026, Referenz

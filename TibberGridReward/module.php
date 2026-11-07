@@ -50,7 +50,7 @@ class TibberGridReward extends IPSModule
 
     // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik") - NEWS_VERSION bei jedem
     // Release mit nutzerrelevanten Änderungen synchron zur library.json-Version halten.
-    private const NEWS_VERSION = '2.10.0';
+    private const NEWS_VERSION = '2.11.0';
     private const FORUM_THREAD_URL = 'https://community.symcon.de/t/modul-tibber-grid-rewards-grid-reward-signal-wallbox-ems-aufbereitung-fuer-ip-symcon/143996';
 
     // Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - main trägt seit 2.9.3 den
@@ -226,7 +226,7 @@ class TibberGridReward extends IPSModule
         // weiterhin klaglos das alte "JJJJ-MM-TT" ein (beide Formate isoliert getestet), Bestandsdaten
         // brauchen also keine Migration. Vorbelegt mit der realen Tibber-Grundgebühr-Aktion.
         $this->RegisterPropertyString('TariffCampaigns', json_encode([
-            ['Label' => 'Tibber-Grundgebühr-Rabatt', 'AmountMonth' => -5.03, 'ValidFrom' => '', 'ValidUntil' => '30.11.2027'],
+            ['Label' => $this->Translate('Tibber base fee discount'), 'AmountMonth' => -5.03, 'ValidFrom' => '', 'ValidUntil' => '30.11.2027'],
         ]));
 
         $this->RegisterAttributeString('PriceHomes', '');
@@ -403,12 +403,12 @@ class TibberGridReward extends IPSModule
         }
         return [
             'type' => 'ExpansionPanel', 'name' => 'PurposeIntroPanel', 'expanded' => true,
-            'caption' => '👋  Wozu dieses Modul?',
+            'caption' => '👋  What is this module for?',
             'items' => [
-                ['type' => 'Label', 'caption' => 'Tibber Grid Rewards zeigt, wann Tibber selbst dein Fahrzeug oder deinen Heimspeicher steuert (Grid Rewards) — als IP-Symcon-Variablen, die du für eigene Automationen nutzen kannst. Ergänzt bewusst das Modul „Tibber V.2", das deinen Verbrauch/deine Live-Messung abdeckt.'],
-                ['type' => 'Label', 'caption' => 'Der Nutzen: Dein EMS oder eigene Automationen erfahren, wann Tibber gerade Netzüberschuss belohnt (dein Auto/deine Batterie lädt aus dem Netz) oder Netzknappheit ausgleicht (Drosselung) — und können darauf reagieren, statt gegen Tibber zu arbeiten.'],
-                ['type' => 'Label', 'caption' => 'Optional, unabhängig von Grid Rewards: die vollständige Tibber-Endkundenpreiskurve für preisgetriebene Automationen, sowie das Setzen einer Abfahrtszeit/Ladeziel-Präferenz direkt in Tibbers eigenem Smart-Charging.'],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TIBBERGR_AckPurposeIntro($id);'],
+                ['type' => 'Label', 'caption' => 'Tibber Grid Rewards shows when Tibber itself controls your vehicle or home battery (Grid Rewards) — as Symcon variables you can use for your own automations. It deliberately complements the “Tibber V.2” module, which covers your consumption/live measurement.'],
+                ['type' => 'Label', 'caption' => 'The benefit: your EMS or your own automations learn when Tibber is currently rewarding grid surplus (your car/battery charges from the grid) or relieving grid shortage (curtailment) — and can react to it instead of working against Tibber.'],
+                ['type' => 'Label', 'caption' => 'Optional, independent of Grid Rewards: the complete Tibber end-customer price curve for price-driven automations, and setting a departure time/charge target preference directly in Tibber’s own smart charging.'],
+                ['type' => 'Button', 'caption' => 'Understood – do not show again', 'onClick' => 'TIBBERGR_AckPurposeIntro($id);'],
             ],
         ];
     }
@@ -427,16 +427,17 @@ class TibberGridReward extends IPSModule
         }
         return [
             'type' => 'ExpansionPanel', 'name' => 'NewsPanel', 'expanded' => true,
-            'caption' => '🆕  Neu in dieser Version',
+            'caption' => '🆕  New in this version',
             'items' => [
-                ['type' => 'Label', 'caption' => '• 🆕 Abfahrtszeit/Ladeziel setzen: TIBBERGR_SetVehicleSetting() trägt eine Präferenz (Abfahrtszeit je Wochentag, Mindest-Ladeschwelle, Smart-Charging an/aus) direkt in Tibbers eigenen Algorithmus ein — für EMS/Automationen, kein eigenes Formularfeld.'],
-                ['type' => 'Label', 'caption' => '• 🆕 Rechnungsprüfung: TIBBERGR_DecomposePrice() zerlegt einen historischen Preis in Börsenpreis/Beschaffung/Netzentgelt/Steuern — hilfreich, wenn du deine Tibber-Rechnung nachrechnen willst.'],
-                ['type' => 'Label', 'caption' => '• ⚠️🆕 Neues Häkchen „Demo-Override aktiv" (Panel „🎭 Demo-Modus"): NICHT für den normalen Betrieb — nur für Vorführ-/Testinstanzen, die eine manuell gesetzte Preiskurve statt echter Daten zeigen sollen.'],
-                ['type' => 'Label', 'caption' => '• 🔧 TIBBERGR_GetActiveControls(): „deviceId" liefert jetzt Tibbers echte Geräte-Kennung statt immer „0" — nützlich, wenn mehrere Fahrzeuge/Speicher an Grid Rewards teilnehmen.'],
-                ['type' => 'Label', 'caption' => '• 🔧 Neu: TIBBERGR_GetFlexDevices() liefert ALLE an Grid Rewards teilnehmenden Fahrzeuge/Speicher (nicht nur die gerade aktiven) — Grundlage für EMS, eine Wallbox/ein Fahrzeug einem Tibber-Gerät zuzuordnen.'],
-                ['type' => 'Label', 'caption' => '• 🪟 Neu: Formular-Aufbau selbst wählen - im Panel „🪟 Formular: Aufbau“ legst du je Bereich fest, ob er beim Öffnen aufgeklappt, zugeklappt oder ausgeblendet ist und an welcher Position er steht.'],
-                ['type' => 'Label', 'caption' => '• Datumsfelder (Kampagnen-Gültigkeit) zeigen jetzt TT.MM.JJJJ statt YYYY-MM-DD.'],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TIBBERGR_AckNews($id);'],
+                ['type' => 'Label', 'caption' => '• 🌍 New: the module now speaks German and English — the configuration form, the status texts and the tile follow the Symcon language.'],
+                ['type' => 'Label', 'caption' => '• 🆕 Set departure time/charge target: TIBBERGR_SetVehicleSetting() writes a preference (departure time per weekday, minimum charge level, smart charging on/off) directly into Tibber’s own algorithm — for EMS/automations, no form field of its own.'],
+                ['type' => 'Label', 'caption' => '• 🆕 Invoice check: TIBBERGR_DecomposePrice() breaks a historical price down into exchange price/procurement/grid fee/taxes — helpful if you want to recalculate your Tibber invoice.'],
+                ['type' => 'Label', 'caption' => '• ⚠️🆕 New tick “Demo override active” (panel “🎭 Demo mode”): NOT for normal operation — only for demo/test instances that should show a manually set price curve instead of real data.'],
+                ['type' => 'Label', 'caption' => '• 🔧 TIBBERGR_GetActiveControls(): “deviceId” now returns Tibber’s real device identifier instead of always “0” — useful when several vehicles/batteries take part in Grid Rewards.'],
+                ['type' => 'Label', 'caption' => '• 🔧 New: TIBBERGR_GetFlexDevices() returns ALL vehicles/batteries taking part in Grid Rewards (not just the currently active ones) — the basis for the EMS to assign a wallbox/vehicle to a Tibber device.'],
+                ['type' => 'Label', 'caption' => '• 🪟 New: choose the form layout yourself - in the panel “🪟 Form: layout” you set for each section whether it is expanded, collapsed or hidden when the form opens and at which position it appears.'],
+                ['type' => 'Label', 'caption' => '• Date fields (campaign validity) now show DD.MM.YYYY instead of YYYY-MM-DD.'],
+                ['type' => 'Button', 'caption' => 'Understood – do not show again', 'onClick' => 'TIBBERGR_AckNews($id);'],
             ],
         ];
     }
@@ -455,11 +456,11 @@ class TibberGridReward extends IPSModule
         }
         return [
             'type' => 'ExpansionPanel', 'name' => 'ForumHintPanel', 'expanded' => true,
-            'caption' => '💬  Feedback im Symcon-Forum',
+            'caption' => '💬  Feedback in the Symcon forum',
             'items' => [
-                ['type' => 'Label', 'caption' => 'Rückmeldungen zu diesem Modul sind ausdrücklich willkommen im Community-Thread.'],
-                ['type' => 'Button', 'caption' => 'Zum Forums-Thread', 'onClick' => "echo '" . self::FORUM_THREAD_URL . "';", 'link' => true],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TIBBERGR_AckForumHint($id);'],
+                ['type' => 'Label', 'caption' => 'Feedback on this module is explicitly welcome in the community thread.'],
+                ['type' => 'Button', 'caption' => 'To the forum thread', 'onClick' => "echo '" . self::FORUM_THREAD_URL . "';", 'link' => true],
+                ['type' => 'Button', 'caption' => 'Understood – do not show again', 'onClick' => 'TIBBERGR_AckForumHint($id);'],
             ],
         ];
     }
@@ -478,14 +479,14 @@ class TibberGridReward extends IPSModule
     {
         return [
             'type' => 'ExpansionPanel', 'expanded' => false,
-            'caption' => '🧡  Über dieses Modul',
+            'caption' => '🧡  About this module',
             'items' => [
-                ['type' => 'Label', 'caption' => 'Entstanden aus echter Begeisterung für die eigene Anlage — und ein paar durchgetippten Abenden. Trotzdem: Software-Hobby hin oder her, das hier ist geistiges Eigentum und echte Arbeit steckt drin.'],
-                ['type' => 'Label', 'caption' => 'Lizenz: PolyForm Noncommercial 1.0.0 — privat und nicht-kommerziell frei nutzbar, für den gewerblichen Einsatz braucht es eine gesonderte Lizenz vom Rechteinhaber.'],
-                ['type' => 'Button', 'caption' => 'Lizenztext ansehen', 'onClick' => "echo '" . self::LICENSE_URL . "';", 'link' => true],
-                ['type' => 'Label', 'caption' => 'Gewerbliche Nutzung oder Fragen zur Lizenz? Einfach melden: dietmar@gureth.eu'],
-                ['type' => 'Label', 'caption' => 'Gefällt dir das Modul und du möchtest trotzdem etwas dalassen? Über eine kleine Spende freue ich mich — völlig freiwillig, keine Gegenleistung nötig.'],
-                ['type' => 'Button', 'caption' => '☕  Spenden via PayPal', 'onClick' => "echo '" . self::PAYPAL_URL . "';", 'link' => true],
+                ['type' => 'Label', 'caption' => 'Born out of genuine enthusiasm for my own installation — and a few evenings of typing. Still: hobby software or not, this is intellectual property and real work went into it.'],
+                ['type' => 'Label', 'caption' => 'License: PolyForm Noncommercial 1.0.0 — free for private and non-commercial use; commercial use needs a separate license from the rights holder.'],
+                ['type' => 'Button', 'caption' => 'View license text', 'onClick' => "echo '" . self::LICENSE_URL . "';", 'link' => true],
+                ['type' => 'Label', 'caption' => 'Commercial use or questions about the license? Just get in touch: dietmar@gureth.eu'],
+                ['type' => 'Label', 'caption' => 'Do you like the module and still want to leave something? I would be happy about a small donation — completely voluntary, nothing owed in return.'],
+                ['type' => 'Button', 'caption' => '☕  Donate via PayPal', 'onClick' => "echo '" . self::PAYPAL_URL . "';", 'link' => true],
             ],
         ];
     }
@@ -584,28 +585,28 @@ class TibberGridReward extends IPSModule
             }
         }
         $hiddenLine = $hidden
-            ? [['type' => 'Label', 'caption' => '🙈 Ausgeblendet: ' . implode(', ', $hidden) . ' — zum Wiederzeigen den Haken bei „Ausgeblendet“ entfernen. Ausgeblendete Bereiche arbeiten weiter, nur die Anzeige fehlt.']]
+            ? [['type' => 'Label', 'caption' => sprintf($this->Translate('🙈 Hidden: %s — to show again, remove the tick under “Hidden”. Hidden sections keep working, only the display is missing.'), implode(', ', $hidden))]]
             : [];
         return [
             'type' => 'ExpansionPanel', 'expanded' => false,
-            'caption' => '🪟  Formular: Aufbau' . ($hidden ? ' (' . count($hidden) . ' ausgeblendet)' : ''),
+            'caption' => $this->Translate('🪟  Form: layout') . ($hidden ? ' ' . sprintf($this->Translate('(%d hidden)'), count($hidden)) : ''),
             'items' => array_merge($hiddenLine, [
-                ['type' => 'Label', 'caption' => 'Hier legst du fest, welche Bereiche beim Öffnen des Formulars aufgeklappt sind und in welcher Reihenfolge sie stehen. Symcon merkt sich das Auf- und Zuklappen nicht selbst, deshalb gilt die Einstellung hier jedes Mal beim Öffnen. Sie wirkt nach „Übernehmen“ beim nächsten Öffnen des Formulars.'],
-                ['type' => 'Label', 'caption' => 'Kein Haken heißt „Standard“: wie das Modul es vorsieht. Wer „Zugeklappt“ wählt, sieht dann auch Neues dort nicht sofort. Die Position ist eine Zahl; bei gleicher Zahl bleibt die Standardreihenfolge. „Ausgeblendet“ nimmt einen Bereich aus der Anzeige, ohne dass er etwas verliert: seine Einstellungen bleiben erhalten und wirken weiter (gedacht für Bereiche, die man selten braucht). Zum Wiederzeigen den Haken bei „Ausgeblendet“ entfernen oder „Auf Standard zurücksetzen“ klicken. Sind mehrere Haken gesetzt, gilt „Ausgeblendet“ vor „Zugeklappt“ vor „Aufgeklappt“. Die Bereiche oben (Zweck, Neuigkeiten, Dokumentation) und unten (Rückmeldungen, Über dieses Modul) bleiben, wo sie sind, und lassen sich nicht ausblenden.'],
+                ['type' => 'Label', 'caption' => 'Here you decide which sections are expanded when the form opens and in which order they appear. Symcon does not remember expanding and collapsing by itself, so this setting applies every time the form opens. It takes effect after “Apply” the next time the form is opened.'],
+                ['type' => 'Label', 'caption' => 'No tick means “Default”: as the module intends it. Anyone who chooses “Collapsed” will not see new content there right away either. The position is a number; with equal numbers the default order is kept. “Hidden” removes a section from the display without it losing anything: its settings are kept and keep working (meant for sections you rarely need). To show it again, remove the tick under “Hidden” or click “Reset to default”. If several ticks are set, “Hidden” takes precedence over “Collapsed”, which takes precedence over “Expanded”. The sections at the top (purpose, news, documentation) and at the bottom (feedback, about this module) stay where they are and cannot be hidden.'],
                 [
-                    'type' => 'List', 'name' => 'FormLayout', 'caption' => 'Bereiche', 'rowCount' => count($rows), 'add' => false, 'delete' => false,
+                    'type' => 'List', 'name' => 'FormLayout', 'caption' => 'Sections', 'rowCount' => count($rows), 'add' => false, 'delete' => false,
                     'loadValuesFromConfiguration' => false,
                     'values' => $rows,
                     'columns' => [
-                        ['caption' => 'Bereich', 'name' => 'Panel', 'width' => 'auto', 'add' => ''],
-                        ['caption' => 'Schlüssel', 'name' => 'Key', 'width' => '0px', 'visible' => false, 'add' => '', 'save' => true],
-                        ['caption' => 'Aufgeklappt', 'name' => 'Opened', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
-                        ['caption' => 'Zugeklappt', 'name' => 'Closed', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
-                        ['caption' => '🙈 Ausgeblendet', 'name' => 'Hidden', 'width' => '130px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
+                        ['caption' => 'Section', 'name' => 'Panel', 'width' => 'auto', 'add' => ''],
+                        ['caption' => 'Key', 'name' => 'Key', 'width' => '0px', 'visible' => false, 'add' => '', 'save' => true],
+                        ['caption' => 'Expanded', 'name' => 'Opened', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
+                        ['caption' => 'Collapsed', 'name' => 'Closed', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
+                        ['caption' => '🙈 Hidden', 'name' => 'Hidden', 'width' => '130px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
                         ['caption' => 'Position', 'name' => 'Pos', 'width' => '100px', 'add' => 1, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 1, 'maximum' => 99]],
                     ],
                 ],
-                ['type' => 'Button', 'caption' => '↩️ Auf Standard zurücksetzen', 'onClick' => 'echo TIBBERGR_ResetFormLayout($id);'],
+                ['type' => 'Button', 'caption' => '↩️ Reset to default', 'onClick' => 'echo TIBBERGR_ResetFormLayout($id);'],
             ]),
         ];
     }
@@ -623,7 +624,7 @@ class TibberGridReward extends IPSModule
             }
         }
         $this->UpdateFormField('FormLayout', 'values', json_encode($rows, JSON_UNESCAPED_UNICODE));
-        return 'ℹ️ Auf Standard gesetzt. Zum Speichern unten „Übernehmen“ klicken.';
+        return $this->Translate('ℹ️ Reset to default. Click “Apply” below to save.');
     }
 
     public function GetConfigurationForm()
@@ -783,18 +784,18 @@ class TibberGridReward extends IPSModule
                     $name = (string) $h['caption'];
                 }
             }
-            return ['✏️ Zuhause für die Preiskurve: ' . $name . ' (eigene Auswahl)', false];
+            return [sprintf($this->Translate('✏️ Home for the price curve: %s (own selection)'), $name), false];
         }
         if ($this->GetPriceApiToken() === '') {
-            return ['ℹ️ Ohne Zugangsschlüssel gibt es keine Preiskurve - erst den Schlüssel eintragen, dann erscheint hier das Zuhause.', false];
+            return [$this->Translate('ℹ️ Without an access token there is no price curve - enter the token first, then the home appears here.'), false];
         }
         if (count($homes) === 2) {
-            return ['🔗 Zuhause für die Preiskurve: ' . $homes[1]['caption'] . ' (automatisch: einziges Zuhause dieses Zugangs)', true];
+            return [sprintf($this->Translate('🔗 Home for the price curve: %s (automatic: the only home of this access)'), $homes[1]['caption']), true];
         }
         if (count($homes) > 2) {
-            return ['⚠️ ' . (count($homes) - 1) . ' Zuhause bei diesem Zugang gefunden, aber keins gewählt - bitte unten wählen, sonst gibt es keine Preiskurve.', false];
+            return [sprintf($this->Translate('⚠️ %d homes found for this access, but none selected - please choose one below, otherwise there is no price curve.'), count($homes) - 1), false];
         }
-        return ['ℹ️ Noch keine Zuhause geladen - „Preis-Zuhause-Liste neu laden" klicken. Ohne Zuhause gibt es keine Preiskurve.', false];
+        return [$this->Translate('ℹ️ No homes loaded yet - click “Reload price home list”. Without a home there is no price curve.'), false];
     }
 
     /** Zieht Statuszeile und Sichtbarkeit des Preis-Zuhause-Felds im offenen Formular nach. */
@@ -814,12 +815,12 @@ class TibberGridReward extends IPSModule
     private function getAutomationSourceOptions(): array
     {
         return [
-            ['caption' => 'Grid-Reward-Modus', 'value' => 'GridRewardMode'],
-            ['caption' => 'Grid Reward aktiv', 'value' => 'Delivering'],
-            ['caption' => 'Status-Detail', 'value' => 'StateReason'],
-            ['caption' => 'Wallbox lädt', 'value' => 'WallboxCharging'],
-            ['caption' => 'Wallbox-Daten gültig', 'value' => 'DataValid'],
-            ['caption' => 'Wallbox-Leistung (gesamt)', 'value' => 'WallboxPowerTotal'],
+            ['caption' => $this->Translate('Grid reward mode'), 'value' => 'GridRewardMode'],
+            ['caption' => $this->Translate('Grid Reward active'), 'value' => 'Delivering'],
+            ['caption' => $this->Translate('Status detail'), 'value' => 'StateReason'],
+            ['caption' => $this->Translate('Wallbox charging'), 'value' => 'WallboxCharging'],
+            ['caption' => $this->Translate('Wallbox data valid'), 'value' => 'DataValid'],
+            ['caption' => $this->Translate('Wallbox power (total)'), 'value' => 'WallboxPowerTotal'],
         ];
     }
 
@@ -1278,11 +1279,11 @@ class TibberGridReward extends IPSModule
     private function TranslatePriceLevel(string $level): string
     {
         switch ($level) {
-            case 'VERY_CHEAP':     return 'sehr günstig';
-            case 'CHEAP':          return 'günstig';
-            case 'NORMAL':         return 'normal';
-            case 'EXPENSIVE':      return 'teuer';
-            case 'VERY_EXPENSIVE': return 'sehr teuer';
+            case 'VERY_CHEAP': return $this->Translate('very cheap');
+            case 'CHEAP': return $this->Translate('cheap');
+            case 'NORMAL': return $this->Translate('normal');
+            case 'EXPENSIVE': return $this->Translate('expensive');
+            case 'VERY_EXPENSIVE': return $this->Translate('very expensive');
             default:               return $level;
         }
     }
@@ -1567,15 +1568,15 @@ class TibberGridReward extends IPSModule
     public function SetDemoPriceCurve(string $Json): array
     {
         if (!$this->ReadPropertyBooleanSafe('DemoOverrideEnabled')) {
-            return ['success' => false, 'error' => 'Demo-Override nicht aktiviert (Property "DemoOverrideEnabled" im Formular).', 'slotCount' => 0];
+            return ['success' => false, 'error' => $this->Translate('Demo override is not enabled (property "DemoOverrideEnabled" in the form).'), 'slotCount' => 0];
         }
         $decoded = json_decode($Json, true);
         if (!is_array($decoded)) {
-            return ['success' => false, 'error' => 'Ungültiges JSON.', 'slotCount' => 0];
+            return ['success' => false, 'error' => $this->Translate('Invalid JSON.'), 'slotCount' => 0];
         }
         foreach ($decoded as $slot) {
             if (!is_array($slot) || !isset($slot['start'], $slot['price'])) {
-                return ['success' => false, 'error' => 'Jeder Slot braucht mindestens "start" (Unix-Zeitstempel) und "price" (ct/kWh).', 'slotCount' => 0];
+                return ['success' => false, 'error' => $this->Translate('Every slot needs at least "start" (Unix timestamp) and "price" (ct/kWh).'), 'slotCount' => 0];
             }
         }
         $this->WriteAttributeString('DemoPriceCurve', json_encode($decoded));
@@ -1634,7 +1635,7 @@ class TibberGridReward extends IPSModule
             return [
                 'contractVersion' => self::CONTRACT_DECOMPOSEPRICE,
                 'success'         => false,
-                'error'           => 'Tarifzerlegung nicht aktiviert (Panel "Tarif & Netzentgelt").',
+                'error'           => $this->Translate('Price breakdown is not enabled (panel “Tariff & grid fees”).'),
                 'start'           => $Timestamp,
                 'price'           => $PriceCtPerKwh,
                 'vat'             => null,
@@ -2183,14 +2184,14 @@ class TibberGridReward extends IPSModule
         };
 
         if (!in_array($Key, self::ALLOWED_VEHICLE_SETTING_KEYS, true)) {
-            return $fail('Nicht erlaubter Schlüssel: ' . $Key);
+            return $fail(sprintf($this->Translate('Key not allowed: %s'), $Key));
         }
         if ($VehicleId === '') {
-            return $fail('VehicleId fehlt.');
+            return $fail($this->Translate('VehicleId is missing.'));
         }
         $homeId = $this->ReadPropertyStringSafe('Home_ID');
         if ($homeId === '' || $homeId === '0') {
-            return $fail('Kein Grid-Rewards-Zuhause gewählt (Home_ID).');
+            return $fail($this->Translate('No Grid Rewards home selected (Home_ID).'));
         }
 
         // Grobe, bewusst nicht überstrenge Plausibilitätsprüfung je Schlüsselart - Tibbers Backend
@@ -2205,21 +2206,21 @@ class TibberGridReward extends IPSModule
         };
         $isBoolKey = $endsWith($Key, '.isEnabled') || $endsWith($Key, '.isChargingOnOverProductionEnabled');
         if ($isBoolKey && $Value !== 'true' && $Value !== 'false') {
-            return $fail('Wert für ' . $Key . ' muss "true" oder "false" sein, erhalten: ' . var_export($Value, true));
+            return $fail(sprintf($this->Translate('Value for %s must be "true" or "false", received: %s'), $Key, var_export($Value, true)));
         }
         if ($endsWith($Key, '.minChargeLimit')) {
             if ($Value === null || !preg_match('/^\d+$/', $Value) || ((int) $Value) % 5 !== 0 || (int) $Value < 0 || (int) $Value > 75) {
-                return $fail('Wert für minChargeLimit muss eine Zahl aus 0,5,10,...,75 sein, erhalten: ' . var_export($Value, true));
+                return $fail(sprintf($this->Translate('Value for minChargeLimit must be a number from 0,5,10,...,75, received: %s'), var_export($Value, true)));
             }
         }
         if (strpos($Key, '.departureTimes.') !== false) {
             if ($Value !== null && !preg_match('/^\d{2}:\d{2}:\d{2}$/', $Value)) {
-                return $fail('Wert für departureTimes muss "HH:MM:SS" oder null sein (null löscht die Abfahrtszeit), erhalten: ' . var_export($Value, true));
+                return $fail(sprintf($this->Translate('Value for departureTimes must be "HH:MM:SS" or null (null deletes the departure time), received: %s'), var_export($Value, true)));
             }
         }
 
         if (!$this->EnsureToken()) {
-            return $fail('Kein gültiger Login-Token verfügbar.');
+            return $fail($this->Translate('No valid login token available.'));
         }
 
         // Werte als GraphQL-Literale einbetten statt Variablen zu deklarieren (Typname des
@@ -2246,14 +2247,14 @@ class TibberGridReward extends IPSModule
 
         $result = $this->HttpPost(self::GQL_URL, json_encode(['query' => $mutation]), true);
         if ($result === null) {
-            return $fail('Anfrage fehlgeschlagen (Netzwerk-/HTTP-Fehler).');
+            return $fail($this->Translate('Request failed (network/HTTP error).'));
         }
         if (isset($result['errors'])) {
-            return $fail('Tibber meldet Fehler: ' . json_encode($result['errors']));
+            return $fail(sprintf($this->Translate('Tibber reports an error: %s'), json_encode($result['errors'])));
         }
         $data = $result['data']['me']['setVehicleSettings'] ?? null;
         if (!is_array($data)) {
-            return $fail('Unerwartete Antwortstruktur: ' . json_encode($result));
+            return $fail(sprintf($this->Translate('Unexpected response structure: %s'), json_encode($result)));
         }
 
         return [
@@ -2778,7 +2779,7 @@ class TibberGridReward extends IPSModule
     private function describeCondition(array $cond): string
     {
         $opText = [
-            'true' => 'wird EIN', 'false' => 'wird AUS', 'change' => 'ändert sich',
+            'true' => $this->Translate('turns ON'), 'false' => $this->Translate('turns OFF'), 'change' => $this->Translate('changes'),
             'eq' => '=', 'ne' => '≠', 'gt' => '>', 'ge' => '≥', 'lt' => '<', 'le' => '≤',
         ];
 
@@ -2805,7 +2806,7 @@ class TibberGridReward extends IPSModule
     {
         $conditions = $this->normalizeRuleConditions($rule);
         $condParts = array_map([$this, 'describeCondition'], $conditions);
-        $condText = (count($condParts) > 0) ? implode(' UND ', $condParts) : '?';
+        $condText = (count($condParts) > 0) ? implode(' ' . $this->Translate('AND') . ' ', $condParts) : '?';
 
         $actionParts = [];
         foreach ($this->normalizeRuleActions($rule) as $act) {
@@ -2813,22 +2814,22 @@ class TibberGridReward extends IPSModule
             $tName = ($tVid > 0 && IPS_VariableExists($tVid)) ? IPS_GetName($tVid) : ('#' . $tVid);
             switch ($act['Action']) {
                 case 'off':
-                    $actionParts[] = $tName . ' ausschalten';
+                    $actionParts[] = sprintf($this->Translate('Switch off %s'), $tName);
                     break;
                 case 'toggle':
-                    $actionParts[] = $tName . ' umschalten';
+                    $actionParts[] = sprintf($this->Translate('Toggle %s'), $tName);
                     break;
                 case 'value':
                     $actionParts[] = $tName . ' = ' . $act['Value'];
                     break;
                 default:
-                    $actionParts[] = $tName . ' einschalten';
+                    $actionParts[] = sprintf($this->Translate('Switch on %s'), $tName);
                     break;
             }
         }
         $doText = (count($actionParts) > 0) ? implode(' + ', $actionParts) : '?';
 
-        return sprintf('Wenn %s → %s', $condText, $doText);
+        return sprintf($this->Translate('If %s → %s'), $condText, $doText);
     }
 
     /**

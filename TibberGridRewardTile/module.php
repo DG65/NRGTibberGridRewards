@@ -39,8 +39,8 @@ class TibberGridRewardTile extends IPSModule
     private const LICENSE_URL = 'https://github.com/DG65/NRGTibberGridRewards/blob/main/LICENSE';
     private const PAYPAL_URL = 'https://paypal.me/DietmarGureth';
 
-    // Neu-Panel der Kachel (erst seit 2.10.0: erste echte Neuerung an der Kachel selbst).
-    private const NEWS_VERSION = '2.10.0';
+    // Neu-Panel der Kachel (erst seit 2.10.0: erste echte Neuerung an der Kachel selbst; 2.11.0: Zweisprachigkeit).
+    private const NEWS_VERSION = '2.11.0';
 
     // Farbe der 🔗-Zeilen ("automatisch übernommen", SUITE.md "Wert kommt automatisch"); -1 = Standardfarbe.
     private const COLOR_AUTO = 0x2E8B3D;
@@ -198,11 +198,11 @@ class TibberGridRewardTile extends IPSModule
         }
         return [
             'type' => 'ExpansionPanel', 'name' => 'PurposeIntroPanel', 'expanded' => true,
-            'caption' => '👋  Wozu dieses Modul?',
+            'caption' => '👋  What is this module for?',
             'items' => [
-                ['type' => 'Label', 'caption' => 'Diese Kachel zeigt den Grid-Rewards-Status einer TibberGridReward-Instanz als eigenständige, frei gestaltbare Status-Kachel im WebFront — Einsatz, verdiente Prämie, Wallbox-Leistung und Energie-Statistik auf einen Blick.'],
-                ['type' => 'Label', 'caption' => 'Wähle unten deine Datenquelle (die TibberGridReward-Instanz) — die Farben/Schrift lassen sich darunter frei anpassen. Optional: ein Regel-Editor und Simulations-Schaltflächen zum Testen ohne echten Einsatz.'],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TGRTILE_AckPurposeIntro($id);'],
+                ['type' => 'Label', 'caption' => 'This tile shows the Grid Rewards status of a TibberGridReward instance as a standalone, freely designable status tile in the WebFront — event, earned reward, wallbox power and energy statistics at a glance.'],
+                ['type' => 'Label', 'caption' => 'Choose your data source (the TibberGridReward instance) below — the colors/font can be adapted freely underneath. Optional: a rule editor and simulation buttons for testing without a real event.'],
+                ['type' => 'Button', 'caption' => 'Understood – do not show again', 'onClick' => 'TGRTILE_AckPurposeIntro($id);'],
             ],
         ];
     }
@@ -221,11 +221,12 @@ class TibberGridRewardTile extends IPSModule
         }
         return [
             'type' => 'ExpansionPanel', 'name' => 'NewsPanel', 'expanded' => true,
-            'caption' => '🆕  Neu in dieser Version',
+            'caption' => '🆕  New in this version',
             'items' => [
-                ['type' => 'Label', 'caption' => '• 🪟 Neu: Formular-Aufbau selbst wählen - im Panel „🪟 Formular: Aufbau“ legst du je Bereich fest, ob er beim Öffnen aufgeklappt, zugeklappt oder ausgeblendet ist und an welcher Position er steht.'],
-                ['type' => 'Label', 'caption' => '• 🔗 Die Datenquelle zeigt jetzt live, welche Instanz erkannt wurde; wird genau eine gefunden, entfällt die Auswahl.'],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TGRTILE_AckNews($id);'],
+                ['type' => 'Label', 'caption' => '• 🌍 New: the tile now speaks German and English — the configuration form and the tile texts follow the Symcon language.'],
+                ['type' => 'Label', 'caption' => '• 🪟 New: choose the form layout yourself - in the panel “🪟 Form: layout” you set for each section whether it is expanded, collapsed or hidden when the form opens and at which position it appears.'],
+                ['type' => 'Label', 'caption' => '• 🔗 The data source now shows live which instance was detected; if exactly one is found, the selection is no longer needed.'],
+                ['type' => 'Button', 'caption' => 'Understood – do not show again', 'onClick' => 'TGRTILE_AckNews($id);'],
             ],
         ];
     }
@@ -244,11 +245,11 @@ class TibberGridRewardTile extends IPSModule
         }
         return [
             'type' => 'ExpansionPanel', 'name' => 'ForumHintPanel', 'expanded' => true,
-            'caption' => '💬  Feedback im Symcon-Forum',
+            'caption' => '💬  Feedback in the Symcon forum',
             'items' => [
-                ['type' => 'Label', 'caption' => 'Rückmeldungen zu diesem Modul sind ausdrücklich willkommen im Community-Thread.'],
-                ['type' => 'Button', 'caption' => 'Zum Forums-Thread', 'onClick' => "echo '" . self::FORUM_THREAD_URL . "';", 'link' => true],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TGRTILE_AckForumHint($id);'],
+                ['type' => 'Label', 'caption' => 'Feedback on this module is explicitly welcome in the community thread.'],
+                ['type' => 'Button', 'caption' => 'To the forum thread', 'onClick' => "echo '" . self::FORUM_THREAD_URL . "';", 'link' => true],
+                ['type' => 'Button', 'caption' => 'Understood – do not show again', 'onClick' => 'TGRTILE_AckForumHint($id);'],
             ],
         ];
     }
@@ -267,14 +268,14 @@ class TibberGridRewardTile extends IPSModule
     {
         return [
             'type' => 'ExpansionPanel', 'expanded' => false,
-            'caption' => '🧡  Über dieses Modul',
+            'caption' => '🧡  About this module',
             'items' => [
-                ['type' => 'Label', 'caption' => 'Entstanden aus echter Begeisterung für die eigene Anlage — und ein paar durchgetippten Abenden. Trotzdem: Software-Hobby hin oder her, das hier ist geistiges Eigentum und echte Arbeit steckt drin.'],
-                ['type' => 'Label', 'caption' => 'Lizenz: PolyForm Noncommercial 1.0.0 — privat und nicht-kommerziell frei nutzbar, für den gewerblichen Einsatz braucht es eine gesonderte Lizenz vom Rechteinhaber.'],
-                ['type' => 'Button', 'caption' => 'Lizenztext ansehen', 'onClick' => "echo '" . self::LICENSE_URL . "';", 'link' => true],
-                ['type' => 'Label', 'caption' => 'Gewerbliche Nutzung oder Fragen zur Lizenz? Einfach melden: dietmar@gureth.eu'],
-                ['type' => 'Label', 'caption' => 'Gefällt dir das Modul und du möchtest trotzdem etwas dalassen? Über eine kleine Spende freue ich mich — völlig freiwillig, keine Gegenleistung nötig.'],
-                ['type' => 'Button', 'caption' => '☕  Spenden via PayPal', 'onClick' => "echo '" . self::PAYPAL_URL . "';", 'link' => true],
+                ['type' => 'Label', 'caption' => 'Born out of genuine enthusiasm for my own installation — and a few evenings of typing. Still: hobby software or not, this is intellectual property and real work went into it.'],
+                ['type' => 'Label', 'caption' => 'License: PolyForm Noncommercial 1.0.0 — free for private and non-commercial use; commercial use needs a separate license from the rights holder.'],
+                ['type' => 'Button', 'caption' => 'View license text', 'onClick' => "echo '" . self::LICENSE_URL . "';", 'link' => true],
+                ['type' => 'Label', 'caption' => 'Commercial use or questions about the license? Just get in touch: dietmar@gureth.eu'],
+                ['type' => 'Label', 'caption' => 'Do you like the module and still want to leave something? I would be happy about a small donation — completely voluntary, nothing owed in return.'],
+                ['type' => 'Button', 'caption' => '☕  Donate via PayPal', 'onClick' => "echo '" . self::PAYPAL_URL . "';", 'link' => true],
             ],
         ];
     }
@@ -293,40 +294,45 @@ class TibberGridRewardTile extends IPSModule
 
         if ($src <= 0 || !IPS_InstanceExists($src)) {
             if (count($list) === 0) {
-                return 'ℹ️ Keine Instanz „Tibber Grid Rewards" (TibberGridReward) gefunden. Solange es keine gibt, zeigt die Kachel „Keine Quelle gewählt" und keine Werte - zuerst die Datenmodul-Instanz anlegen.';
+                return $this->Translate('ℹ️ No instance “Tibber Grid Rewards” (TibberGridReward) found. As long as there is none, the tile shows “No source selected” and no values - create the data module instance first.');
             }
             $names = [];
             foreach ($list as $id) {
-                $names[] = '#' . $id . ' „' . IPS_GetName((int) $id) . '"';
+                $names[] = '#' . $id . ' “' . IPS_GetName((int) $id) . '”';
             }
-            return '⚠️ ' . count($list) . ' TibberGridReward-Instanzen gefunden, aber keine ausgewählt (' . implode(', ', $names) . ') - bitte unten die Datenquelle wählen, sonst zeigt die Kachel keine Werte.';
+            return sprintf($this->Translate('⚠️ %d TibberGridReward instances found, but none selected (%s) - please choose the data source below, otherwise the tile shows no values.'), count($list), implode(', ', $names));
         }
 
-        $how = ($configured === $src) ? 'manuell gewählt' : 'automatisch erkannt, einzige Instanz';
-        $head = '#' . $src . ' „' . IPS_GetName($src) . '" (' . $how . ')';
+        $how = ($configured === $src) ? $this->Translate('selected manually') : $this->Translate('detected automatically, only instance');
+        $head = '#' . $src . ' “' . IPS_GetName($src) . '” (' . $how . ')';
 
         $status = (int) (IPS_GetInstance($src)['InstanceStatus'] ?? 0);
         $flex = trim((string) $this->ReadSourceValue($src, 'FlexDevices', ''));
         $devices = ($flex === '') ? 0 : count(preg_split('/\R/', $flex));
-        $values = 'Status „' . ((string) $this->ReadSourceValue($src, 'State', '') ?: 'unbekannt') . '"'
-            . ', Grid-Reward-Modus ' . $this->FormattedSourceValue($src, 'GridRewardMode')
-            . ', ' . $devices . ' Flex-' . ($devices === 1 ? 'Gerät' : 'Geräte')
-            . ' (Quelle: Variablen dieser Instanz)';
+        $devicesText = ($devices === 1)
+            ? sprintf($this->Translate('%d flex device'), $devices)
+            : sprintf($this->Translate('%d flex devices'), $devices);
+        $values = sprintf(
+            $this->Translate('Status “%s”, grid reward mode %s, %s (source: variables of this instance)'),
+            (string) $this->ReadSourceValue($src, 'State', '') ?: $this->Translate('unknown'),
+            $this->FormattedSourceValue($src, 'GridRewardMode'),
+            $devicesText
+        );
 
         if ($configured > 0 && $configured !== $src) {
-            return '⚠️ Die gewählte Datenquelle #' . $configured . ' existiert nicht mehr - ersatzweise wird ' . $head . ' verwendet. Übernommen werden: ' . $values . '. Bitte die Auswahl unten leeren oder neu wählen.';
+            return sprintf($this->Translate('⚠️ The selected data source #%d no longer exists - %s is used instead. Taken over: %s. Please clear the selection below or choose again.'), $configured, $head, $values);
         }
         if ($status !== 102) {
-            return '⚠️ Datenquelle ' . $head . ' gefunden, aber die Instanz ist nicht aktiv (Status ' . $status . ') - die Werte können veraltet sein. Zuletzt übernommen: ' . $values . '.';
+            return sprintf($this->Translate('⚠️ Data source %s found, but the instance is not active (status %d) - the values may be outdated. Last taken over: %s.'), $head, $status, $values);
         }
-        return '✅ Datenquelle ' . $head . ' verbunden. Übernommen werden: ' . $values . '.';
+        return sprintf($this->Translate('✅ Data source %s connected. Taken over: %s.'), $head, $values);
     }
 
     private function FormattedSourceValue(int $instanceID, string $ident): string
     {
         $vid = @IPS_GetObjectIDByIdent($ident, $instanceID);
         if ($vid === false || $vid <= 0) {
-            return 'unbekannt';
+            return $this->Translate('unknown');
         }
         return (string) GetValueFormatted($vid);
     }
@@ -341,12 +347,12 @@ class TibberGridRewardTile extends IPSModule
     {
         $configured = $this->ReadPropertyIntegerSafe('SourceInstance');
         if ($configured > 0 && IPS_InstanceExists($configured)) {
-            return ['✏️ Quelle: #' . $configured . ' „' . IPS_GetName($configured) . '" (eigene Auswahl)', false];
+            return [sprintf($this->Translate('✏️ Source: #%d “%s” (own selection)'), $configured, IPS_GetName($configured)), false];
         }
         $list = IPS_GetInstanceListByModuleID(self::SOURCE_MODULE);
         if ($configured <= 0 && count($list) === 1) {
             $id = (int) $list[0];
-            return ['🔗 Quelle: #' . $id . ' „' . IPS_GetName($id) . '" (automatisch erkannt: einzige Instanz)', true];
+            return [sprintf($this->Translate('🔗 Source: #%d “%s” (detected automatically: only instance)'), $id, IPS_GetName($id)), true];
         }
         return ['', false];
     }
@@ -463,28 +469,28 @@ class TibberGridRewardTile extends IPSModule
             }
         }
         $hiddenLine = $hidden
-            ? [['type' => 'Label', 'caption' => '🙈 Ausgeblendet: ' . implode(', ', $hidden) . ' — zum Wiederzeigen den Haken bei „Ausgeblendet“ entfernen. Ausgeblendete Bereiche arbeiten weiter, nur die Anzeige fehlt.']]
+            ? [['type' => 'Label', 'caption' => sprintf($this->Translate('🙈 Hidden: %s — to show again, remove the tick under “Hidden”. Hidden sections keep working, only the display is missing.'), implode(', ', $hidden))]]
             : [];
         return [
             'type' => 'ExpansionPanel', 'expanded' => false,
-            'caption' => '🪟  Formular: Aufbau' . ($hidden ? ' (' . count($hidden) . ' ausgeblendet)' : ''),
+            'caption' => $this->Translate('🪟  Form: layout') . ($hidden ? ' ' . sprintf($this->Translate('(%d hidden)'), count($hidden)) : ''),
             'items' => array_merge($hiddenLine, [
-                ['type' => 'Label', 'caption' => 'Hier legst du fest, welche Bereiche beim Öffnen des Formulars aufgeklappt sind und in welcher Reihenfolge sie stehen. Symcon merkt sich das Auf- und Zuklappen nicht selbst, deshalb gilt die Einstellung hier jedes Mal beim Öffnen. Sie wirkt nach „Übernehmen“ beim nächsten Öffnen des Formulars.'],
-                ['type' => 'Label', 'caption' => 'Kein Haken heißt „Standard“: wie das Modul es vorsieht. Wer „Zugeklappt“ wählt, sieht dann auch Neues dort nicht sofort. Die Position ist eine Zahl; bei gleicher Zahl bleibt die Standardreihenfolge. „Ausgeblendet“ nimmt einen Bereich aus der Anzeige, ohne dass er etwas verliert: seine Einstellungen bleiben erhalten und wirken weiter (gedacht für Bereiche, die man selten braucht). Zum Wiederzeigen den Haken bei „Ausgeblendet“ entfernen oder „Auf Standard zurücksetzen“ klicken. Sind mehrere Haken gesetzt, gilt „Ausgeblendet“ vor „Zugeklappt“ vor „Aufgeklappt“. Die Bereiche oben (Zweck, Neuigkeiten, Dokumentation) und unten (Rückmeldungen, Über dieses Modul) bleiben, wo sie sind, und lassen sich nicht ausblenden.'],
+                ['type' => 'Label', 'caption' => 'Here you decide which sections are expanded when the form opens and in which order they appear. Symcon does not remember expanding and collapsing by itself, so this setting applies every time the form opens. It takes effect after “Apply” the next time the form is opened.'],
+                ['type' => 'Label', 'caption' => 'No tick means “Default”: as the module intends it. Anyone who chooses “Collapsed” will not see new content there right away either. The position is a number; with equal numbers the default order is kept. “Hidden” removes a section from the display without it losing anything: its settings are kept and keep working (meant for sections you rarely need). To show it again, remove the tick under “Hidden” or click “Reset to default”. If several ticks are set, “Hidden” takes precedence over “Collapsed”, which takes precedence over “Expanded”. The sections at the top (purpose, news, documentation) and at the bottom (feedback, about this module) stay where they are and cannot be hidden.'],
                 [
-                    'type' => 'List', 'name' => 'FormLayout', 'caption' => 'Bereiche', 'rowCount' => count($rows), 'add' => false, 'delete' => false,
+                    'type' => 'List', 'name' => 'FormLayout', 'caption' => 'Sections', 'rowCount' => count($rows), 'add' => false, 'delete' => false,
                     'loadValuesFromConfiguration' => false,
                     'values' => $rows,
                     'columns' => [
-                        ['caption' => 'Bereich', 'name' => 'Panel', 'width' => 'auto', 'add' => ''],
-                        ['caption' => 'Schlüssel', 'name' => 'Key', 'width' => '0px', 'visible' => false, 'add' => '', 'save' => true],
-                        ['caption' => 'Aufgeklappt', 'name' => 'Opened', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
-                        ['caption' => 'Zugeklappt', 'name' => 'Closed', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
-                        ['caption' => '🙈 Ausgeblendet', 'name' => 'Hidden', 'width' => '130px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
+                        ['caption' => 'Section', 'name' => 'Panel', 'width' => 'auto', 'add' => ''],
+                        ['caption' => 'Key', 'name' => 'Key', 'width' => '0px', 'visible' => false, 'add' => '', 'save' => true],
+                        ['caption' => 'Expanded', 'name' => 'Opened', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
+                        ['caption' => 'Collapsed', 'name' => 'Closed', 'width' => '110px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
+                        ['caption' => '🙈 Hidden', 'name' => 'Hidden', 'width' => '130px', 'add' => false, 'edit' => ['type' => 'CheckBox']],
                         ['caption' => 'Position', 'name' => 'Pos', 'width' => '100px', 'add' => 1, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 1, 'maximum' => 99]],
                     ],
                 ],
-                ['type' => 'Button', 'caption' => '↩️ Auf Standard zurücksetzen', 'onClick' => 'echo TGRTILE_ResetFormLayout($id);'],
+                ['type' => 'Button', 'caption' => '↩️ Reset to default', 'onClick' => 'echo TGRTILE_ResetFormLayout($id);'],
             ]),
         ];
     }
@@ -502,7 +508,7 @@ class TibberGridRewardTile extends IPSModule
             }
         }
         $this->UpdateFormField('FormLayout', 'values', json_encode($rows, JSON_UNESCAPED_UNICODE));
-        return 'ℹ️ Auf Standard gesetzt. Zum Speichern unten „Übernehmen“ klicken.';
+        return $this->Translate('ℹ️ Reset to default. Click “Apply” below to save.');
     }
 
     public function GetConfigurationForm()
@@ -665,6 +671,7 @@ class TibberGridRewardTile extends IPSModule
                 'devices'    => [],
                 'sim'        => false, // ohne Quelle keine Simulations-Buttons
                 'rules'      => null,
+                'ui'         => $this->UiTexts(),
             ]));
         }
 
@@ -738,7 +745,62 @@ class TibberGridRewardTile extends IPSModule
             'simShortage'  => $this->Translate('Simulate curtailment (shortage)'),
             'simReset'     => $this->Translate('Back to real status'),
             'rules'        => $this->ReadSourceRules($src),
+            'ui'           => $this->UiTexts(),
         ]));
+    }
+
+    /**
+     * Anzeigetexte der Kachel-Oberfläche (Regelliste und -editor) in der Symcon-Sprache. Translate()
+     * liest bei jedem Aufruf die locale.json - deshalb wird die fertige Tabelle gepuffert und nur neu
+     * gebaut, wenn sich die Sprache ändert (erkannt an der Übersetzung eines Prüfwerts).
+     */
+    private function UiTexts(): array
+    {
+        $probe = $this->Translate('Cancel');
+        $cache = json_decode((string) $this->GetBuffer('UiTexts'), true);
+        if (is_array($cache) && ($cache['probe'] ?? null) === $probe && is_array($cache['texts'] ?? null)) {
+            return $cache['texts'];
+        }
+        $texts = [
+            'edTitleEdit' => $this->Translate('Edit rule'),
+            'edTitleNew' => $this->Translate('New rule'),
+            'edIf' => $this->Translate('If (several conditions are combined with AND)'),
+            'edAddCond' => $this->Translate('+ Condition (AND)'),
+            'edThen' => $this->Translate('Then (up to 6 actions at the same time)'),
+            'edAddAct' => $this->Translate('+ Action'),
+            'edHint' => $this->Translate('Switchable variables (with an action) are offered. Other targets can be chosen in the instance form. The placeholder “WALLBOX” as a value is continuously replaced by the wallbox power currently required.'),
+            'edCancel' => $this->Translate('Cancel'),
+            'edSave' => $this->Translate('Save'),
+            'rulesHeader' => $this->Translate('Automations'),
+            'ruleNew' => $this->Translate('+ New rule'),
+            'ruleDelete' => $this->Translate('Delete rule'),
+            'ruleSure' => $this->Translate('Sure?'),
+            'ruleDisable' => $this->Translate('Disable rule: '),
+            'ruleEnable' => $this->Translate('Enable rule: '),
+            'opTrue' => $this->Translate('turns ON (true)'),
+            'opFalse' => $this->Translate('turns OFF (false)'),
+            'opEq' => $this->Translate('= (equal)'),
+            'opNe' => $this->Translate('≠ (not equal)'),
+            'opGt' => $this->Translate('> (greater)'),
+            'opGe' => $this->Translate('≥ (greater or equal)'),
+            'opLt' => $this->Translate('< (less)'),
+            'opLe' => $this->Translate('≤ (less or equal)'),
+            'opChange' => $this->Translate('changes'),
+            'condRemove' => $this->Translate('Remove condition'),
+            'cmpPlaceholder' => $this->Translate('Comparison value'),
+            'actRemove' => $this->Translate('Remove action'),
+            'targetFilter' => $this->Translate('Search target variable (name or path) …'),
+            'actOn' => $this->Translate('Switch on'),
+            'actOff' => $this->Translate('Switch off'),
+            'actToggle' => $this->Translate('Toggle'),
+            'actValue' => $this->Translate('Set value'),
+            'valPlaceholder' => $this->Translate('Value (e.g. WALLBOX)'),
+            'tagIf' => $this->Translate('IF'),
+            'tagAnd' => $this->Translate('AND'),
+            'tagAction' => $this->Translate('ACTION'),
+        ];
+        $this->SetBuffer('UiTexts', json_encode(['probe' => $probe, 'texts' => $texts], JSON_UNESCAPED_UNICODE));
+        return $texts;
     }
 
     /**

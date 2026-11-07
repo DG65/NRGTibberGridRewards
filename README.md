@@ -1,13 +1,18 @@
-# TibberGridRewards für IP-Symcon
+# TibberGridRewards für Symcon
 
 ![Symcon](https://img.shields.io/badge/Symcon-PHPModul-blue)
-![Modul Version](https://img.shields.io/badge/Modul_Version-2.8.1-blue)
+![Modul Version](https://img.shields.io/badge/Modul_Version-2.11.0-blue)
 ![Symcon Version](https://img.shields.io/badge/Symcon_Version-9.0%2B-blue)
 ![License](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-lightgrey)
 [![Check Style](https://github.com/DG65/NRGTibberGridRewards/actions/workflows/check-style.yml/badge.svg)](https://github.com/DG65/NRGTibberGridRewards/actions/workflows/check-style.yml)
 [![PayPal](https://img.shields.io/badge/PayPal-Me-blue?logo=paypal)](https://paypal.me/DietmarGureth)
 
-IP-Symcon-Bibliothek, die den **Tibber-Grid-Rewards-Status** über die Tibber-App-API abonniert und
+🇬🇧 [English version](README.en.md)
+
+Das Modul folgt der Sprache deines Symcon (Deutsch oder Englisch): Formulare, Variablen, Status- und Fehlermeldungen
+sowie die Kachel. Idents, Funktionsnamen und Vertragsfelder bleiben in beiden Sprachen gleich.
+
+Symcon-Bibliothek, die den **Tibber-Grid-Rewards-Status** über die Tibber-App-API abonniert und
 als Variablen bereitstellt. Kern ist ein handlungsfähiges Signal (`Grid Reward aktiv`), mit dem sich
 eigene Automationen auslösen lassen.
 
@@ -52,17 +57,17 @@ zeitweise so gesteuert, dass es das Netz entlastet – z. B. Laden bei Überschu
 Vergütung.
 
 Während eines solchen Einsatzes meldet die Tibber-App den Status **„Delivering"**. Genau dieses Signal
-macht das Modul in IP-Symcon nutzbar.
+macht das Modul in Symcon nutzbar.
 
 ## Funktionsweise des Moduls
 
 Das Modul **TibberGridReward** meldet sich mit deinen Tibber-App-Zugangsdaten an, öffnet eine
 dauerhafte WebSocket-Verbindung zur Tibber-App-API und abonniert den Grid-Rewards-Status deines
-Zuhauses. Jede Statusänderung schreibt es sofort in IP-Symcon-Variablen.
+Zuhauses. Jede Statusänderung schreibt es sofort in Symcon-Variablen.
 
 **Wichtig zum Verständnis:** Tibber steuert nur das **bei Tibber registrierte** Flex-Gerät selbst
 (z. B. dein Elektroauto). Andere Geräte – etwa einen GoodWe-Hausspeicher – steuert Tibber **nicht**.
-Stattdessen reagierst du in IP-Symcon selbst auf das `Delivering`-Signal und regelst deine Geräte über
+Stattdessen reagierst du in Symcon selbst auf das `Delivering`-Signal und regelst deine Geräte über
 deine eigene Logik (siehe [Anwendungsbeispiel](#anwendungsbeispiel-speicher--wallbox-steuern)).
 
 Das Signal ist an **deine** Teilnahme gekoppelt – es ist kein allgemeines, regionsweites Netzsignal.
@@ -70,7 +75,7 @@ Ohne registriertes Flex-Gerät bleibt der Status dauerhaft `Unavailable`.
 
 ## Voraussetzungen
 
-- IP-Symcon **9.0** oder neuer.
+- Symcon **9.0** oder neuer.
 - Aktiver Tibber-Vertrag **und Teilnahme an Grid Rewards mit einem unterstützten Gerät**
   (z. B. einem Elektroauto).
 - Zugangsdaten der **Tibber-App** (E-Mail + Passwort). Grid Rewards ist nur über die App-API
@@ -83,7 +88,7 @@ nach **„Tibber Grid Rewards"** suchen → installieren.
 
 **Variante B – manuell über GitHub:**
 
-1. In IP-Symcon **Modulverwaltung** öffnen (Objektbaum → Kerninstanzen → *Modules* bzw. über die
+1. In Symcon **Modulverwaltung** öffnen (Objektbaum → Kerninstanzen → *Modules* bzw. über die
    Verwaltungskonsole).
 2. **Modul hinzufügen** und die URL eintragen:
    ```
@@ -257,7 +262,7 @@ Es sind **beliebig viele Regeln** erlaubt – braucht dein EMS mehr als zwei Dat
 Übergang, legst du einfach eine weitere Regel mit derselben Bedingung an.
 
 **Werte nachschlagen:** Da jede Regel eine andere Zielvariable mit anderem Profil haben kann,
-unterstützt IP-Symcon hier keine Auswahlliste, der sich abhängig von der in derselben Zeile gewählten
+unterstützt Symcon hier keine Auswahlliste, der sich abhängig von der in derselben Zeile gewählten
 Zielvariable anpasst (Listenspalten sind für alle Zeilen einheitlich). Als Ersatz gibt es darunter
 **„🔍 Werte nachschlagen"**: Variable wählen, übernehmen, **„Werte anzeigen"** klicken – darunter
 erscheinen alle möglichen Werte der Zielvariable als Text (z. B. „0 = Gestoppt · 1 = Automatik · …")
@@ -448,7 +453,7 @@ Signal – die Geräteansteuerung bleibt in deiner Hand.
 ### Erkennen, wenn Tibber selbst dein Fahrzeug/deinen Speicher steuert
 
 Registriert Tibber irgendwann ein Fahrzeug oder einen Heimspeicher direkt als Flex-Gerät (z. B. über
-eine künftige Speicher-Kooperation), greift Tibber **außerhalb** von IP-Symcon auf das Gerät zu –
+eine künftige Speicher-Kooperation), greift Tibber **außerhalb** von Symcon auf das Gerät zu –
 dein EMS bekommt davon sonst nichts mit. `TIBBERGR_GetActiveControls()` schließt genau diese Lücke:
 
 ```php
@@ -510,7 +515,7 @@ Token kommt trotzdem zum Einsatz – aber nur für die optionale Preiskurve (sie
 ist ein komplett anderer, unabhängiger Teil des Moduls.
 
 **Steuert das Modul meinen Wechselrichter/Speicher direkt?**
-Nein. Es liefert nur den Status. Die Gerätesteuerung baust du in IP-Symcon selbst, ausgelöst durch die
+Nein. Es liefert nur den Status. Die Gerätesteuerung baust du in Symcon selbst, ausgelöst durch die
 `Delivering`-Variable.
 
 **Warum brauche ich überhaupt ein Steuersignal fürs EMS?**
@@ -562,7 +567,7 @@ Stand zu verlassen.
 - **Zuhause:** `POST https://app.tibber.com/v4/gql` (`me { homes { id title } }`).
 - **Status:** WebSocket `wss://app.tibber.com/v4/gql/ws` mit Subprotokoll `graphql-transport-ws`;
   Subscription `gridRewardStatus(homeId)`.
-- **Parent:** IP-Symcon WebSocket-Client (I/O), wird automatisch als Parent angelegt.
+- **Parent:** Symcon WebSocket-Client (I/O), wird automatisch als Parent angelegt.
 
 ## Haftungsausschluss
 
