@@ -254,7 +254,10 @@
       "Switch off %s": "%s ausschalten",
       "Toggle %s": "%s umschalten",
       "Switch on %s": "%s einschalten",
-      "If %s → %s": "Wenn %s → %s"
+      "If %s → %s": "Wenn %s → %s",
+      "Connection to Tibber lost - reconnecting automatically (further attempts are not logged).": "Verbindung zu Tibber verloren - das Modul verbindet sich automatisch neu (weitere Versuche werden nicht protokolliert).",
+      "Connection to Tibber restored after %d attempt(s).": "Verbindung zu Tibber nach %d Versuch(en) wiederhergestellt.",
+      "• 🔧 Connection: if the connection to Tibber drops and stays in an error state, the module now reconnects by itself (5 s, 10 s, 20 s … up to 5 min). Before, it could stay disconnected until the next restart.": "• 🔧 Verbindung: Bricht die Verbindung zu Tibber ab und bleibt im Fehlerstatus, verbindet sich das Modul jetzt selbst neu (5 s, 10 s, 20 s … bis 5 min). Vorher konnte sie bis zum nächsten Neustart getrennt bleiben."
     }
   }
 }

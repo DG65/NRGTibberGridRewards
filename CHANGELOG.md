@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.11.1
+
+- **Datenmodul verbindet sich im Fehlerstatus selbst neu** (SUITE.md Stolperstein 27, Fund
+  EEBUSGateway 10.11.2026, Anfrage EMS; Vorbild RoboHub 0.36.1). Bisher behandelte der `MessageSink`
+  nur Elternstatus 102 und 104. Ging der WebSocket-Client nach einem fehlgeschlagenen Neuverbinden in
+  einen Fehlerstatus (≥ `IS_EBASE`), blieb die Instanz getrennt, bis jemand das Modul neu anwendete:
+  der Wächter war nur an die erste `next`-Nachricht gebunden, der Relogin-Takt stand nach dem
+  zweiten Aufruf auf 0.
+  - Neuer Takt-Timer `WsReconnect` (öffentlich `TIBBERGR_WsReconnect()`): im Fehlerstatus wird der
+    Client aus und mit frischer Konfiguration (neuer Zugangsschlüssel) wieder an geschaltet.
+    Wartezeit 5/10/20 … s, höchstens 5 min; nur der erste Abbruch wird als Warnung protokolliert,
+    nach dem Wiederverbinden einmal „nach n Versuch(en) wiederhergestellt“. Zähler (Attribut
+    `WsFehler`) geht bei `IS_ACTIVE` zurück.
+  - Steht der Client schon beim Start (`KR_READY`) oder beim Übernehmen im Fehlerstatus, plant das
+    Modul selbst einen Versuch.
+  - Wächter: wird jetzt schon beim Verbindungsaufbau (5 min) und nach einem Neuverbinden aus der
+    Relogin-Sequenz scharf gestellt, nicht mehr nur an einer `next`-Nachricht; jede `next` setzt ihn
+    wie bisher auf 60 s.
+  - Der Zähler `WTCounter` entfällt als Begrenzer: Er wurde im zweiten Relogin-Durchlauf immer
+    zurückgesetzt und griff nie. Das Attribut bleibt als Altlast registriert (keine Migration nötig).
+  - Neuer Prüfstand `.tools/test-reconnect.php` (21 Prüfungen, mit Gegenprobe gegen den Stand 2.11.0:
+    7 Fehlschläge).
+- Hinweis „🔧 Verbindung …“ im Neu-Panel des Datenmoduls.
+
 ## 2.11.0
 
 - **Zweisprachig Deutsch/Englisch** (SUITE.md Punkt 9, Store-Checkliste 25–29, Auftrag Dietmar

@@ -3,9 +3,9 @@
   "name": "NRG-Stack Tibber Grid Rewards",
   "author": "DG65",
   "url": "https://github.com/DG65/NRGTibberGridRewards",
-  "version": "2.11.0",
-  "build": 75,
-  "date": 1794088242,
+  "version": "2.11.1",
+  "build": 76,
+  "date": 1794328006,
   "compatibility": {
     "version": "9.0"
   }

@@ -39,6 +39,12 @@ class TibberGridReward extends IPSModule
     // Mindestabstand zwischen zwei gescheiterten Nachlade-Versuchen in GetPriceCurve()
     private const PRICE_RETRY_SECONDS = 60;
 
+    // Verbindung: erster Wartewert und Obergrenze beim Neuverbinden im Fehlerstatus (SUITE.md Nr. 27),
+    // Wächter nach dem Verbindungsaufbau bzw. nach einem Neuverbinden, solange noch keine Nachricht kam.
+    private const RECONNECT_FIRST_SECONDS = 5;
+    private const RECONNECT_MAX_SECONDS = 300;
+    private const WATCHDOG_CONNECT_MS = 300000;
+
     // Vertragsversionen "Major.Minor" (Verbund-Konvention, SUITE.md im EMS-Repo). Kompatibilität nur
     // innerhalb derselben Major; Major NUR bei Bruch, Minor bei additiver Erweiterung.
     private const CONTRACT_PRICECURVE     = '1.1'; // 1.0 Basis-Kurve, 1.1 + components/vat/tibberEnergy/tibberTax
@@ -50,7 +56,7 @@ class TibberGridReward extends IPSModule
 
     // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik") - NEWS_VERSION bei jedem
     // Release mit nutzerrelevanten Änderungen synchron zur library.json-Version halten.
-    private const NEWS_VERSION = '2.11.0';
+    private const NEWS_VERSION = '2.11.1';
     private const FORUM_THREAD_URL = 'https://community.symcon.de/t/modul-tibber-grid-rewards-grid-reward-signal-wallbox-ems-aufbereitung-fuer-ip-symcon/143996';
 
     // Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - main trägt seit 2.9.3 den
@@ -149,7 +155,8 @@ class TibberGridReward extends IPSModule
         $this->RegisterAttributeInteger('JWT_Exp', 0);
         $this->RegisterAttributeString('Homes', '');
         $this->RegisterAttributeInteger('Parent_IO', 0);
-        $this->RegisterAttributeInteger('WTCounter', 0);
+        $this->RegisterAttributeInteger('WTCounter', 0); // ungenutzt seit 2.11.1 (Altlast; Relogin-Zähler entfallen, siehe ReloginSequence)
+        $this->RegisterAttributeInteger('WsFehler', 0);  // Neuverbindungsversuche seit dem letzten Abbruch (SUITE.md Nr. 27)
         $this->RegisterAttributeFloat('LastEnergyTs', 0.0);
         $this->RegisterAttributeFloat('LastPower', 0.0);
         $this->RegisterAttributeString('EnergyDayMarker', '');
@@ -242,6 +249,7 @@ class TibberGridReward extends IPSModule
         $this->RegisterTimer('TokenRefresh', 0, 'TIBBERGR_TokenRefresh($_IPS[\'TARGET\']);');
         $this->RegisterTimer('StartWatchdog', 0, 'TIBBERGR_StartWatchdog($_IPS[\'TARGET\']);');
         $this->RegisterTimer('ReloginSequence', 0, 'TIBBERGR_ReloginSequence($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('WsReconnect', 0, 'TIBBERGR_WsReconnect($_IPS[\'TARGET\']);');
         $this->RegisterTimer('EnergyTick', 0, 'TIBBERGR_EnergyTick($_IPS[\'TARGET\']);');
         // Alle 20 Minuten neu abfragen – häufig genug, um die morgigen Preise (erscheinen meist
         // zwischen 13 und 14 Uhr) zeitnah zu übernehmen, ohne die Tibber-API unnötig zu belasten.
@@ -348,6 +356,8 @@ class TibberGridReward extends IPSModule
             $this->SetTimerInterval('TokenRefresh', 0);
             $this->SetTimerInterval('StartWatchdog', 0);
             $this->SetTimerInterval('ReloginSequence', 0);
+            $this->SetTimerInterval('WsReconnect', 0);
+            $this->WriteAttributeInteger('WsFehler', 0);
             $this->SetTimerInterval('EnergyTick', 0);
             $this->SetStatus(104); // inaktiv
             return;
@@ -377,6 +387,10 @@ class TibberGridReward extends IPSModule
 
         $this->RegisterMessageParent();
         $this->UpdateConfigurationForParent();
+        // Steht der Client schon im Fehlerstatus, kommt kein Statuswechsel mehr - selbst einen Versuch planen.
+        if (IPS_GetKernelRunlevel() === KR_READY && $this->ParentInError() && $this->ReadAttributeIntegerSafe('WsFehler') === 0) {
+            $this->ReconnectPlan();
+        }
         $this->ScheduleTokenRefresh();
 
         // Wallbox-Aggregation einrichten
@@ -429,6 +443,7 @@ class TibberGridReward extends IPSModule
             'type' => 'ExpansionPanel', 'name' => 'NewsPanel', 'expanded' => true,
             'caption' => '🆕  New in this version',
             'items' => [
+                ['type' => 'Label', 'caption' => '• 🔧 Connection: if the connection to Tibber drops and stays in an error state, the module now reconnects by itself (5 s, 10 s, 20 s … up to 5 min). Before, it could stay disconnected until the next restart.'],
                 ['type' => 'Label', 'caption' => '• 🌍 New: the module now speaks German and English — the configuration form, the status texts and the tile follow the Symcon language.'],
                 ['type' => 'Label', 'caption' => '• 🆕 Set departure time/charge target: TIBBERGR_SetVehicleSetting() writes a preference (departure time per weekday, minimum charge level, smart charging on/off) directly into Tibber’s own algorithm — for EMS/automations, no form field of its own.'],
                 ['type' => 'Label', 'caption' => '• 🆕 Invoice check: TIBBERGR_DecomposePrice() breaks a historical price down into exchange price/procurement/grid fee/taxes — helpful if you want to recalculate your Tibber invoice.'],
@@ -943,17 +958,31 @@ class TibberGridReward extends IPSModule
                 switch ($Data[0]) {
                     case IS_ACTIVE: // 102 – WebSocket verbunden
                         $this->SendDebug(__FUNCTION__, 'Parent aktiv – starte Autorisierung', 0);
+                        $this->ReconnectSucceeded();
                         $this->StartAuthorization();
                         break;
                     case IS_INACTIVE: // 104 – WebSocket getrennt
                         $this->SendDebug(__FUNCTION__, 'Parent inaktiv', 0);
                         $this->SetTimerInterval('StartWatchdog', 0);
                         $this->SetTimerInterval('ReloginSequence', 0);
+                        $this->SetTimerInterval('WsReconnect', 0);
+                        $this->WriteAttributeInteger('WsFehler', 0);
+                        break;
+                    default:
+                        // >= 200 (IS_EBASE): Fehlerstatus - der Client verbindet sich nicht zuverlässig selbst
+                        // neu (SUITE.md Nr. 27), also selbst einen Versuch planen.
+                        if ((int) $Data[0] >= IS_EBASE) {
+                            $this->SendDebug(__FUNCTION__, 'Parent im Fehlerstatus ' . (int) $Data[0], 0);
+                            $this->ReconnectPlan();
+                        }
                         break;
                 }
                 break;
             case KR_READY:
                 $this->SendDebug(__FUNCTION__, 'Kernel bereit', 0);
+                if ($this->ParentInError() && $this->ReadAttributeIntegerSafe('WsFehler') === 0) {
+                    $this->ReconnectPlan();
+                }
                 break;
 
             case VM_UPDATE: // Änderung einer Wallbox-Leistung oder -Energie
@@ -1835,6 +1864,9 @@ class TibberGridReward extends IPSModule
         // Auth läuft über den Authorization-Header → connection_init ohne Payload
         $this->SendToWS(json_encode(['type' => 'connection_init']));
         $this->SendDebug(__FUNCTION__, 'connection_init gesendet', 0);
+        // Wächter nicht erst an der ersten 'next'-Nachricht festmachen: kommt nach dem Verbindungsaufbau
+        // gar nichts an, soll trotzdem neu verbunden werden. Jede 'next' setzt ihn auf 60 s.
+        $this->SetTimerInterval('StartWatchdog', self::WATCHDOG_CONNECT_MS);
     }
 
     private function SubscribeData(): void
@@ -3351,31 +3383,83 @@ class TibberGridReward extends IPSModule
         if ($this->GetTimerInterval('ReloginSequence') > 0) {
             // zweiter Aufruf → tatsächlich neu verbinden
             $this->SetTimerInterval('ReloginSequence', 0);
-            $this->ReloginRetriesReached(true);
             $this->EnsureToken();
             $this->UpdateConfigurationForParent();
+            // Schlägt das Neuverbinden fehl, kommt weder eine 'next'-Nachricht noch ein Statuswechsel -
+            // der Wächter wird deshalb auch hier scharf gestellt und versucht es später erneut.
+            $this->SetTimerInterval('StartWatchdog', self::WATCHDOG_CONNECT_MS);
         } else {
             $this->SetTimerInterval('StartWatchdog', 0);
             $random = rand(60, 120);
             $this->SetTimerInterval('ReloginSequence', $random * 1000);
             $this->SendDebug(__FUNCTION__, 'Relogin in ' . $random . ' s', 0);
-            if ($this->ReloginRetriesReached()) {
-                $this->SendDebug(__FUNCTION__, 'Maximale Relogin-Versuche erreicht – Abbruch', 0);
-                $this->SetTimerInterval('ReloginSequence', 0);
-                $this->SetStatus(104);
-            }
         }
     }
 
-    private function ReloginRetriesReached(bool $reset = false): bool
+    // ---------------------------------------------------------------------
+    // Neuverbinden im Fehlerstatus (SUITE.md Stolperstein 27)
+    // ---------------------------------------------------------------------
+
+    /** WebSocket-Client dieser Instanz steht im Fehlerstatus (>= IS_EBASE), obwohl das Modul aktiv ist. */
+    private function ParentInError(): bool
     {
-        $counter = $this->ReadAttributeIntegerSafe('WTCounter');
-        if ($counter > 4 || $reset) {
-            $this->WriteAttributeInteger('WTCounter', $reset ? 0 : 1);
-            return !$reset;
+        if (!$this->ReadPropertyBooleanSafe('Active')) {
+            return false;
         }
-        $this->WriteAttributeInteger('WTCounter', $counter + 1);
-        return false;
+        $parentId = (int) (@IPS_GetInstance($this->InstanceID)['ConnectionID'] ?? 0);
+        return $parentId > 0 && IPS_InstanceExists($parentId)
+            && (int) (IPS_GetInstance($parentId)['InstanceStatus'] ?? 0) >= IS_EBASE;
+    }
+
+    /** Wartezeit vor dem n-ten Versuch: 5, 10, 20 ... s, höchstens 5 min. */
+    private function ReconnectDelay(int $attempt): int
+    {
+        return (int) min(self::RECONNECT_MAX_SECONDS, self::RECONNECT_FIRST_SECONDS * (2 ** min(max($attempt, 1) - 1, 10)));
+    }
+
+    /** Nächsten Versuch planen; nur der erste nach einem Abbruch wird gemeldet. */
+    private function ReconnectPlan(): void
+    {
+        if (!$this->ReadPropertyBooleanSafe('Active')) {
+            return;
+        }
+        $n = $this->ReadAttributeIntegerSafe('WsFehler') + 1;
+        $this->WriteAttributeInteger('WsFehler', $n);
+        if ($n === 1) {
+            $this->LogMessage($this->Translate('Connection to Tibber lost - reconnecting automatically (further attempts are not logged).'), KL_WARNING);
+        }
+        $this->SetTimerInterval('WsReconnect', $this->ReconnectDelay($n) * 1000);
+    }
+
+    /** Verbindung steht wieder: Zähler zurück, nach Versuchen einmal melden. */
+    private function ReconnectSucceeded(): void
+    {
+        $this->SetTimerInterval('WsReconnect', 0);
+        $n = $this->ReadAttributeIntegerSafe('WsFehler');
+        if ($n > 0) {
+            $this->WriteAttributeInteger('WsFehler', 0);
+            $this->LogMessage(sprintf($this->Translate('Connection to Tibber restored after %d attempt(s).'), $n), KL_MESSAGE);
+        }
+    }
+
+    /** Takt-Timer: steht der Client im Fehlerstatus, aus und wieder an schalten (frischer Zugangsschlüssel). */
+    public function WsReconnect(): void
+    {
+        if (!$this->ParentInError()) {
+            $this->SetTimerInterval('WsReconnect', 0);
+            return;
+        }
+        $parentId = (int) @IPS_GetInstance($this->InstanceID)['ConnectionID'];
+        $this->EnsureToken();
+        $config = $this->GetConfigurationForParent();
+        $script = 'IPS_SetProperty(' . $parentId . ', "Active", false);' . PHP_EOL
+            . 'IPS_ApplyChanges(' . $parentId . ');' . PHP_EOL
+            . 'IPS_SetConfiguration(' . $parentId . ', \'' . $config . '\');' . PHP_EOL
+            . 'IPS_ApplyChanges(' . $parentId . ');';
+        $this->SendDebug(__FUNCTION__, 'Client im Fehlerstatus - aus und wieder an (Versuch ' . $this->ReadAttributeIntegerSafe('WsFehler') . ')', 0);
+        IPS_RunScriptText($script);
+        // Rückfall: bleibt der Client im Fehlerstatus ohne neuen Statuswechsel, kommt der Takt erneut.
+        $this->SetTimerInterval('WsReconnect', $this->ReconnectDelay(max(1, $this->ReadAttributeIntegerSafe('WsFehler'))) * 1000);
     }
 
     // ---------------------------------------------------------------------
