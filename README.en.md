@@ -3,7 +3,7 @@
 # TibberGridRewards for Symcon
 
 ![Symcon](https://img.shields.io/badge/Symcon-PHPModul-blue)
-![Module Version](https://img.shields.io/badge/Module_Version-2.11.1-blue)
+![Module Version](https://img.shields.io/badge/Module_Version-2.12.0-blue)
 ![Symcon Version](https://img.shields.io/badge/Symcon_Version-9.0%2B-blue)
 ![License](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-lightgrey)
 [![Check Style](https://github.com/DG65/NRGTibberGridRewards/actions/workflows/check-style.yml/badge.svg)](https://github.com/DG65/NRGTibberGridRewards/actions/workflows/check-style.yml)
@@ -386,8 +386,8 @@ is available in the `GetPriceCurve()` contract via `start`/`end` – consumers m
 
 ### Archive price history (invoice check)
 
-With the **“Archive price history”** checkbox, the module enables archiving of the
-“Current price” variable and thereby builds a gap-free price history – the basis for recalculating a
+With the **“📈 Enable archiving of the price”** button (panel “Price curve”) you enable archiving of the
+“Current price” variable and thereby build a gap-free price history – the basis for recalculating a
 Tibber invoice later.
 
 To make this reliable, the price is switched **exactly at the change of the hour or quarter hour**
@@ -396,15 +396,16 @@ Neither is a detail: if the price were only updated in the 20-minute grid of the
 request, the change in the archive would be off by up to 20 minutes; rounding to 3 places
 would already amount to about 0.3 ct/kWh deviation.
 
-**Without this checkbox there is no price look-back.** `TIBBERGR_GetPriceCurve()` deliberately returns only
+**Without archiving there is no price look-back.** `TIBBERGR_GetPriceCurve()` deliberately returns only
 today and tomorrow; everything in the past comes from the archive. This concerns not only invoice checking,
 but also the historical price curve in evaluations and tiles of other modules (e.g. the
 monitoring of [InverterHub](https://github.com/DG65/NRGInverterHub), which draws the look-back from this
-archived variable and the preview from the function). Recording starts **from the moment you set
-the checkbox** – there is no data retroactively.
+archived variable and the preview from the function). Recording starts **from the moment you click
+the button** – there is no data retroactively.
 
-> **Note:** The checkbox only switches archiving **on**. If it is cleared again, archiving that is already running
-> stays in place – otherwise the recording would silently break off.
+> **Note:** The module never enables archiving by itself, only when you click (since 2.12.0; before that there
+> was a checkbox). The button only switches archiving **on**, never off – archiving that is already running
+> stays in place, otherwise the recording would silently break off.
 > To switch it off, remove archiving directly at the variable.
 
 > **What is still missing:** A complete invoice check needs not only the price but also the

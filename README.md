@@ -1,7 +1,7 @@
 # TibberGridRewards für Symcon
 
 ![Symcon](https://img.shields.io/badge/Symcon-PHPModul-blue)
-![Modul Version](https://img.shields.io/badge/Modul_Version-2.11.1-blue)
+![Modul Version](https://img.shields.io/badge/Modul_Version-2.12.0-blue)
 ![Symcon Version](https://img.shields.io/badge/Symcon_Version-9.0%2B-blue)
 ![License](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-lightgrey)
 [![Check Style](https://github.com/DG65/NRGTibberGridRewards/actions/workflows/check-style.yml/badge.svg)](https://github.com/DG65/NRGTibberGridRewards/actions/workflows/check-style.yml)
@@ -393,8 +393,8 @@ annehmen, sondern lesen die Dauer aus `end − start`.
 
 ### Preisverlauf archivieren (Rechnungsprüfung)
 
-Mit dem Häkchen **„Preisverlauf archivieren“** aktiviert das Modul die Archivierung der Variable
-„Aktueller Preis“ und legt so eine lückenlose Preishistorie an – die Grundlage, um später eine
+Mit dem Knopf **„📈 Archivierung des Preises einschalten“** (Panel „Preiskurve“) aktivierst du die
+Archivierung der Variable „Aktueller Preis“ und legst so eine lückenlose Preishistorie an – die Grundlage, um später eine
 Tibber-Rechnung nachzurechnen.
 
 Damit das belastbar ist, wird der Preis **exakt zum Stunden- bzw. Viertelstundenwechsel** umgeschaltet
@@ -403,15 +403,16 @@ geführt. Beides ist kein Detail: Würde der Preis nur im 20-Minuten-Raster der 
 nachgezogen, läge der Wechsel im Archiv um bis zu 20 Minuten daneben; eine Rundung auf 3 Stellen
 entspräche bereits rund 0,3 ct/kWh Abweichung.
 
-**Ohne dieses Häkchen gibt es keinen Preis-Rückblick.** `TIBBERGR_GetPriceCurve()` liefert bewusst nur
+**Ohne Archivierung gibt es keinen Preis-Rückblick.** `TIBBERGR_GetPriceCurve()` liefert bewusst nur
 heute und morgen; alles Vergangene kommt aus dem Archiv. Das betrifft nicht nur die Rechnungsprüfung,
 sondern auch die historische Preiskurve in Auswertungen und Kacheln anderer Module (z. B. dem
 Monitoring von [InverterHub](https://github.com/DG65/NRGInverterHub), das den Rückblick aus dieser
-archivierten Variable zeichnet und die Vorschau aus der Funktion). Aufgezeichnet wird **ab dem Setzen
-des Häkchens** – rückwirkend gibt es keine Daten.
+archivierten Variable zeichnet und die Vorschau aus der Funktion). Aufgezeichnet wird **ab dem Klick
+auf den Knopf** – rückwirkend gibt es keine Daten.
 
-> **Hinweis:** Das Häkchen schaltet die Archivierung nur **ein**. Wird es wieder entfernt, bleibt eine
-> bereits laufende Archivierung bestehen – andernfalls würde die Aufzeichnung stillschweigend abreißen.
+> **Hinweis:** Das Modul schaltet die Archivierung nie von selbst ein, sondern nur auf deinen Klick (seit
+> 2.12.0; vorher gab es dafür ein Häkchen). Der Knopf schaltet sie nur **ein**, nie aus – eine bereits
+> laufende Archivierung bleibt bestehen, sonst würde die Aufzeichnung stillschweigend abreißen.
 > Zum Abschalten die Archivierung direkt an der Variable entfernen.
 
 > **Was noch fehlt:** Für eine vollständige Rechnungsprüfung braucht es neben dem Preis auch den

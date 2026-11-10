@@ -56,7 +56,7 @@ class TibberGridReward extends IPSModule
 
     // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik") - NEWS_VERSION bei jedem
     // Release mit nutzerrelevanten Änderungen synchron zur library.json-Version halten.
-    private const NEWS_VERSION = '2.11.1';
+    private const NEWS_VERSION = '2.12.0';
     private const FORUM_THREAD_URL = 'https://community.symcon.de/t/modul-tibber-grid-rewards-grid-reward-signal-wallbox-ems-aufbereitung-fuer-ip-symcon/143996';
 
     // Verbund-Konvention "Über dieses Modul" (SUITE.md Punkt 5) - main trägt seit 2.9.3 den
@@ -182,7 +182,7 @@ class TibberGridReward extends IPSModule
         // Preisauflösung: 'auto' (viertelstündlich mit Rückfall auf stündlich), 'quarter', 'hourly'.
         $this->RegisterPropertyString('PriceResolution', 'auto');
         // Archivierung des Preisverlaufs (Grundlage für eine spätere Rechnungsprüfung).
-        $this->RegisterPropertyBoolean('ArchivePrice', false);
+        $this->RegisterPropertyBoolean('ArchivePrice', false); // ungenutzt seit 2.12.0 (Archivierung nur noch per Knopf, SUITE.md Punkt 19/29)
 
         // Demo-Override für GetPriceCurve() (Dashboard-Anfrage, 01.09.2026, für demo.gureth.eu):
         // ersetzt die ECHTE Preiskurve durch eine manuell gesetzte, NUR wenn dieses Property explizit
@@ -443,6 +443,7 @@ class TibberGridReward extends IPSModule
             'type' => 'ExpansionPanel', 'name' => 'NewsPanel', 'expanded' => true,
             'caption' => '🆕  New in this version',
             'items' => [
+                ['type' => 'Label', 'caption' => '• 📈 Archiving: the module no longer enables archiving of the price by itself. The tick “Archive price history” is replaced by the button “📈 Enable archiving of the price” in the panel “Price curve” (Symcon store guideline: logging belongs to the user). Archiving that is already running is not affected.'],
                 ['type' => 'Label', 'caption' => '• 🔧 Connection: if the connection to Tibber drops and stays in an error state, the module now reconnects by itself (5 s, 10 s, 20 s … up to 5 min). Before, it could stay disconnected until the next restart.'],
                 ['type' => 'Label', 'caption' => '• 🌍 New: the module now speaks German and English — the configuration form, the status texts and the tile follow the Symcon language.'],
                 ['type' => 'Label', 'caption' => '• 🆕 Set departure time/charge target: TIBBERGR_SetVehicleSetting() writes a preference (departure time per weekday, minimum charge level, smart charging on/off) directly into Tibber’s own algorithm — for EMS/automations, no form field of its own.'],
@@ -719,7 +720,7 @@ class TibberGridReward extends IPSModule
 
     /**
      * Tatsächlicher Archivierungszustand der Preisvariable als Klartext fürs Formular. Nötig, weil die
-     * Archivierung an mehreren Stellen eingeschaltet werden kann (Häkchen hier, Archivierung direkt an
+     * Archivierung an mehreren Stellen eingeschaltet werden kann (Knopf hier, Archivierung direkt an
      * der Variable, Knopf in einem Partnermodul) - ohne Anzeige wüsste man nie, ob sie nun läuft.
      */
     private function GetArchiveStatusText(): string
@@ -1178,7 +1179,6 @@ class TibberGridReward extends IPSModule
     {
         $this->MaintainVariable('CurrentPrice', $this->Translate('Current price'), VARIABLETYPE_FLOAT, 'Tibber.PricePerKWh', 100, true);
         $this->MaintainVariable('CurrentPriceLevel', $this->Translate('Current price level'), VARIABLETYPE_STRING, '', 101, true);
-        $this->EnsurePriceArchiving();
 
         $token = $this->GetPriceApiToken();
         if ($token === '') {
@@ -1335,34 +1335,34 @@ class TibberGridReward extends IPSModule
     }
 
     /**
-     * Aktiviert bei Bedarf die Archivierung des Preises. Schaltet bewusst NUR ein, nie aus: hat der
-     * Nutzer die Archivierung selbst gesetzt, darf ein deaktiviertes Häkchen sie nicht stillschweigend
-     * wieder entfernen (und damit die bisherige Historie vom weiteren Mitschreiben abschneiden).
+     * Knopf im Formular: schaltet die Archivierung der Preisvariable ein (SUITE.md Punkt 19/29: Logging
+     * liegt in der Hoheit des Benutzers - das Modul schaltet es nie von selbst ein, nur auf diesen Klick).
+     * Schaltet bewusst NUR ein, nie aus: hat der Nutzer die Archivierung selbst gesetzt, darf der Knopf
+     * sie nicht entfernen (und damit die bisherige Historie vom weiteren Mitschreiben abschneiden).
      */
-    private function EnsurePriceArchiving(): void
+    public function EnableArchiving(): string
     {
-        if (!$this->ReadPropertyBooleanSafe('ArchivePrice')) {
-            return;
-        }
         $vid = @IPS_GetObjectIDByIdent('CurrentPrice', $this->InstanceID);
         if ($vid === false || $vid <= 0) {
-            return;
+            return $this->Translate('The "Current price" variable does not exist yet - enter the access token and select a home first.');
         }
         $archives = IPS_GetInstanceListByModuleID(self::ARCHIVE_MODULE);
         if (count($archives) === 0) {
-            $this->SendDebug(__FUNCTION__, 'Kein Archive Control gefunden - Archivierung nicht möglich', 0);
-            return;
+            return $this->Translate('No archive control found - archiving is not possible.');
         }
         $archive = (int) $archives[0];
         if (AC_GetLoggingStatus($archive, $vid)) {
-            return; // bereits aktiv
+            $this->UpdateFormField('ArchiveStatus', 'caption', $this->GetArchiveStatusText());
+            return $this->Translate('Archiving is already active.');
         }
         AC_SetLoggingStatus($archive, $vid, true);
         // 0 = Standard (Mittelwertbildung), NICHT Zähler: ein Preis ist ein Momentanwert, keine
         // aufsummierte Größe.
         AC_SetAggregationType($archive, $vid, 0);
         IPS_ApplyChanges($archive);
-        $this->SendDebug(__FUNCTION__, 'Archivierung für "Aktueller Preis" aktiviert (Variable ' . $vid . ')', 0);
+        $this->SendDebug(__FUNCTION__, 'Archivierung für "Aktueller Preis" auf Knopfdruck aktiviert (Variable ' . $vid . ')', 0);
+        $this->UpdateFormField('ArchiveStatus', 'caption', $this->GetArchiveStatusText());
+        return $this->Translate('✅ Archiving enabled - the price history is recorded from now on.');
     }
 
     /**

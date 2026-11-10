@@ -7,7 +7,7 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Version 2.11.1."
+          "caption": "Version 2.12.0."
         },
         {
           "type": "Label",
@@ -63,7 +63,7 @@
         },
         {
           "type": "Label",
-          "caption": "Panel “💶 Price curve (official Tibber API)”: optional, independent of Grid Rewards. With an access token (developer.tibber.com/settings/access-token, called “Personal Access Token” there) the module delivers the complete Tibber end-customer price – including any time-variable grid fees (e.g. §14a module 3), not just the pure spot price – as a price curve for price-driven automations/EMS (function TIBBERGR_GetPriceCurve). The convenience variables “Current price” / “Current price level” show the period that is running now; the price level is still Tibber's own classification, not a general assessment – the actual classification for automations should be done uniformly in the EMS. The curve is requested again every 20 minutes so that tomorrow's prices are picked up promptly once Tibber publishes them (usually between 1 and 2 pm); the displayed price itself changes exactly at the change of the hour or quarter hour. With the checkbox “Archive price history” this builds a gap-free price history as the basis for an invoice check."
+          "caption": "Panel “💶 Price curve (official Tibber API)”: optional, independent of Grid Rewards. With an access token (developer.tibber.com/settings/access-token, called “Personal Access Token” there) the module delivers the complete Tibber end-customer price – including any time-variable grid fees (e.g. §14a module 3), not just the pure spot price – as a price curve for price-driven automations/EMS (function TIBBERGR_GetPriceCurve). The convenience variables “Current price” / “Current price level” show the period that is running now; the price level is still Tibber's own classification, not a general assessment – the actual classification for automations should be done uniformly in the EMS. The curve is requested again every 20 minutes so that tomorrow's prices are picked up promptly once Tibber publishes them (usually between 1 and 2 pm); the displayed price itself changes exactly at the change of the hour or quarter hour. With the button “📈 Enable archiving of the price” this builds a gap-free price history as the basis for an invoice check."
         },
         {
           "type": "Label",
@@ -175,9 +175,9 @@
           "caption": "Since 1 October 2025 Tibber has billed quarter-hourly in Germany. “Automatic” requests the finer 15-minute prices and falls back to hourly values if the tariff does not provide them. Only change this if the automatic detection does not give the result you want."
         },
         {
-          "type": "CheckBox",
-          "name": "ArchivePrice",
-          "caption": "Archive price history (basis for an invoice check)"
+          "type": "Button",
+          "caption": "📈 Enable archiving of the price (basis for an invoice check)",
+          "onClick": "echo TIBBERGR_EnableArchiving($id);"
         },
         {
           "type": "Label",
@@ -186,7 +186,7 @@
         },
         {
           "type": "Label",
-          "caption": "The checkbox above enables archiving of the variable “Current price” – you can also switch it on directly at the variable (in the object tree right-click “Current price” → Archiving). The price is switched exactly at the change of the hour/quarter hour, so the archived history reproduces the price steps with exact timing. IMPORTANT: without archiving there is no price look-back – the function TIBBERGR_GetPriceCurve only returns today and tomorrow, any analysis of the past (invoice check, historical price curve in tiles such as the InverterHub monitoring) is fed from the archive. Recording only starts at the moment you switch it on, nothing is recorded retroactively. The checkbox only switches archiving ON – archiving that was enabled elsewhere is not switched off when you clear the checkbox (otherwise further recording would silently be lost); to switch it off, remove archiving directly at the variable."
+          "caption": "The button above enables archiving of the variable “Current price” – you can also switch it on directly at the variable (in the object tree right-click “Current price” → Archiving). The price is switched exactly at the change of the hour/quarter hour, so the archived history reproduces the price steps with exact timing. IMPORTANT: without archiving there is no price look-back – the function TIBBERGR_GetPriceCurve only returns today and tomorrow, any analysis of the past (invoice check, historical price curve in tiles such as the InverterHub monitoring) is fed from the archive. Recording only starts at the moment you switch it on, nothing is recorded retroactively. The button only switches archiving ON and never off – archiving that was enabled elsewhere stays in place (otherwise further recording would silently be lost); to switch it off, remove archiving directly at the variable. The module never enables archiving by itself, only when you click the button."
         }
       ]
     },

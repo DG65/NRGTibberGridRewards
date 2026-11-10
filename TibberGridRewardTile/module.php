@@ -84,6 +84,11 @@ class TibberGridRewardTile extends IPSModule
 
         // Als HTML-Kachel-Visualisierung anmelden
         $this->SetVisualizationType(1);
+
+        // Abgleich mit der Datenquelle nicht in ApplyChanges, sondern verzögert/nach dem Start
+        // (SUITE.md Punkt 27: beim Neuladen von Modulen können die anderen Instanzen noch fehlen).
+        $this->RegisterTimer('SourceSync', 0, 'TGRTILE_SourceSync($_IPS[\'TARGET\']);');
+        $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
 
     public function Destroy()
@@ -140,6 +145,25 @@ class TibberGridRewardTile extends IPSModule
 
         $this->SetVisualizationType(1);
 
+        // Die Datenquelle (andere Instanz) wird hier bewusst NICHT angefasst (SUITE.md Punkt 27): beim
+        // Neuladen von Modulen kann sie noch nicht geladen sein, die Kachel bliebe dann ohne
+        // Abonnement stehen. Der Abgleich läuft kurz danach über den Timer SourceSync bzw. beim
+        // Kernelstart (KR_READY) und wiederholt sich, bis die Quelle da ist.
+        $this->SetBuffer('SourceTries', '0');
+        $this->SetTimerInterval('SourceSync', IPS_GetKernelRunlevel() === KR_READY ? 1000 : 0);
+    }
+
+    /**
+     * Abgleich mit der Datenquelle: Quelle bestimmen, auf deren Variablen lauschen, Status setzen und
+     * die Kachel aktualisieren. Läuft über den Timer SourceSync (kurz nach ApplyChanges) und beim
+     * Kernelstart; findet sich die Quelle (noch) nicht, wird bis zu 12-mal im Abstand von 10 s
+     * wiederholt (Neuladen von Modulen), danach gilt „keine Quelle“, bis zum nächsten Übernehmen.
+     */
+    public function SourceSync(): void
+    {
+        if (IPS_GetKernelRunlevel() !== KR_READY || !IPS_InstanceExists($this->InstanceID)) {
+            return;
+        }
         // Bisherige VM_UPDATE-Registrierungen lösen
         foreach ($this->GetMessageList() as $senderID => $messages) {
             foreach ($messages as $msg) {
@@ -163,8 +187,12 @@ class TibberGridRewardTile extends IPSModule
                 }
             }
             $this->SetStatus(102);
+            $this->SetTimerInterval('SourceSync', 0);
         } else {
             $this->SetStatus(104);
+            $tries = (int) $this->GetBuffer('SourceTries') + 1;
+            $this->SetBuffer('SourceTries', (string) $tries);
+            $this->SetTimerInterval('SourceSync', $tries <= 12 ? 10000 : 0);
         }
 
         $this->UpdateVisualizationValue($this->GetFullUpdateMessage());
@@ -181,6 +209,8 @@ class TibberGridRewardTile extends IPSModule
         try {
             if ($Message === VM_UPDATE) {
                 $this->UpdateVisualizationValue($this->GetFullUpdateMessage());
+            } elseif ($Message === IPS_KERNELMESSAGE && ($Data[0] ?? null) === KR_READY) {
+                $this->SourceSync();
             }
         } catch (Throwable $e) {
             $this->SendDebug(__FUNCTION__, 'Ausnahme bei Message ' . $Message . ': ' . $e->getMessage(), 0);

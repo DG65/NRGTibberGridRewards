@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.12.0
+
+- **Store-Punkt 29 / 19: Archivierung nur auf Klick** (Symcon-Review Dashboard 19645 und weitere:
+  „Logging liegt in der Hoheit des Benutzers“). Das Datenmodul schaltete die Archivierung der
+  Preisvariable bisher selbst ein, sobald das Häkchen „Preisverlauf archivieren“ gesetzt war
+  (in `ApplyChanges`/beim Preisabruf). Jetzt gibt es statt des Häkchens den Knopf
+  „📈 Archivierung des Preises einschalten“ (`TIBBERGR_EnableArchiving()`) mit sichtbarer
+  Rückmeldung und aktualisierter Statuszeile. Er schaltet nur ein, nie aus. Eine schon laufende
+  Archivierung bleibt bestehen (nichts wird zurückgenommen). Die Property `ArchivePrice` bleibt
+  als Altlast registriert (keine Migration nötig), wirkt aber nicht mehr.
+- **Store-Punkt 27: Kachel gleicht die Datenquelle nicht mehr in `ApplyChanges` ab.** Beim Neuladen
+  von Modulen kann die Datenmodul-Instanz noch nicht geladen sein; die Kachel hatte dann kein
+  Abonnement und blieb auf „Keine Quelle“, bis jemand übernahm. Neu: `ApplyChanges` plant nur den
+  Timer `SourceSync` (1 s, öffentlich `TGRTILE_SourceSync()`); der Abgleich (Quelle bestimmen, auf
+  Variablen lauschen, Status setzen, Kachel aktualisieren) läuft dort und beim Kernelstart
+  (`KR_READY`) und wiederholt sich bei fehlender Quelle bis zu 12-mal im Abstand von 10 s.
+- Neuer Prüfstand `.tools/test-review-27-29.php` (18 Prüfungen; gegen den Stand 2.11.1 schlagen die
+  27er-Prüfungen an).
+- Hinweis „📈 Archivierung“ im Neu-Panel des Datenmoduls.
+
 ## 2.11.1
 
 - **Datenmodul verbindet sich im Fehlerstatus selbst neu** (SUITE.md Stolperstein 27, Fund
