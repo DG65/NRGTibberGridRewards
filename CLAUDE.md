@@ -428,6 +428,8 @@ ohne Kenntnis der Modul-GUID finden. Additiv (Minor-Erhöhung, kein Bruch), glei
 `contractVersion` (Liste: je Eintrag, Map: oben). Werte: `GetPriceCurve` = `'price'`,
 `GetTariffConfig` = `'tariff'`, `GetFlexDevices`/`GetActiveControls` = `'flex'` (Konstanten
 `CONTRACT_TYPE_*`). Das vorhandene Feld `type` (`vehicle`|`battery`) bleibt daneben unverändert.
+`GetPriceCurve` trägt zusätzlich je Slot das optionale `updatedAt` (Unix, Zeitpunkt des letzten
+Abrufs der Kurve = Frischemarke; fehlt der Abrufzeitpunkt, bleibt das Feld weg).
 `SetVehicleSetting`/`DecomposePrice`/`SetDemoPriceCurve` sind reine Funktionen und tragen keinen
 `contractType`. Kein `failsafeSec`: Tibber steuert über den eigenen Ablauf, dieses Modul schreibt
 nichts auf fremde Geräte. Anleitung für andere Preismodule: `EIGENES_PREISMODUL.md` (im Repo-Wurzelordner, nicht in einem Unterordner: die Store-Prüfung scannt jeden Top-Level-Ordner als Modul-Kandidaten).

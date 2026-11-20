@@ -7,7 +7,9 @@
   auch ohne Kenntnis der Modul-GUID. Rein additiv, nur Minor-Erhöhung, die Major bleibt je Vertrag
   gleich:
   - `TIBBERGR_GetPriceCurve` **1.2**: `contractType = 'price'`, je Slot (Listen-Vertrag, wie
-    `contractVersion`; auch bei der Demo-Preiskurve).
+    `contractVersion`; auch bei der Demo-Preiskurve). Dazu das optionale Feld `updatedAt` (Unix-
+    Sekunden): Zeitpunkt des letzten Abrufs der Kurve bei Tibber, als Frischemarke für Konsumenten
+    (Wunsch EMS). Fehlt der Abrufzeitpunkt, bleibt das Feld weg, es wird nichts erfunden.
   - `TIBBERGR_GetTariffConfig` **1.2**: `contractType = 'tariff'`, oben (Map-Vertrag).
   - `TIBBERGR_GetFlexDevices` **1.1** und `TIBBERGR_GetActiveControls` **2.1**:
     `contractType = 'flex'`, je Eintrag. Das vorhandene Feld `type` (`vehicle`|`battery`) bleibt
@@ -18,7 +20,8 @@
   gemeinsamen `price`-Vertrag für Autoren anderer Preismodule (Referenz: `TIBBERGR_GetPriceCurve`
   und `SPOT_GetPriceCurve`). Bewusst nicht in einem Unterordner: Die Store-Prüfung scannt jeden
   Top-Level-Ordner als Modul-Kandidaten.
-- Neuer Prüfstand `.tools/test-contracts.php` (15 Prüfungen; gegen den Stand 2.12.0 schlagen 6 an).
+- Neuer Prüfstand `.tools/test-contracts.php` (17 Prüfungen; gegen den Stand 2.12.0 schlagen die
+  Prüfungen zu `contractType` und `updatedAt` an).
 
 ## 2.12.0
 

@@ -55,6 +55,11 @@ expect('Preiskurve: Kernfelder unverändert (start/end/price/basis/netzentgelt/l
     $curve[0]['start'] === 1794092400 && $curve[0]['end'] === 1794093300 && $curve[0]['price'] === 31.42
     && $curve[0]['basis'] === 'endkunde' && $curve[0]['netzentgelt'] === 'enthalten' && array_key_exists('level', $curve[0]) && $curve[0]['level'] === null);
 expect('Preiskurve: kein contractType/contractVersion auf oberster Ebene (Liste bleibt iterierbar)', array_keys($curve) === [0, 1]);
+expect('Preiskurve: updatedAt (Unix, Abrufzeitpunkt) je Slot, gleicher Wert', count(array_filter($curve, fn($s) => is_int($s['updatedAt'] ?? null) && abs($s['updatedAt'] - time()) < 5)) === 2);
+$S['attrs']['PriceCache'] = json_encode(['fetchedAt' => 0, 'slots' => [['start' => 1, 'end' => 2, 'price' => 1.0, 'basis' => 'endkunde', 'netzentgelt' => 'enthalten', 'level' => null]]]);
+$S['attrs']['PriceLastTry'] = time(); // kein Nachladen anstoßen
+$noStamp = $m->GetPriceCurve();
+expect('Preiskurve: ohne Abrufzeitpunkt bleibt das optionale updatedAt weg (kein erfundener Wert)', !array_key_exists('updatedAt', $noStamp[0] ?? []));
 
 // Demo-Override
 $S['props']['DemoOverrideEnabled'] = true;

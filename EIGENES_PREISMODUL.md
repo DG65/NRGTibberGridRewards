@@ -33,6 +33,7 @@ keine lückenlose Abdeckung an.
 | `level` | null | Bewusst immer `null`: Die Einstufung „günstig/teuer“ trifft der Konsument einheitlich |
 | `contractVersion` | string | `Major.Minor`, derzeit `1.2` |
 | `contractType` | string | immer `price` |
+| `updatedAt` | int | *optional:* Unix-Sekunden, wann das Modul die Kurve zuletzt von der Quelle geholt hat (Frischemarke) |
 
 Optionale, quellenspezifische Zusatzfelder sind erlaubt (Tibber: `level_tibber`, `components`; Börsenpreis:
 `quelle`, `aufloesung`). Konsumenten dürfen sie ignorieren.
@@ -55,7 +56,7 @@ Optionale, quellenspezifische Zusatzfelder sind erlaubt (Tibber: `level_tibber`,
   [
     'start' => 1794092400, 'end' => 1794093300, 'price' => 31.42,
     'basis' => 'endkunde', 'netzentgelt' => 'enthalten', 'level' => null,
-    'contractVersion' => '1.2', 'contractType' => 'price',
+    'contractVersion' => '1.2', 'contractType' => 'price', 'updatedAt' => 1794092000,
   ],
 ]
 ```
@@ -92,6 +93,7 @@ One entry per period (hour or quarter hour). Gaps are allowed; consumers do not 
 | `level` | null | Deliberately always `null`: the consumer classifies “cheap/expensive” uniformly |
 | `contractVersion` | string | `major.minor`, currently `1.2` |
 | `contractType` | string | always `price` |
+| `updatedAt` | int | *optional:* Unix seconds of when the module last fetched the curve from its source (freshness marker) |
 
 Optional source-specific extra fields are allowed (Tibber: `level_tibber`, `components`; exchange price:
 `quelle`, `aufloesung`). Consumers may ignore them.
@@ -114,7 +116,7 @@ Optional source-specific extra fields are allowed (Tibber: `level_tibber`, `comp
   [
     'start' => 1794092400, 'end' => 1794093300, 'price' => 31.42,
     'basis' => 'endkunde', 'netzentgelt' => 'enthalten', 'level' => null,
-    'contractVersion' => '1.2', 'contractType' => 'price',
+    'contractVersion' => '1.2', 'contractType' => 'price', 'updatedAt' => 1794092000,
   ],
 ]
 ```

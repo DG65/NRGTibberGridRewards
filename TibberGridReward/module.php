@@ -1571,6 +1571,10 @@ class TibberGridReward extends IPSModule
         }
 
         $slots = $this->GetCachedPriceSlots();
+        // Abrufzeitpunkt der Kurve (Unix) als Frischemarke je Slot; nach einem eventuellen Nachladen
+        // oben frisch aus dem Cache gelesen. Fehlt er (0), bleibt das optionale Feld weg.
+        $cacheNow = json_decode($this->ReadAttributeStringSafe('PriceCache'), true);
+        $updatedAt = is_array($cacheNow) ? (int) ($cacheNow['fetchedAt'] ?? 0) : 0;
         $tariff = $this->ReadPropertyBooleanSafe('TariffEnabled');
         // contractVersion additiv JE SLOT (nicht als Top-Level-Feld): GetPriceCurve liefert eine
         // Liste, ein Top-Level-Schlüssel bräche die Iteration der Konsumenten. Auf leerer Liste fehlt
@@ -1580,6 +1584,9 @@ class TibberGridReward extends IPSModule
         foreach ($slots as &$slot) {
             $slot['contractVersion'] = self::CONTRACT_PRICECURVE;
             $slot['contractType'] = self::CONTRACT_TYPE_PRICE;
+            if ($updatedAt > 0) {
+                $slot['updatedAt'] = $updatedAt;
+            }
             if ($tariff) {
                 $slot['components'] = $this->ComputePriceComponents($slot);
                 $slot['vat'] = self::VAT_PERCENT;
