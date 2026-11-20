@@ -47,12 +47,20 @@ class TibberGridReward extends IPSModule
 
     // Vertragsversionen "Major.Minor" (Verbund-Konvention, SUITE.md im EMS-Repo). Kompatibilität nur
     // innerhalb derselben Major; Major NUR bei Bruch, Minor bei additiver Erweiterung.
-    private const CONTRACT_PRICECURVE     = '1.1'; // 1.0 Basis-Kurve, 1.1 + components/vat/tibberEnergy/tibberTax
-    private const CONTRACT_TARIFFCONFIG   = '1.1'; // 1.0 fixe Positionen, 1.1 + campaigns
-    private const CONTRACT_ACTIVECONTROLS = '2.0'; // 1.0 deviceId immer 0 (int), 2.0 = echte Tibber-vehicleId/batteryId (string)
+    private const CONTRACT_PRICECURVE     = '1.2'; // 1.0 Basis-Kurve, 1.1 + components/vat/tibberEnergy/tibberTax, 1.2 + contractType
+    private const CONTRACT_TARIFFCONFIG   = '1.2'; // 1.0 fixe Positionen, 1.1 + campaigns, 1.2 + contractType
+    private const CONTRACT_ACTIVECONTROLS = '2.1'; // 1.0 deviceId immer 0 (int), 2.0 = echte Tibber-vehicleId/batteryId (string), 2.1 + contractType
     private const CONTRACT_SETVEHICLESETTING = '1.0';
     private const CONTRACT_DECOMPOSEPRICE = '1.0';
-    private const CONTRACT_FLEXDEVICES = '1.0';
+    private const CONTRACT_FLEXDEVICES = '1.1'; // 1.0 Basis, 1.1 + contractType
+
+    // Selbstbeschreibung der Verträge (SUITE.md "Fremdanbindung: Module anderer Autoren", 20.11.2026):
+    // `contractType` benennt die Art der Quelle, damit Konsumenten (EMS) Verträge auch ohne Kenntnis
+    // der Modul-GUID finden. Additiv zu `contractVersion` (Minor-Erhöhung, kein Bruch). Bei Listen-
+    // Verträgen je Eintrag, bei Map-Verträgen oben - dieselbe Platzierungsregel wie contractVersion.
+    private const CONTRACT_TYPE_PRICE  = 'price';
+    private const CONTRACT_TYPE_TARIFF = 'tariff';
+    private const CONTRACT_TYPE_FLEX   = 'flex';
 
     // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik") - NEWS_VERSION bei jedem
     // Release mit nutzerrelevanten Änderungen synchron zur library.json-Version halten.
@@ -1536,6 +1544,7 @@ class TibberGridReward extends IPSModule
             }
             foreach ($demo as &$slot) {
                 $slot['contractVersion'] = $slot['contractVersion'] ?? self::CONTRACT_PRICECURVE;
+                $slot['contractType'] = self::CONTRACT_TYPE_PRICE;
             }
             unset($slot);
             return $demo;
@@ -1570,6 +1579,7 @@ class TibberGridReward extends IPSModule
         // Abfragezeit, nicht im Cache: geänderte Netz-Config bzw. Version wirkt sofort.
         foreach ($slots as &$slot) {
             $slot['contractVersion'] = self::CONTRACT_PRICECURVE;
+            $slot['contractType'] = self::CONTRACT_TYPE_PRICE;
             if ($tariff) {
                 $slot['components'] = $this->ComputePriceComponents($slot);
                 $slot['vat'] = self::VAT_PERCENT;
@@ -1627,6 +1637,7 @@ class TibberGridReward extends IPSModule
     {
         return [
             'contractVersion'           => self::CONTRACT_TARIFFCONFIG,
+            'contractType'              => self::CONTRACT_TYPE_TARIFF,
             'active'                    => $this->ReadPropertyBooleanSafe('TariffEnabled'),
             'vat'                       => self::VAT_PERCENT,
             'taxStand'                  => self::TAX_STAND,
@@ -2124,6 +2135,7 @@ class TibberGridReward extends IPSModule
 
             $out[] = [
                 'contractVersion' => self::CONTRACT_ACTIVECONTROLS,
+                'contractType'    => self::CONTRACT_TYPE_FLEX,
                 'type'            => ($d['__typename'] ?? '') === 'GridRewardBattery' ? 'battery' : 'vehicle',
                 'deviceId'        => (string) ($d['vehicleId'] ?? $d['batteryId'] ?? ''),
                 'name'            => (string) ($d['shortName'] ?? ($d['make'] ?? '?')),
@@ -2148,7 +2160,7 @@ class TibberGridReward extends IPSModule
      * MigrationsHubs eigene Lehre (Match nie über den Namen). deviceId bleibt Tibbers interne
      * UUID, keine VIN, keine lokale Symcon-ID.
      *
-     * Rückgabe je bekanntem Gerät: ['contractVersion'=>'1.0', 'type'=>'vehicle'|'battery',
+     * Rückgabe je bekanntem Gerät: ['contractVersion'=>'1.1', 'contractType'=>'flex', 'type'=>'vehicle'|'battery',
      * 'deviceId'=>string, 'name'=>string, 'make'=>string, 'isPluggedIn'=>bool|null (nur vehicle),
      * 'isSmartChargingEnabled'=>bool|null (nur vehicle), 'isSmartModeEnabled'=>bool|null (nur
      * battery)]. Bewusst Tibbers getrennte Felder je Geräteart übernommen statt zu einem
@@ -2170,6 +2182,7 @@ class TibberGridReward extends IPSModule
             $isBattery = ($d['__typename'] ?? '') === 'GridRewardBattery';
             $out[] = [
                 'contractVersion'        => self::CONTRACT_FLEXDEVICES,
+                'contractType'           => self::CONTRACT_TYPE_FLEX,
                 'type'                   => $isBattery ? 'battery' : 'vehicle',
                 'deviceId'               => (string) ($d['vehicleId'] ?? $d['batteryId'] ?? ''),
                 'name'                   => (string) ($d['shortName'] ?? ($d['make'] ?? '?')),

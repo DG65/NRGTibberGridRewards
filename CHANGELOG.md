@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.13.0
+
+- **Verträge beschreiben sich selbst: neues Feld `contractType`** (SUITE.md „Fremdanbindung: Module
+  anderer Autoren“, Rundschreiben EMS 20.11.2026). Konsumenten wie das EMS finden Verträge damit
+  auch ohne Kenntnis der Modul-GUID. Rein additiv, nur Minor-Erhöhung, die Major bleibt je Vertrag
+  gleich:
+  - `TIBBERGR_GetPriceCurve` **1.2**: `contractType = 'price'`, je Slot (Listen-Vertrag, wie
+    `contractVersion`; auch bei der Demo-Preiskurve).
+  - `TIBBERGR_GetTariffConfig` **1.2**: `contractType = 'tariff'`, oben (Map-Vertrag).
+  - `TIBBERGR_GetFlexDevices` **1.1** und `TIBBERGR_GetActiveControls` **2.1**:
+    `contractType = 'flex'`, je Eintrag. Das vorhandene Feld `type` (`vehicle`|`battery`) bleibt
+    unverändert daneben.
+  - Ohne `contractType` bleiben die reinen Funktionen `SetVehicleSetting`, `DecomposePrice` und
+    `SetDemoPriceCurve`. Kein `failsafeSec`: Das Modul schreibt nichts auf fremde Geräte.
+- **Neu: `EIGENES_PREISMODUL.md`** (Repo-Wurzel, deutsch und englisch): kurze Anleitung zum
+  gemeinsamen `price`-Vertrag für Autoren anderer Preismodule (Referenz: `TIBBERGR_GetPriceCurve`
+  und `SPOT_GetPriceCurve`). Bewusst nicht in einem Unterordner: Die Store-Prüfung scannt jeden
+  Top-Level-Ordner als Modul-Kandidaten.
+- Neuer Prüfstand `.tools/test-contracts.php` (15 Prüfungen; gegen den Stand 2.12.0 schlagen 6 an).
+
 ## 2.12.0
 
 - **Store-Punkt 29 / 19: Archivierung nur auf Klick** (Symcon-Review Dashboard 19645 und weitere:

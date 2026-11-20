@@ -422,16 +422,28 @@ Erweiterung; fehlend = "1.0". Konsumenten prüfen die Mindest-Major, laufen bei 
 standalone weiter, deaktivieren die Kopplung und melden das **sichtbar**. Konstanten:
 `CONTRACT_PRICECURVE`/`CONTRACT_TARIFFCONFIG` — beim Erhöhen nur diese anfassen.
 
-- `GetPriceCurve` = **1.1** (1.0 Basis-Kurve, 1.1 + `components`/`vat`/`tibberEnergy`/`tibberTax`).
+**`contractType` (seit 2.13.0, SUITE.md „Fremdanbindung: Module anderer Autoren“):** Zusätzlich zu
+`contractVersion` benennt `contractType` die Art der Quelle, damit Konsumenten (EMS) Verträge auch
+ohne Kenntnis der Modul-GUID finden. Additiv (Minor-Erhöhung, kein Bruch), gleiche Platzierung wie
+`contractVersion` (Liste: je Eintrag, Map: oben). Werte: `GetPriceCurve` = `'price'`,
+`GetTariffConfig` = `'tariff'`, `GetFlexDevices`/`GetActiveControls` = `'flex'` (Konstanten
+`CONTRACT_TYPE_*`). Das vorhandene Feld `type` (`vehicle`|`battery`) bleibt daneben unverändert.
+`SetVehicleSetting`/`DecomposePrice`/`SetDemoPriceCurve` sind reine Funktionen und tragen keinen
+`contractType`. Kein `failsafeSec`: Tibber steuert über den eigenen Ablauf, dieses Modul schreibt
+nichts auf fremde Geräte. Anleitung für andere Preismodule: `EIGENES_PREISMODUL.md` (im Repo-Wurzelordner, nicht in einem Unterordner: die Store-Prüfung scannt jeden Top-Level-Ordner als Modul-Kandidaten).
+
+- `GetPriceCurve` = **1.2** (1.0 Basis-Kurve, 1.1 + `components`/`vat`/`tibberEnergy`/`tibberTax`, 1.2 + `contractType`).
   **Platzierung: JE SLOT**, nicht als Top-Level-Feld — die Funktion liefert eine Liste, ein
   Top-Level-Schlüssel bräche die Iteration. Auf leerer Liste fehlt die Version (Konsument liest sie
   aus einem Slot oder aus `GetTariffConfig`). Das ist **kein Tibber-Sonderfall**, sondern die
   kanonische SUITE.md-Regel für listen-liefernde Verträge (contractVersion in jedem Eintrag, gleicher
   Wert; kein Umschlag um bestehende Listen) — ebenso bei ChargerHub/HeishaMon/MHUB. Nicht „glattziehen".
-- `GetTariffConfig` = **1.1** (1.0 fixe Positionen, 1.1 + `campaigns`) — Top-Level-Feld (Map-Rückgabe).
+- `GetTariffConfig` = **1.2** (1.0 fixe Positionen, 1.1 + `campaigns`, 1.2 + `contractType`) — Top-Level-Feld (Map-Rückgabe).
 - `GetActiveControls` (seit 2.7.0) trägt `contractVersion`, je Eintrag (Listen-Vertrag, gleiche
-  Regel wie `GetPriceCurve`) — **"2.0" seit 2.8.5** (1.0 `deviceId` immer `0`/int, 2.0 = echte
-  Tibber-`vehicleId`/`batteryId` als string; Bruch, da Typ UND Bedeutung sich ändern).
+  Regel wie `GetPriceCurve`) — **"2.1"** (1.0 `deviceId` immer `0`/int, 2.0 seit 2.8.5 = echte
+  Tibber-`vehicleId`/`batteryId` als string; Bruch, da Typ UND Bedeutung sich ändern; 2.1 seit 2.13.0
+  + `contractType`).
+- `GetFlexDevices` (seit 2.10.0) = **1.1** (1.0 Basis, 1.1 + `contractType`), je Eintrag.
 - `SetVehicleSetting` (seit 2.8.0) trägt `contractVersion` = **"1.0"**, Top-Level-Feld (Map-Rückgabe,
   gleiche Regel wie `GetTariffConfig`).
 - `DecomposePrice` (seit 2.8.4) trägt `contractVersion` = **"1.0"**, Top-Level-Feld (Map-Rückgabe).
